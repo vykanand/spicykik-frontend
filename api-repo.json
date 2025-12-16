@@ -1,0 +1,137 @@
+{
+  "sites": [
+    {
+      "name": "demo",
+      "apis": [
+        {
+          "name": "userApi",
+          "url": "https://jsonplaceholder.typicode.com/users/1",
+          "method": "GET",
+          "headers": {}
+        },
+        {
+          "name": "userlist",
+          "url": "https://jsonplaceholder.typicode.com/users",
+          "method": "GET",
+          "headers": {},
+          "params": {},
+          "bodyTemplate": ""
+        },
+        {
+          "name": "submituser",
+          "url": "https://jsonplaceholder.typicode.com/posts",
+          "method": "POST",
+          "headers": {},
+          "params": {},
+          "bodyTemplate": {
+            "title": "Hello World1",
+            "body": "This is my test post",
+            "userId": 14
+          },
+          "mappingConfig": {
+            "contentType": "application/json",
+            "fieldMappings": [
+              {
+                "responsePath": "{\n  ",
+                "requestField": "{",
+                "location": "body"
+              },
+              {
+                "responsePath": "id",
+                "requestField": "id",
+                "location": "body"
+              }
+            ]
+          }
+        },
+        {
+          "name": "delapi",
+          "url": "https://jsonplaceholder.typicode.com/posts/1",
+          "method": "DELETE",
+          "headers": {},
+          "params": {},
+          "bodyTemplate": ""
+        },
+        {
+          "name": "delApiRaw",
+          "url": "https://jsonplaceholder.typicode.com/posts/1",
+          "method": "DELETE",
+          "headers": {},
+          "params": {},
+          "bodyTemplate": "{   \n\"reason\":\"testingdelete\",   \n\"deletedBy\": \"tester01\"\n }"
+        }
+      ],
+      "mappings": [
+        {
+          "placeholder": "username",
+          "apiName": "userApi",
+          "jsonPath": "name"
+        }
+      ]
+    },
+    {
+      "name": "test-api-site",
+      "apis": [
+        {
+          "name": "get-usershttps://jsonplaceholder.typicode.com/usersget-users",
+          "url": "https://jsonplaceholder.typicode.com/users",
+          "method": "GET",
+          "headers": {},
+          "params": {},
+          "bodyTemplate": null
+        },
+        {
+          "name": "create-user",
+          "url": "https://jsonplaceholder.typicode.com/users",
+          "method": "POST",
+          "headers": {},
+          "params": {},
+          "bodyTemplate": null,
+          "mappingConfig": {
+            "contentType": "application/json",
+            "fieldMappings": [],
+            "rawBodyTemplate": "{\n  \"id\": 11\n}"
+          }
+        }
+      ],
+      "mappings": [],
+      "actions": []
+    },
+    {
+      "name": "snack",
+      "apis": [
+        {
+          "name": "allproducts",
+          "url": "https://chirag-backend-production.up.railway.app/products/api.php",
+          "method": "GET",
+          "headers": {},
+          "params": {
+            "getcontent": "true"
+          },
+          "bodyTemplate": ""
+        },
+        {
+          "name": "filter by category candy",
+          "url": "https://chirag-backend-production.up.railway.app/products/api.php?filters=1",
+          "method": "GET",
+          "headers": {},
+          "params": {
+            "category": "candy"
+          },
+          "bodyTemplate": ""
+        }
+      ],
+      "mappings": []
+    },
+    {
+      "name": "hashimoto",
+      "apis": [],
+      "mappings": []
+    },
+    {
+      "name": "snackbar",
+      "apis": [],
+      "mappings": []
+    }
+  ]
+}

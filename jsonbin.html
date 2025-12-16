@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSONBin.io API Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      margin-bottom: 16px;
+      font-size: 1.5em;
+      color: #fff;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: rgba(255,255,255,0.9);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      font-size: 14px;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+    input::placeholder, textarea::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .btn.secondary {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .btn.danger {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    .btn.success {
+      background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    }
+    .response {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .response.success {
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.1);
+    }
+    .response.error {
+      border-color: #f87171;
+      background: rgba(248, 113, 113, 0.1);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+    .info {
+      background: rgba(59, 130, 246, 0.2);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border-left: 4px solid #3b82f6;
+      font-size: 13px;
+    }
+    code {
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗄️ JSONBin.io API Test Suite</h1>
+    
+    <div class="card">
+      <h2>🔑 API Configuration</h2>
+      <div class="info">
+        These keys are stored in the page and used for all API calls below.
+      </div>
+      <div class="form-group">
+        <label>X-Master-Key</label>
+        <input type="text" id="masterKey" value="$2a$10$Fc5T8KVSWawgZnQ6dclo7O8RXtsBEt.k2v57q0eNdYeqIskqdFDt2" readonly>
+      </div>
+      <div class="form-group">
+        <label>X-Access-Key</label>
+        <input type="text" id="accessKey" value="$2a$10$nX1Het5hM.pkIx8SiLvAc.f/KDMN.zNleV7cCnC7yUZjRxyqc2Ryq" readonly>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>➕ Create New Bin</h2>
+        <div class="info">
+          Create a new bin with sample data. Returns a bin ID.
+        </div>
+        <div class="form-group">
+          <label>Bin Name (optional)</label>
+          <input type="text" id="createBinName" placeholder="my-config">
+        </div>
+        <div class="form-group">
+          <label>Initial JSON Data</label>
+          <textarea id="createData">{"sites": [], "config": {"productionFolder": "production", "activePrototype": null}}</textarea>
+        </div>
+        <button class="btn" onclick="createBin()">Create Bin</button>
+        <div id="createResponse" class="response" style="display:none;"></div>
+      </div>
+
+      <div class="card">
+        <h2>📖 Read Bin</h2>
+        <div class="info">
+          Retrieve data from an existing bin using its ID.
+        </div>
+        <div class="form-group">
+          <label>Bin ID</label>
+          <input type="text" id="readBinId" placeholder="67495e9ead19ca34f8d90aab">
+        </div>
+        <button class="btn secondary" onclick="readBin()">Read Bin</button>
+        <div id="readResponse" class="response" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>✏️ Update Bin</h2>
+        <div class="info">
+          Replace the entire content of a bin.
+        </div>
+        <div class="form-group">
+          <label>Bin ID</label>
+          <input type="text" id="updateBinId" placeholder="67495e9ead19ca34f8d90aab">
+        </div>
+        <div class="form-group">
+          <label>New JSON Data</label>
+          <textarea id="updateData">{"sites": [{"name": "demo", "apis": []}], "updated": true}</textarea>
+        </div>
+        <button class="btn" onclick="updateBin()">Update Bin</button>
+        <div id="updateResponse" class="response" style="display:none;"></div>
+      </div>
+
+      <div class="card">
+        <h2>🗑️ Delete Bin</h2>
+        <div class="info">
+          Permanently delete a bin. Cannot be undone!
+        </div>
+        <div class="form-group">
+          <label>Bin ID</label>
+          <input type="text" id="deleteBinId" placeholder="67495e9ead19ca34f8d90aab">
+        </div>
+        <button class="btn danger" onclick="deleteBin()">Delete Bin</button>
+        <div id="deleteResponse" class="response" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📋 List All Bins</h2>
+      <div class="info">
+        List all bins in your account (requires Master Key).
+      </div>
+      <button class="btn success" onclick="listBins()">List All Bins</button>
+      <div id="listResponse" class="response" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>🧪 Quick Test: Full CRUD Workflow</h2>
+      <div class="info">
+        Tests the complete lifecycle: Create → Read → Update → Read → Delete
+      </div>
+      <button class="btn success" onclick="testFullWorkflow()">Run Full Test</button>
+      <div id="workflowResponse" class="response" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://api.jsonbin.io/v3';
+
+    function getKeys() {
+      return {
+        masterKey: document.getElementById('masterKey').value,
+        accessKey: document.getElementById('accessKey').value
+      };
+    }
+
+    function showResponse(elementId, data, isSuccess = true) {
+      const el = document.getElementById(elementId);
+      el.style.display = 'block';
+      el.className = isSuccess ? 'response success' : 'response error';
+      el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    }
+
+    async function createBin() {
+      try {
+        const keys = getKeys();
+        const name = document.getElementById('createBinName').value;
+        const data = JSON.parse(document.getElementById('createData').value);
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'X-Master-Key': keys.masterKey
+        };
+        if (name) headers['X-Bin-Name'] = name;
+
+        const response = await fetch(`${API_BASE}/b`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          showResponse('createResponse', {
+            success: true,
+            binId: result.metadata.id,
+            message: 'Bin created successfully!',
+            fullResponse: result
+          }, true);
+          // Auto-populate read/update fields
+          document.getElementById('readBinId').value = result.metadata.id;
+          document.getElementById('updateBinId').value = result.metadata.id;
+        } else {
+          showResponse('createResponse', result, false);
+        }
+      } catch (err) {
+        showResponse('createResponse', `Error: ${err.message}`, false);
+      }
+    }
+
+    async function readBin() {
+      try {
+        const keys = getKeys();
+        const binId = document.getElementById('readBinId').value;
+
+        if (!binId) {
+          showResponse('readResponse', 'Please enter a Bin ID', false);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE}/b/${binId}/latest`, {
+          headers: {
+            'X-Master-Key': keys.masterKey
+          }
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          showResponse('readResponse', {
+            success: true,
+            data: result.record,
+            metadata: result.metadata
+          }, true);
+        } else {
+          showResponse('readResponse', result, false);
+        }
+      } catch (err) {
+        showResponse('readResponse', `Error: ${err.message}`, false);
+      }
+    }
+
+    async function updateBin() {
+      try {
+        const keys = getKeys();
+        const binId = document.getElementById('updateBinId').value;
+        const data = JSON.parse(document.getElementById('updateData').value);
+
+        if (!binId) {
+          showResponse('updateResponse', 'Please enter a Bin ID', false);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE}/b/${binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': keys.masterKey
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          showResponse('updateResponse', {
+            success: true,
+            message: 'Bin updated successfully!',
+            metadata: result.metadata
+          }, true);
+        } else {
+          showResponse('updateResponse', result, false);
+        }
+      } catch (err) {
+        showResponse('updateResponse', `Error: ${err.message}`, false);
+      }
+    }
+
+    async function deleteBin() {
+      try {
+        const keys = getKeys();
+        const binId = document.getElementById('deleteBinId').value;
+
+        if (!binId) {
+          showResponse('deleteResponse', 'Please enter a Bin ID', false);
+          return;
+        }
+
+        if (!confirm(`Are you sure you want to delete bin ${binId}?`)) {
+          return;
+        }
+
+        const response = await fetch(`${API_BASE}/b/${binId}`, {
+          method: 'DELETE',
+          headers: {
+            'X-Master-Key': keys.masterKey
+          }
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          showResponse('deleteResponse', {
+            success: true,
+            message: 'Bin deleted successfully!',
+            response: result
+          }, true);
+        } else {
+          showResponse('deleteResponse', result, false);
+        }
+      } catch (err) {
+        showResponse('deleteResponse', `Error: ${err.message}`, false);
+      }
+    }
+
+    async function listBins() {
+      try {
+        const keys = getKeys();
+
+        const response = await fetch(`${API_BASE}/c`, {
+          headers: {
+            'X-Master-Key': keys.masterKey
+          }
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          showResponse('listResponse', {
+            success: true,
+            count: result.length || 0,
+            bins: result
+          }, true);
+        } else {
+          showResponse('listResponse', result, false);
+        }
+      } catch (err) {
+        showResponse('listResponse', `Error: ${err.message}`, false);
+      }
+    }
+
+    async function testFullWorkflow() {
+      const log = [];
+      try {
+        const keys = getKeys();
+        log.push('=== Starting Full CRUD Workflow Test ===\n');
+
+        // 1. Create
+        log.push('Step 1: Creating new bin...');
+        const createResponse = await fetch(`${API_BASE}/b`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': keys.masterKey,
+            'X-Bin-Name': 'test-workflow-' + Date.now()
+          },
+          body: JSON.stringify({ test: true, created: new Date().toISOString(), counter: 0 })
+        });
+        const createResult = await createResponse.json();
+        
+        if (!createResponse.ok) throw new Error('Create failed: ' + JSON.stringify(createResult));
+        
+        const binId = createResult.metadata.id;
+        log.push(`✓ Created bin: ${binId}\n`);
+
+        // 2. Read
+        log.push('Step 2: Reading bin...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+        const readResponse = await fetch(`${API_BASE}/b/${binId}/latest`, {
+          headers: { 'X-Master-Key': keys.masterKey }
+        });
+        const readResult = await readResponse.json();
+        
+        if (!readResponse.ok) throw new Error('Read failed: ' + JSON.stringify(readResult));
+        
+        log.push(`✓ Read data: ${JSON.stringify(readResult.record)}\n`);
+
+        // 3. Update
+        log.push('Step 3: Updating bin...');
+        const updateResponse = await fetch(`${API_BASE}/b/${binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': keys.masterKey
+          },
+          body: JSON.stringify({ test: true, updated: new Date().toISOString(), counter: 1 })
+        });
+        const updateResult = await updateResponse.json();
+        
+        if (!updateResponse.ok) throw new Error('Update failed: ' + JSON.stringify(updateResult));
+        
+        log.push(`✓ Updated bin\n`);
+
+        // 4. Read again
+        log.push('Step 4: Reading updated data...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const read2Response = await fetch(`${API_BASE}/b/${binId}/latest`, {
+          headers: { 'X-Master-Key': keys.masterKey }
+        });
+        const read2Result = await read2Response.json();
+        
+        if (!read2Response.ok) throw new Error('Second read failed: ' + JSON.stringify(read2Result));
+        
+        log.push(`✓ Read updated data: ${JSON.stringify(read2Result.record)}\n`);
+
+        // 5. Delete
+        log.push('Step 5: Deleting bin...');
+        const deleteResponse = await fetch(`${API_BASE}/b/${binId}`, {
+          method: 'DELETE',
+          headers: { 'X-Master-Key': keys.masterKey }
+        });
+        const deleteResult = await deleteResponse.json();
+        
+        if (!deleteResponse.ok) throw new Error('Delete failed: ' + JSON.stringify(deleteResult));
+        
+        log.push(`✓ Deleted bin\n`);
+
+        log.push('\n=== ✓ All Tests Passed! ===');
+        showResponse('workflowResponse', log.join('\n'), true);
+
+      } catch (err) {
+        log.push(`\n❌ ERROR: ${err.message}`);
+        showResponse('workflowResponse', log.join('\n'), false);
+      }
+    }
+  </script>
+</body>
+</html>
