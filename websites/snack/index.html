@@ -1761,6 +1761,38 @@
                 }
             </style>
         <div class="color-scheme-1 isolate gradient" bis_skin_checked="1">
+          <style>
+            /* Our New Candies section: constrain width and card proportions for better alignment */
+            #collection-template--17133120946278__featured_collection_nx3ejD .slider-component-full-width {
+              max-width: var(--page-width);
+              margin-left: auto;
+              margin-right: auto;
+            }
+            #collection-template--17133120946278__featured_collection_nx3ejD {
+              /* Slightly narrow this section to harmonize with layout */
+              --page-width: 110rem;
+            }
+            #Slider-template--17133120946278__featured_collection_nx3ejD {
+              padding-left: 0;
+              padding-right: 0;
+            }
+            #collection-template--17133120946278__featured_collection_nx3ejD .card--standard.card--media .card__inner {
+              /* Reduce visual height of images from 125% to 100% for better proportions */
+              --ratio-percent: 100% !important;
+            }
+            #collection-template--17133120946278__featured_collection_nx3ejD .media img {
+              /* Ensure images fit nicely within reduced ratio */
+              object-fit: contain;
+              width: 100%;
+              height: auto;
+              max-height: 260px;
+            }
+            /* Slightly tighten inner spacing on cards for balance */
+            #collection-template--17133120946278__featured_collection_nx3ejD .card__information {
+              padding-top: 0.6rem;
+              padding-bottom: 0.6rem;
+            }
+          </style>
           <div class="collection collection-quick-add-bulk section-template--17133120946278__featured_collection_nx3ejD-padding collection--full-width" id="collection-template--17133120946278__featured_collection_nx3ejD" data-id="template--17133120946278__featured_collection_nx3ejD" bis_skin_checked="1">
             <div class="collection__title title-wrapper title-wrapper--no-top-margin page-width title-wrapper--self-padded-tablet-down collection__title--desktop-slider" bis_skin_checked="1">
               <h2 class="title inline-richtext h1 scroll-trigger animate--slide-in">
@@ -1776,13 +1808,7 @@
                     <div class="card-wrapper product-card-wrapper underline-links-hover" bis_skin_checked="1">
                       <div class="
         card card--standard
-         card--media
-        
-        
-        
-        
-        
-      " style="--ratio-percent: 125.0%;" bis_skin_checked="1">
+         card--media" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                         <div class="card__inner color-scheme-2 gradient ratio" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                           <div class="card__media" bis_skin_checked="1">
                             <div class="media media--transparent media--hover-effect" bis_skin_checked="1">
