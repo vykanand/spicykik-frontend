@@ -852,6 +852,7 @@
           div.querySelectorAll(".api-handle").forEach((h) => {
             h.addEventListener("mousedown", (ev) => {
               ev.stopPropagation();
+              ev.preventDefault();
               startDragConnect(field, div, ev.clientX, ev.clientY);
             });
           });
@@ -883,6 +884,7 @@
             md.querySelectorAll(".api-handle").forEach((h) => {
               h.addEventListener("mousedown", (ev) => {
                 ev.stopPropagation();
+                ev.preventDefault();
                 startDragConnect(m, md, ev.clientX, ev.clientY, "method");
               });
             });
@@ -986,13 +988,18 @@
             cancelConnectMode();
             return;
           }
-          // store method mapping
+          // store method mapping and auto-select the submit button
           connections.methods = connections.methods || {};
           connections.methods[connectingKey] = {
             element: target,
             selector: getElementSelector(target),
           };
           target.classList.add("mapped");
+          // select this submit button in the UI
+          try {
+            selectSubmitButton(target);
+            updateSubmitButtons();
+          } catch (e) {}
           drawConnection(connectingKey, connectingAPINode, target);
           updateMappingPreview();
           cancelConnectMode();
@@ -1033,7 +1040,19 @@
             } catch (e) {}
           }
 
-          const aRect = apiNode.getBoundingClientRect();
+          // prefer the small handle dot as the start point when present
+          let aRect = null;
+          try {
+            const h =
+              apiNode && apiNode.querySelector
+                ? apiNode.querySelector(".api-handle")
+                : null;
+            aRect = h
+              ? h.getBoundingClientRect()
+              : apiNode.getBoundingClientRect();
+          } catch (e) {
+            aRect = apiNode.getBoundingClientRect();
+          }
           const tRect = target.getBoundingClientRect();
           const startX = aRect.left + aRect.width / 2;
           const startY = aRect.top + aRect.height / 2;
@@ -1075,7 +1094,18 @@
           if (!conn || !conn.path || !conn.element || !conn.apiNode) return;
           const apiNode = conn.apiNode;
           const target = conn.element;
-          const aRect = apiNode.getBoundingClientRect();
+          let aRect = null;
+          try {
+            const h =
+              apiNode && apiNode.querySelector
+                ? apiNode.querySelector(".api-handle")
+                : null;
+            aRect = h
+              ? h.getBoundingClientRect()
+              : apiNode.getBoundingClientRect();
+          } catch (e) {
+            aRect = apiNode.getBoundingClientRect();
+          }
           const tRect = target.getBoundingClientRect();
           const startX = aRect.left + aRect.width / 2;
           const startY = aRect.top + aRect.height / 2;
@@ -1129,13 +1159,38 @@
         temp.setAttribute("stroke-dasharray", "6 8");
         temp.setAttribute("marker-end", "url(#arrow-end)");
         svg.appendChild(temp);
-        _dragState = { field: field, apiNode: apiNode, tempPath: temp };
+        // save and disable text selection + set cursor while dragging
+        const prevUserSelect = document.body.style.userSelect || "";
+        const prevCursor = document.body.style.cursor || "";
+        try {
+          document.body.style.userSelect = "none";
+          document.body.style.cursor = "crosshair";
+        } catch (e) {}
+        _dragState = {
+          field: field,
+          apiNode: apiNode,
+          tempPath: temp,
+          prevUserSelect,
+          prevCursor,
+        };
 
         function onMove(ev) {
           try {
             const x = ev.clientX;
             const y = ev.clientY;
-            const aRect = apiNode.getBoundingClientRect();
+            // prefer handle position for drag visuals
+            let aRect = null;
+            try {
+              const h =
+                apiNode && apiNode.querySelector
+                  ? apiNode.querySelector(".api-handle")
+                  : null;
+              aRect = h
+                ? h.getBoundingClientRect()
+                : apiNode.getBoundingClientRect();
+            } catch (e) {
+              aRect = apiNode.getBoundingClientRect();
+            }
             const sX = aRect.left + aRect.width / 2;
             const sY = aRect.top + aRect.height / 2;
             const dx = Math.abs(x - sX);
@@ -1143,6 +1198,9 @@
             const c2 = x - dx * 0.25;
             const d = `M ${sX} ${sY} C ${c1} ${sY} ${c2} ${y} ${x} ${y}`;
             temp.setAttribute("d", d);
+            try {
+              document.body.style.cursor = "grabbing";
+            } catch (e) {}
           } catch (e) {}
         }
 
@@ -1171,6 +1229,11 @@
                 selector: getElementSelector(target),
               };
               target.classList.add("mapped");
+              // auto-select the button that was dropped onto
+              try {
+                selectSubmitButton(target);
+                updateSubmitButtons();
+              } catch (e) {}
               drawConnection(_dragState.field, _dragState.apiNode, target);
               updateMappingPreview();
             } else {
@@ -1180,12 +1243,26 @@
             try {
               _dragState.tempPath.remove();
             } catch (e) {}
+            try {
+              if (_dragState) {
+                document.body.style.userSelect =
+                  _dragState.prevUserSelect || "";
+                document.body.style.cursor = _dragState.prevCursor || "";
+              }
+            } catch (ee) {}
             _dragState = null;
             scheduleConnectionsUpdate();
           } catch (e) {
             try {
               _dragState && _dragState.tempPath && _dragState.tempPath.remove();
             } catch (e) {}
+            try {
+              if (_dragState) {
+                document.body.style.userSelect =
+                  _dragState.prevUserSelect || "";
+                document.body.style.cursor = _dragState.prevCursor || "";
+              }
+            } catch (ee) {}
             _dragState = null;
           }
         }

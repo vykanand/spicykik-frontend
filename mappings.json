@@ -169,6 +169,18 @@
             "userId"
           ],
           "page": "index.html"
+        },
+        {
+          "id": "action_mjhlq3mq",
+          "selector": "#abgen_mjhlpqej_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
         }
       ],
       "mappings": [],
@@ -183,7 +195,7 @@
             "body": "#abform_mi8skfs3_bavw_field_body",
             "userId": "#abform_mi8skfs3_bavw_field_userId"
           },
-          "submitSelector": "#abgen_mjhl8khk_4"
+          "submitSelector": "#abgen_mjhlpqej_4"
         },
         {
           "id": "pm_mi983jez",
