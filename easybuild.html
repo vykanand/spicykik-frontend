@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AppBuilder — Custom Builder</title>
+    <link rel="stylesheet" href="/admin-static/style.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Include js-beautify for excellent HTML formatting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
+    <!-- Load Montserrat for site typography -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- GrapesJS removed -->
+    <style>
+      /* Hide native scrollbars for overlay elements only; don't hide CodeMirror scrollbars */
+      #editorHighlightLayer,
+      #editorHighlightContent,
+      #editorWrapper {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
+      /* WebKit browsers */
+      #editorHighlightLayer::-webkit-scrollbar,
+      #editorHighlightContent::-webkit-scrollbar {
+        width: 0px;
+        height: 0px;
+        background: transparent;
+      }
+      /* Ensure overlay doesn't show visible text (we rely on textarea for text) */
+      #editorHighlightLayer,
+      #editorHighlightContent {
+        overflow: hidden;
+      }
+      /* Make CodeMirror editor fill the pageEditor container fully */
+      .CodeMirror {
+        height: 100% !important;
+      }
+      /* Editor fixed width while allowing vertical scrolling of content */
+      :root {
+        --editor-fixed-width: 760px;
+      }
+      #editorWrapper {
+        overflow: auto;
+      }
+      #pageEditor {
+        width: var(--editor-fixed-width);
+        margin: 0 auto;
+        box-sizing: border-box;
+      }
+      /* Highlight styles used when clicking preview elements */
+      .cm-preview-highlight-root {
+        background: rgba(59, 130, 246, 0.28);
+        border: 2px solid rgba(59, 130, 246, 0.95);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
+        border-radius: 6px;
+      }
+      .cm-preview-highlight-parent {
+        background: rgba(250, 204, 21, 0.2);
+        border: 2px solid rgba(250, 204, 21, 0.9);
+        box-shadow: 0 6px 18px rgba(250, 204, 21, 0.08);
+        border-radius: 6px;
+      }
+      .cm-preview-highlight-child {
+        background: rgba(34, 197, 94, 0.18);
+        border: 2px solid rgba(34, 197, 94, 0.92);
+        box-shadow: 0 6px 18px rgba(34, 197, 94, 0.08);
+        border-radius: 6px;
+      }
+    </style>
+    <style>
+      /* Dark-themed Variable Palette: modern, high-contrast, usable */
+      #dataPalette.data-tree {
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial;
+        color: #e6eef8;
+      }
+      #dataPalette {
+        background: linear-gradient(180deg, #071226 0%, #03121a 100%);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+        padding: 12px;
+        border-radius: 10px;
+      }
+      #dataPalette .tree-root {
+        margin-bottom: 12px;
+      }
+      #dataPalette .node-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: grab;
+        background: transparent;
+        transition:
+          background 0.12s,
+          transform 0.06s;
+      }
+      #dataPalette .node-label:hover {
+        background: rgba(255, 255, 255, 0.03);
+        transform: translateY(-1px);
+      }
+      #dataPalette .node-text {
+        font-weight: 700;
+        color: #ffffff;
+        font-size: 13px;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+      }
+      #dataPalette .node-sample {
+        color: #a8d0e6;
+        font-weight: 500;
+        font-size: 12px;
+        margin-left: 6px;
+      }
+      #dataPalette .node-toggle {
+        color: #93c5fd;
+        font-weight: 700;
+        width: 18px;
+        display: inline-block;
+        text-align: center;
+      }
+      #dataPalette .method-inline {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-weight: 700;
+        color: #042e2a;
+        background: linear-gradient(90deg, #bbf7d0, #86efac);
+      }
+      #dataPalette .node-value-badge {
+        font-size: 11px;
+        padding: 4px 6px;
+        border-radius: 6px;
+        margin-left: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        color: #c7e7ff;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      #dataPalette .node-method-badge.method-create {
+        background: linear-gradient(90deg, #7f1d1d, #fb7185);
+        color: #fff;
+      }
+      #dataPalette .api-status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        box-shadow: 0 0 0 4px rgba(2, 6, 23, 0.6);
+      }
+      #dataPalette .api-status-dot.status-success {
+        background: #22c55e;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.18);
+      }
+      #dataPalette .api-status-dot.status-fail {
+        background: #f43f5e;
+        box-shadow: 0 0 10px rgba(244, 63, 94, 0.16);
+      }
+      #dataPalette .tree-node {
+        margin-left: 6px;
+        margin-top: 6px;
+      }
+      #dataPalette .node-children {
+        margin-left: 12px;
+      }
+      #dataPalette .node-label:active {
+        cursor: grabbing;
+        opacity: 0.95;
+      }
+      /* Visible, styled scrollbar */
+      #dataPalette::-webkit-scrollbar {
+        width: 10px;
+      }
+      #dataPalette::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #12323f, #072a31);
+        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.02);
+      }
+      #dataPalette::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      /* Small helpers */
+      #dataPalette .node-toggle,
+      #dataPalette .api-status-dot {
+        flex: 0 0 auto;
+      }
+      /* Selected state for quick spotting */
+      #dataPalette .node-label.selected {
+        background: rgba(125, 211, 252, 0.1);
+        box-shadow: 0 6px 18px rgba(14, 165, 233, 0.06);
+      }
+      /* Ensure all text inside the palette is visible on dark backgrounds */
+      #dataPalette,
+      #dataPalette * {
+        color: #e6eef8 !important;
+      }
+      /* Keep special badges with their intended foreground colors */
+      #dataPalette .method-inline {
+        color: #042e2a !important;
+      }
+      #dataPalette .node-value-badge {
+        color: #c7e7ff !important;
+      }
+      #dataPalette .node-toggle {
+        color: #93c5fd !important;
+      }
+      /* Muted / small utility text for dark UI (desktop section fixes) */
+      .muted {
+        color: #9fb3c9 !important;
+        opacity: 0.95;
+      }
+      .small {
+        color: #cbd5e1 !important;
+        font-size: 12px !important;
+      }
+      .muted.small {
+        color: #94a3b8 !important;
+        font-size: 12px !important;
+      }
+      /* Specific tweaks for preview area text */
+      .preview-wrap .muted,
+      .preview-wrap .muted.small {
+        color: #94a3b8 !important;
+      }
+      /* inline code visibility */
+      .preview-wrap code,
+      #dataPalette code {
+        color: #c7e7ff !important;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
+    </style>
+    <!-- Code editor removed: CodeMirror assets intentionally omitted -->
+    <!-- Prettier (standalone) for Markdown formatting in-browser -->
+    <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/parser-markdown.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="4"
+              fill="var(--accent)"
+            />
+            <path
+              d="M7 12h10M7 8h10M7 16h6"
+              stroke="#fff"
+              stroke-width="1.4"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div>
+            <div class="title">AppBuilder</div>
+            <div class="subtitle">Custom Builder</div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Sites</div>
+          <ul
+            id="siteList"
+            class="site-list"
+            data-intro="List of your managed sites. Click to open."
+          ></ul>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="search">
+            <div>Custom Page Builder</div>
+          </div>
+          <div class="top-actions">
+            <a id="previewLink" class="btn outline" target="_blank" href="#"
+              >Open Preview</a
+            >
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="panel" id="panelBuilder">
+            <div
+              class="card"
+              id="cardPages"
+              data-intro="Browse the selected website's folder and files. Click a file to open it in the editor."
+            >
+              <h3>Site Files</h3>
+              <div class="muted">
+                Browse the selected website's folder and files. Click a file to
+                open it in the editor.
+              </div>
+              <div
+                id="siteFileTree"
+                style="
+                  margin-top: 10px;
+                  max-height: 360px;
+                  overflow: auto;
+                  padding: 8px;
+                  background: rgba(255, 255, 255, 0.02);
+                  border-radius: 8px;
+                "
+              ></div>
+              <div style="display: flex; gap: 8px; margin-top: 8px">
+                <input
+                  id="newPageNameInput"
+                  placeholder="new-page.html"
+                  style="
+                    flex: 1;
+                    padding: 8px;
+                    border-radius: 8px;
+                    border: 1px solid rgba(255, 255, 255, 0.04);
+                    background: transparent;
+                  "
+                />
+                <button id="createPageBtn" class="btn small">
+                  Create Page
+                </button>
+              </div>
+              <div
+                id="siteActions"
+                class="muted small"
+                style="margin-top: 8px"
+              ></div>
+            </div>
+
+            <!-- GrapesJS modal removed -->
+          </div>
+          <!-- Live preview placed after panelBuilder -->
+          <div class="panel-row">
+            <div
+              class="card"
+              id="cardPreview"
+              data-intro="Preview selected page in a sandboxed iframe. Click elements to link to code."
+            >
+              <h3>Page Preview</h3>
+              <div class="muted">
+                Select a page to preview. Scripts are disabled in this preview
+                for safety; click elements to highlight related code in the
+                editor.
+              </div>
+              <div
+                class="muted small"
+                style="margin-bottom: 8px; color: #64748b; font-style: italic"
+              >
+                ℹ️ This sandboxed preview does not execute page scripts. Use
+                "Open Preview" to open the live page in a new tab.
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  align-items: center;
+                  margin-top: 8px;
+                "
+              >
+                <select
+                  id="pageSelector"
+                  style="
+                    flex: 1;
+                    padding: 8px;
+                    border-radius: 6px;
+                    background: transparent;
+                    border: 1px solid rgba(255, 255, 255, 0.04);
+                  "
+                ></select>
+                <button id="btnLoadPreview" class="btn small">Preview</button>
+                <button id="btnLoadIntoEditor" class="btn small ghost">
+                  Load Into Editor
+                </button>
+              </div>
+              <div class="preview-wrap light-bg" style="margin-top: 8px">
+                <div style="display: flex; gap: 12px; align-items: flex-start">
+                  <div style="width: 320px; flex: 0 0 320px">
+                    <div class="muted small">
+                      Variable Palette (drag into preview)
+                    </div>
+                    <div
+                      id="dataPalette"
+                      style="
+                        margin-top: 8px;
+                        background: rgba(255, 255, 255, 0.02);
+                        padding: 10px;
+                        border-radius: 8px;
+                        max-height: 420px;
+                        overflow: auto;
+                      "
+                    ></div>
+                    <div class="muted small" style="margin-top: 12px">
+                      Tip: Drag an item to the preview to insert
+                      <code>{{api.path}}</code>. For loops, insert
+                      <code>{{#each api.path}}</code> and
+                      <code>{{/each}}</code> around a block and use
+                      <code>{{this.field}}</code> inside.
+                    </div>
+                  </div>
+                  <div style="flex: 1; min-width: 360px">
+                    <div class="muted small">Live Preview</div>
+                    <div
+                      style="
+                        margin-top: 8px;
+                        height: 420px;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        border: 1px solid rgba(0, 0, 0, 0.06);
+                        background: #fff;
+                      "
+                    >
+                      <iframe
+                        id="previewFrame"
+                        srcdoc=""
+                        sandbox="allow-scripts allow-same-origin allow-forms"
+                        referrerpolicy="no-referrer"
+                        style="
+                          width: 100%;
+                          height: 100%;
+                          border: 0;
+                          background: #fff;
+                          color: #000;
+                        "
+                      ></iframe>
+                    </div>
+                  </div>
+                </div>
+                <!-- Hidden textarea kept for compatibility with existing JS (no visible editor) -->
+                <textarea id="pageEditor" style="display: none"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="/admin-static/utils.js"></script>
+    <script src="/admin-static/templates.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.1/beautify-html.min.js"></script>
+    <script src="/admin-static/easybuild.js"></script>
+  </body>
+</html>

@@ -135,15 +135,19 @@
       }
 
       .form-canvas {
-        min-height: 460px;
+        min-height: 320px;
         border-radius: 10px;
         padding: 18px;
         background: linear-gradient(180deg, #06111b, #071423);
         border: 1px solid rgba(255, 255, 255, 0.02);
         overflow: auto;
+        /* responsive max height: leave space for header & side panels */
+        max-height: calc(100vh - 200px);
       }
       .form-canvas.full-page {
         padding: 12px;
+        /* when showing a full page, allow taller canvas but still constrained */
+        max-height: calc(100vh - 120px);
       }
 
       .form-element {
@@ -484,8 +488,19 @@
             // Store site name BEFORE calling loadAPI
             window.currentSiteName = data.siteName.trim();
             window.currentPage = data.page;
-
             loadAPI(data.api, data.method);
+            // Try to immediately load the requested page into the canvas
+            if (data.page) {
+              loadPageContent(data.page)
+                .then(() => {
+                  try {
+                    loadExistingMappings(data.page, data.api.name);
+                  } catch (e) {}
+                })
+                .catch((err) => {
+                  console.warn("Could not auto-load page from session:", err);
+                });
+            }
             // Clear the stored data
             sessionStorage.removeItem("formBuilderAPI");
           } else {
@@ -524,6 +539,21 @@
                     window.currentSiteName = siteName.trim();
                     window.currentPage = pageName;
                     loadAPI(api, method);
+                    // Attempt to load the requested page immediately
+                    if (pageName) {
+                      loadPageContent(pageName)
+                        .then(() => {
+                          try {
+                            loadExistingMappings(pageName, api.name);
+                          } catch (e) {}
+                        })
+                        .catch((err) => {
+                          console.warn(
+                            "Could not auto-load page from URL params:",
+                            err
+                          );
+                        });
+                    }
                   } else {
                     throw new Error("API not found in site data");
                   }
@@ -800,6 +830,10 @@
               formCanvas.innerHTML = body.innerHTML;
               formCanvas.classList.add("full-page");
               updateSubmitButtons();
+              // adjust canvas height after loading page content
+              try {
+                adjustCanvasHeight();
+              } catch (e) {}
               attachFormEvents();
 
               // Load existing mappings for this page and API
@@ -940,6 +974,25 @@
         svg.appendChild(defs);
         document.body.appendChild(svg);
       }
+
+      // Adjust form canvas height to fill available viewport space responsively
+      function adjustCanvasHeight() {
+        try {
+          const canvas = document.getElementById("formCanvas");
+          const header = document.querySelector(".header");
+          if (!canvas) return;
+          const headerBottom = header
+            ? header.getBoundingClientRect().bottom
+            : 80;
+          // leave 24px bottom padding and 24px top padding
+          const avail = Math.max(240, window.innerHeight - headerBottom - 48);
+          canvas.style.maxHeight = avail + "px";
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      window.addEventListener("resize", adjustCanvasHeight);
 
       function startConnectMode(key, apiNode, kind) {
         if (!formCanvas) return;
@@ -1320,6 +1373,9 @@
           script += "var methods = " + JSON.stringify(methods) + ";\n";
           script += "var apiName = " + JSON.stringify(apiName) + ";\n";
           script += "var site = " + JSON.stringify(site) + ";\n";
+          // small notify helper and override native alert inside injected script
+          script +=
+            "(function(){try{function __fb_notify(msg,type){try{var c=document.getElementById('__fb_toast_container');if(!c){c=document.createElement('div');c.id='__fb_toast_container';c.style.position='fixed';c.style.top='16px';c.style.right='16px';c.style.zIndex='9999999';c.style.display='flex';c.style.flexDirection='column';c.style.gap='8px';document.body.appendChild(c);}var t=document.createElement('div');t.textContent=msg;t.style.padding='8px 12px';t.style.borderRadius='8px';t.style.color='#fff';t.style.fontFamily='sans-serif';t.style.fontSize='13px';t.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)';if(type==='success'){t.style.background='#16a34a';}else if(type==='error'){t.style.background='#ef4444';}else{t.style.background='#2563eb';}c.appendChild(t);setTimeout(function(){try{t.remove();}catch(e){}},3500);}catch(e){} } try{ window.alert = function(m){ try{ __fb_notify(String(m),'info'); }catch(e){} }; }catch(e){} } )();\n";
           script +=
             "function getVal(sel){try{var el=document.querySelector(sel);if(!el) return ''; if(el.type==='checkbox') return el.checked; return el.value||el.textContent||'';}catch(e){return ''}}\n";
           script +=
@@ -1693,6 +1749,8 @@
           let code = `// Form submission code for ${method} ${apiName}\n`;
           code += `document.querySelector('${submitSelector.replace(/'/g, "\\'")}').addEventListener('click', function(e) {\n`;
           code += `  e.preventDefault();\n`;
+          // inline notification helper for injected code (top-right toasts)
+          code += `  function __fb_notify(msg,type){try{var c=document.getElementById('__fb_toast_container');if(!c){c=document.createElement('div');c.id='__fb_toast_container';c.style.position='fixed';c.style.top='16px';c.style.right='16px';c.style.zIndex='9999999';c.style.display='flex';c.style.flexDirection='column';c.style.gap='8px';document.body.appendChild(c);}var t=document.createElement('div');t.textContent=msg;t.style.padding='8px 12px';t.style.borderRadius='8px';t.style.color='#fff';t.style.fontFamily='sans-serif';t.style.fontSize='13px';t.style.boxShadow='0 8px 24px rgba(0,0,0,0.18)';if(type==='success'){t.style.background='#16a34a';}else if(type==='error'){t.style.background='#ef4444';}else{t.style.background='#2563eb';}c.appendChild(t);setTimeout(function(){try{t.remove();}catch(e){}},3500);}catch(e){} }\n`;
           code += `  var formData = {};\n`;
 
           Object.keys(mappings).forEach((field) => {
@@ -1725,11 +1783,11 @@
           code += `  .then(response => response.json())\n`;
           code += `  .then(data => {\n`;
           code += `    console.log('Success:', data);\n`;
-          code += `    alert('Form submitted successfully!');\n`;
+          code += `    try{ __fb_notify('Form submitted successfully!','success'); }catch(e){ }\n`;
           code += `  })\n`;
           code += `  .catch(error => {\n`;
           code += `    console.error('Error:', error);\n`;
-          code += `    alert('Error submitting form');\n`;
+          code += `    try{ __fb_notify('Error submitting form','error'); }catch(e){}\n`;
           code += `  });\n`;
           code += `});\n`;
 

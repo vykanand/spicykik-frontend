@@ -416,6 +416,10 @@ small.muted{color:var(--muted);font-size:0.85rem}
 .api-header h3 { font-size: 1.05rem; font-weight:700; margin:0 }
 
 .api-list { display:flex; flex-direction:column; gap:10px; }
+/* Constrain the APIs list so it remains scrollable and doesn't expand indefinitely */
+.api-card .api-list { max-height:60vh; overflow:auto; padding-right:8px; }
+.api-card .api-list::-webkit-scrollbar{ width:10px }
+.api-card .api-list::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.05); border-radius:8px }
 
 /* list item uses a subtle glass card with soft elevation */
 .api-item{

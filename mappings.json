@@ -181,6 +181,42 @@
             "userId"
           ],
           "page": "index.html"
+        },
+        {
+          "id": "action_mjhlu74p",
+          "selector": "#abgen_mjhlty63_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhlzh23",
+          "selector": "#abgen_mjhlz8ad_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhm4oj6",
+          "selector": "#abgen_mjhm46gx_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
         }
       ],
       "mappings": [],
@@ -195,7 +231,7 @@
             "body": "#abform_mi8skfs3_bavw_field_body",
             "userId": "#abform_mi8skfs3_bavw_field_userId"
           },
-          "submitSelector": "#abgen_mjhlpqej_4"
+          "submitSelector": "#abgen_mjhm46gx_4"
         },
         {
           "id": "pm_mi983jez",
@@ -263,6 +299,14 @@
           "id": "pm_mietfrgt",
           "page": "index.html",
           "apiName": "filter by category candy",
+          "method": "GET",
+          "fieldMappings": {},
+          "submitSelector": null
+        },
+        {
+          "id": "pm_mjhn1gah",
+          "page": "index.html",
+          "apiName": "candy filter",
           "method": "GET",
           "fieldMappings": {},
           "submitSelector": null

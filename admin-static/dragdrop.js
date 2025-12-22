@@ -1,11 +1,73 @@
 // Drag and Drop Logic for AppBuilder
 // Handles dropping APIs and data into the page editor
 
+// Basic HTML escape for mirror content
+function escapeHtml(s){
+  if(s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // Helper function to get caret position from coordinates
-function getCaretIndexFromCoords(textarea, x, y) {
-  // Simple implementation - just return current selection start
-  // For more accurate implementation, would need to calculate based on text metrics
-  return textarea.selectionStart || 0;
+// Helper: compute caret index from client coordinates for a textarea using a mirror div.
+function getCaretIndexFromCoords(textarea, clientX, clientY) {
+  try {
+    const rect = textarea.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    const value = textarea.value || '';
+    const len = value.length;
+
+    // Create a mirror div with same styles (cached per textarea by dataset)
+    let mirror = document.getElementById('textarea-caret-mirror');
+    if (!mirror) {
+      mirror = document.createElement('div');
+      mirror.id = 'textarea-caret-mirror';
+      document.body.appendChild(mirror);
+    }
+    const style = getComputedStyle(textarea);
+    const props = ['font-size','font-family','font-weight','line-height','padding','padding-top','padding-left','padding-right','padding-bottom','border-left-width','border-top-width','border-right-width','border-bottom-width','box-sizing','white-space','word-wrap','width','letter-spacing','text-transform'];
+    mirror.style.position = 'absolute';
+    mirror.style.visibility = 'hidden';
+    mirror.style.whiteSpace = 'pre-wrap';
+    mirror.style.wordWrap = 'break-word';
+    mirror.style.boxSizing = style.boxSizing;
+    mirror.style.width = rect.width + 'px';
+    mirror.style.padding = style.padding;
+    mirror.style.left = '-9999px';
+    mirror.style.top = '-9999px';
+    mirror.style.fontFamily = style.fontFamily;
+    mirror.style.fontSize = style.fontSize;
+    mirror.style.lineHeight = style.lineHeight;
+    mirror.style.letterSpacing = style.letterSpacing;
+
+    // Binary search for the index whose caret position is closest to x,y
+    let lo = 0, hi = len, best = 0;
+    while (lo <= hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      const before = escapeHtml(value.slice(0, mid));
+      const after = escapeHtml(value.slice(mid));
+      mirror.innerHTML = before + '<span id="__caret_marker__">|</span>' + after;
+      const marker = mirror.querySelector('#__caret_marker__');
+      if (!marker) break;
+      const mrect = marker.getBoundingClientRect();
+      // marker positions are relative to body; compute relative to textarea rect
+      const mx = mrect.left - rect.left;
+      const my = mrect.top - rect.top;
+      // If marker is above target y, move right; if below, move left
+      if (my < y || (Math.abs(my - y) < 3 && mx < x)) {
+        best = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    // cleanup marker content
+    mirror.innerHTML = '';
+    return best;
+  } catch (e) {
+    try { return textarea.selectionStart || 0; } catch (er) { return 0; }
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,10 +90,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // compute drop index on dragover so the caret feels responsive
+    // preserve scroll position while measuring to avoid jumps
     let _lastDropIndex = null;
     editorEl.addEventListener('dragover', e=>{
       e.preventDefault();
-      try{ _lastDropIndex = getCaretIndexFromCoords(editorEl, e.clientX, e.clientY); }catch(err){ _lastDropIndex = editorEl.selectionStart || 0; }
+      try{
+        const prevScrollTop = editorEl.scrollTop;
+        const prevScrollLeft = editorEl.scrollLeft;
+        _lastDropIndex = getCaretIndexFromCoords(editorEl, e.clientX, e.clientY);
+        // restore scroll to avoid browser repositioning
+        editorEl.scrollTop = prevScrollTop;
+        editorEl.scrollLeft = prevScrollLeft;
+      }catch(err){ _lastDropIndex = editorEl.selectionStart || 0; }
     });
 
     editorEl.addEventListener('drop', (e)=>{
@@ -55,9 +125,9 @@ document.addEventListener('DOMContentLoaded', function() {
       // Debug what was received
       try { console.debug('drop received', { types: types, jsonDataSample: jsonData && jsonData.slice ? jsonData.slice(0,200) : jsonData, textDataSample: textData && textData.slice ? textData.slice(0,200) : textData, parsedPayload: payload }); } catch(e) {}
 
-      // Compute drop position
-      let dropIndex = null;
-      try{ dropIndex = getCaretIndexFromCoords(editorEl, e.clientX, e.clientY); }catch(err){ dropIndex = editorEl.selectionStart || 0; }
+      // Compute drop position (use last computed index as fallback)
+      let dropIndex = _lastDropIndex;
+      try{ dropIndex = getCaretIndexFromCoords(editorEl, e.clientX, e.clientY); }catch(err){ dropIndex = dropIndex || editorEl.selectionStart || 0; }
       const start = dropIndex;
       const end = editorEl.selectionEnd || start;
       const val = editorEl.value;
@@ -110,9 +180,14 @@ document.addEventListener('DOMContentLoaded', function() {
         try { console.debug('Inserting generated HTML at', start, 'length', componentHtml && componentHtml.length); } catch(e){}
         // Insert the generated component HTML
         const newVal = val.slice(0,start) + componentHtml + val.slice(end);
+        // preserve scroll, insert, then restore scroll and set caret
+        const prevScrollTop = editorEl.scrollTop;
+        const prevScrollLeft = editorEl.scrollLeft;
         editorEl.value = newVal;
         const pos = start + componentHtml.length;
-        editorEl.selectionStart = editorEl.selectionEnd = pos;
+        try { editorEl.selectionStart = editorEl.selectionEnd = pos; } catch(e) {}
+        editorEl.scrollTop = prevScrollTop;
+        editorEl.scrollLeft = prevScrollLeft;
         try { console.debug('Editor content after insert (preview)', editorEl.value && editorEl.value.slice ? editorEl.value.slice(Math.max(0,start-80), start+Math.min(300, componentHtml.length)) : null); } catch(e){}
 
         // Save page mapping for API usage tracking
@@ -143,18 +218,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         try { console.debug('Inserting field/value snippet', insertText); } catch(e){}
         const newVal = val.slice(0,start) + insertText + val.slice(end);
+        const prevScrollTop = editorEl.scrollTop;
+        const prevScrollLeft = editorEl.scrollLeft;
         editorEl.value = newVal;
         const pos = start + insertText.length;
-        editorEl.selectionStart = editorEl.selectionEnd = pos;
+        try { editorEl.selectionStart = editorEl.selectionEnd = pos; } catch(e) {}
+        editorEl.scrollTop = prevScrollTop;
+        editorEl.scrollLeft = prevScrollLeft;
         return;
       }
 
       // Fallback: insert plain text
       const fallback = jsonData || textData || '';
       try { console.debug('Fallback inserting plain text (preview)', fallback && fallback.slice ? fallback.slice(0,200) : fallback); } catch(e){}
+      const prevScrollTop = editorEl.scrollTop;
+      const prevScrollLeft = editorEl.scrollLeft;
       editorEl.value = val.slice(0,start) + fallback + val.slice(end);
       const pos = start + fallback.length;
-      editorEl.selectionStart = editorEl.selectionEnd = pos;
+      try { editorEl.selectionStart = editorEl.selectionEnd = pos; } catch(e) {}
+      editorEl.scrollTop = prevScrollTop;
+      editorEl.scrollLeft = prevScrollLeft;
     });
   }
 });

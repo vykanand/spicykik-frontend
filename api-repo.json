@@ -59,6 +59,14 @@
           "headers": {},
           "params": {},
           "bodyTemplate": "{   \n\"reason\":\"testingdelete\",   \n\"deletedBy\": \"tester01\"\n }"
+        },
+        {
+          "name": "ppclean post",
+          "url": "https://jsonplaceholder.typicode.com/posts",
+          "method": "POST",
+          "headers": {},
+          "params": {},
+          "bodyTemplate": null
         }
       ],
       "mappings": [
@@ -102,17 +110,15 @@
       "apis": [
         {
           "name": "allproducts",
-          "url": "https://spicykik-backend-production.up.railway.app/products/api.php",
+          "url": "https://spicykik-backend-production.up.railway.app/product/api.php?getcontent=1",
           "method": "GET",
           "headers": {},
-          "params": {
-            "getcontent": "true"
-          },
+          "params": {},
           "bodyTemplate": ""
         },
         {
-          "name": "filter by category candy",
-          "url": "https://spicykik-backend-production.up.railway.app/products/api.php?filters=1",
+          "name": "candy filter",
+          "url": "https://spicykik-backend-production.up.railway.app/product/api.php?filters=1",
           "method": "GET",
           "headers": {},
           "params": {

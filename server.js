@@ -85,6 +85,44 @@ async function writeDB(db) {
   }
 }
 
+// Normalize various incoming params shapes to a plain object { key: value }
+function normalizeParams(params) {
+  // If nothing provided, return empty object
+  if (!params) return {};
+  // If already an object (and not an array), coerce keys to strings and trim
+  if (typeof params === 'object' && !Array.isArray(params)) {
+    const out = {};
+    Object.keys(params).forEach(k => {
+      if (k == null) return;
+      const key = String(k).trim();
+      if (!key) return;
+      const v = params[k];
+      // prefer primitive string/number/boolean; stringify objects
+      out[key] = (v === undefined || v === null) ? '' : (typeof v === 'object' ? JSON.stringify(v) : v);
+    });
+    return out;
+  }
+  // If an array of pairs provided (e.g. [{key, value}] or [[k,v],...]) convert to object
+  if (Array.isArray(params)) {
+    const out = {};
+    params.forEach(item => {
+      if (!item) return;
+      if (Array.isArray(item) && item.length >= 2) {
+        const k = String(item[0]).trim(); if (!k) return; out[k] = item[1];
+      } else if (typeof item === 'object') {
+        // support { key, value } or { name, value }
+        const k = (item.key || item.name || item.param || item.k);
+        if (!k) return;
+        const key = String(k).trim(); if (!key) return;
+        out[key] = item.value || item.v || '';
+      }
+    });
+    return out;
+  }
+  // For primitive types, return empty map
+  return {};
+}
+
 async function readConfig() {
   // Use JSONBin if available and configured
   if (JSONBIN_CONFIG.enabled && JSONBIN_CONFIG.configBinId) {
@@ -559,7 +597,9 @@ app.post('/api/sites/:siteName/apis', async (req, res) => {
   const s = db.sites.find(x => x.name === req.params.siteName);
   if (!s) return res.status(404).json({ error: 'site not found' });
   if (s.apis.find(a => a.name === name)) return res.status(400).json({ error: 'api name exists' });
-  const api = { name, url, method: method || 'GET', headers: headers || {}, params: params || {}, bodyTemplate: bodyTemplate || null };
+  // sanitize/normalize params to avoid duplicates or strange shapes
+  const paramsObj = normalizeParams(params);
+  const api = { name, url, method: method || 'GET', headers: headers || {}, params: paramsObj, bodyTemplate: bodyTemplate || null };
   s.apis.push(api);
   await writeDB(db);
   res.json(api);
@@ -601,7 +641,7 @@ app.put('/api/sites/:siteName/apis/:apiName', async (req, res) => {
   if (url !== undefined) api.url = url;
   if (method !== undefined) api.method = method;
   if (headers !== undefined) api.headers = headers;
-  if (params !== undefined) api.params = params;
+  if (params !== undefined) api.params = normalizeParams(params);
   if (bodyTemplate !== undefined) api.bodyTemplate = bodyTemplate;
   if (mappingConfig !== undefined) api.mappingConfig = mappingConfig;
 

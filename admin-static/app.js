@@ -126,6 +126,31 @@ document.addEventListener('DOMContentLoaded', function() {
           .replace(/'/g, '&#39;');
       }
 
+      // Normalize params from UI (trim keys, stringify objects)
+      function normalizeClientParams(params) {
+        if (!params) return {};
+        const out = {};
+        try {
+          Object.keys(params).forEach(k => {
+            if (k == null) return;
+            const key = String(k).trim(); if (!key) return;
+            const v = params[k];
+            out[key] = (v === undefined || v === null) ? '' : (typeof v === 'object' ? JSON.stringify(v) : v);
+          });
+        } catch (e) {
+          if (Array.isArray(params)) {
+            params.forEach(item => {
+              if (!item) return;
+              if (Array.isArray(item) && item.length >= 2) out[String(item[0]).trim()] = item[1];
+              else if (typeof item === 'object') {
+                const k = item.key || item.name; if (!k) return; out[String(k).trim()] = item.value || '';
+              }
+            });
+          }
+        }
+        return out;
+      }
+
       // Insert code at cursor position in page editor
       function insertCodeAtCursor(code) {
         const editor = qs('#pageEditor');
@@ -757,10 +782,11 @@ function openApiMappingModal(apiName, apiDef, sample){
         const queryRows = document.querySelectorAll('.param-row');
         const params = {};
         queryRows.forEach(row => {
-          const key = row.querySelector('.param-key').value.trim();
-          const value = row.querySelector('.param-value').value.trim();
+          const key = (row.querySelector('.param-key') && row.querySelector('.param-key').value || '').trim();
+          const value = (row.querySelector('.param-value') && row.querySelector('.param-value').value || '').trim();
           if(key) params[key] = value;
         });
+        const paramsObj = normalizeClientParams(params);
 
         // Collect field mappings based on content type (only for unsafe methods)
         if(!isSafe){
@@ -804,7 +830,7 @@ function openApiMappingModal(apiName, apiDef, sample){
         }
 
         AppUtils.Loader.show('Saving mapping...');
-          const resp = await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/apis/${encodeURIComponent(apiName)}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ mappingConfig, params }) });
+          const resp = await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/apis/${encodeURIComponent(apiName)}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ mappingConfig, params: paramsObj }) });
         AppUtils.Loader.hide();
         if(!resp.ok) { const txt = await resp.text(); throw new Error(txt || 'Save failed'); }
         const updated = await resp.json();
@@ -1232,72 +1258,84 @@ const restClientHtml = `<div style="max-height:80vh;overflow:auto;"><style>${sty
     // Form submit
     document.getElementById('restForm').onsubmit = async function(e) {
       e.preventDefault();
-      let method = document.getElementById('method').value;
-      let url = document.getElementById('url').value.trim();
-      // Params
-      let params = {};
+      // Clear previous result and hide save button so state is fresh
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('response').textContent = '';
+      document.getElementById('status').textContent = '';
+      document.getElementById('saveApiTestResultBtn').style.display = 'none';
+
+      let method = (document.getElementById('method').value || 'GET').toUpperCase();
+      let url = (document.getElementById('url').value || '').trim();
+
+      // Collect and normalize params
+      const rawParams = {};
       document.querySelectorAll('#params-list .param-row').forEach(row => {
-        const k = row.querySelector('.param-key').value;
-        const v = row.querySelector('.param-value').value;
-        if (k) params[k] = v;
+        const k = (row.querySelector('.param-key') && row.querySelector('.param-key').value) || '';
+        const v = (row.querySelector('.param-value') && row.querySelector('.param-value').value) || '';
+        if (k) rawParams[k] = v;
       });
-      if (Object.keys(params).length) {
-        const qp = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+      const paramsObj = normalizeClientParams(rawParams);
+      if (Object.keys(paramsObj).length) {
+        const qp = Object.keys(paramsObj).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(paramsObj[k])).join('&');
         url += (url.includes('?') ? '&' : '?') + qp;
       }
-      // Headers
-      let headers = {};
+
+      // Fresh headers object per-request
+      const headers = {};
       document.querySelectorAll('#headers-list .header-row').forEach(row => {
-        const k = row.querySelector('.header-key').value;
-        const v = row.querySelector('.header-value').value;
-        if (k) headers[k] = v;
+        const k = (row.querySelector('.header-key') && row.querySelector('.header-key').value) || '';
+        const v = (row.querySelector('.header-value') && row.querySelector('.header-value').value) || '';
+        if (k) headers[String(k).trim()] = v;
       });
+
       // Auth
       const authType = document.getElementById('auth-type').value;
       if (authType === 'basic') {
         const user = document.getElementById('auth-user').value;
         const pass = document.getElementById('auth-pass').value;
-        if (user && pass) {
-          headers['Authorization'] = 'Basic ' + btoa(user + ':' + pass);
-        }
+        if (user && pass) headers['Authorization'] = 'Basic ' + btoa(user + ':' + pass);
       } else if (authType === 'bearer') {
         const token = document.getElementById('auth-token').value;
         if (token) headers['Authorization'] = 'Bearer ' + token;
       }
+
       // Body
-      let bodyData = document.getElementById('body').value;
+      let bodyData = (document.getElementById('body') && document.getElementById('body').value) || '';
       const bodyType = document.getElementById('body-type').value;
-      let options = { method, headers };
+      const options = { method, headers };
       if (method !== 'GET' && method !== 'HEAD') {
         if (bodyType === 'json') {
           headers['Content-Type'] = 'application/json';
-          options.body = bodyData;
+          // ensure valid JSON string is sent; if user provided an object-like string try parsing
+          try { const parsed = JSON.parse(bodyData); options.body = JSON.stringify(parsed); } catch (e) { options.body = bodyData; }
         } else if (bodyType === 'form') {
           headers['Content-Type'] = 'application/x-www-form-urlencoded';
           options.body = bodyData;
         } else if (bodyType === 'multipart') {
           const formData = new FormData();
           document.querySelectorAll('#body-multipart-fields .multipart-row').forEach(row => {
-            const key = row.querySelector('.multipart-key').value;
-            const type = row.querySelector('.multipart-type').value;
+            const key = (row.querySelector('.multipart-key') && row.querySelector('.multipart-key').value) || '';
+            const type = (row.querySelector('.multipart-type') && row.querySelector('.multipart-type').value) || 'text';
+            if (!key) return;
             if (type === 'file') {
               const fileInput = row.querySelector('.multipart-file');
-              if (fileInput.files.length > 0) {
+              if (fileInput && fileInput.files && fileInput.files.length > 0) {
                 formData.append(key, fileInput.files[0]);
               }
             } else {
-              const value = row.querySelector('.multipart-value').value;
+              const value = (row.querySelector('.multipart-value') && row.querySelector('.multipart-value').value) || '';
               formData.append(key, value);
             }
           });
           options.body = formData;
-          // Do not set Content-Type header for multipart, browser will set it
           delete headers['Content-Type'];
         } else {
           options.body = bodyData;
         }
       }
       try {
+        // show a lightweight loader state
+        document.getElementById('status-text').textContent = ' Testing...';
         const resp = await fetch(url, options);
         let text;
         let status = resp.status;
@@ -1337,10 +1375,11 @@ const restClientHtml = `<div style="max-height:80vh;overflow:auto;"><style>${sty
         });
         let params = {};
         document.querySelectorAll('#params-list .param-row').forEach(row => {
-          const k = row.querySelector('.param-key').value;
-          const v = row.querySelector('.param-value').value;
+          const k = (row.querySelector('.param-key') && row.querySelector('.param-key').value) || '';
+          const v = (row.querySelector('.param-value') && row.querySelector('.param-value').value) || '';
           if (k) params[k] = v;
         });
+        const paramsObj = normalizeClientParams(params);
         const bodyType = document.getElementById('body-type').value;
         let bodyTemplate = document.getElementById('body').value;
         if (bodyType === 'json' && bodyTemplate) {
@@ -1348,7 +1387,7 @@ const restClientHtml = `<div style="max-height:80vh;overflow:auto;"><style>${sty
         }
         let apiNameInput = (document.getElementById('apiName') && document.getElementById('apiName').value && document.getElementById('apiName').value.trim()) || '';
         if (!apiNameInput) apiNameInput = apiDef.name || url.split('/').pop() || 'new-api-' + Date.now();
-        const newApiDef = { name: apiNameInput, url, method, headers, params, bodyTemplate };
+        const newApiDef = { name: apiNameInput, url, method, headers, params: paramsObj, bodyTemplate };
         const isNew = !apiDef.name;
         const encodedSite = encodeURIComponent(selectedSite.name);
         const endpoint = isNew ? `/api/sites/${encodedSite}/apis` : `/api/sites/${encodedSite}/apis/${encodeURIComponent(apiDef.name)}`;
