@@ -89,21 +89,28 @@
         box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
         padding: 12px;
         border-radius: 10px;
+        /* Suggested width to ensure handles are visible without clipping */
+        width: 340px;
+        min-width: 260px;
+        max-width: 420px;
+        overflow: visible;
       }
       #dataPalette .tree-root {
         margin-bottom: 12px;
       }
       #dataPalette .node-label {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 10px;
+        padding: 10px 36px 10px 40px; /* leave space for absolute handle and right-side controls */
         border-radius: 8px;
         cursor: grab;
         background: transparent;
         transition:
           background 0.12s,
           transform 0.06s;
+        overflow: visible;
       }
       #dataPalette .node-label:hover {
         background: rgba(255, 255, 255, 0.03);
@@ -114,6 +121,9 @@
         color: #ffffff;
         font-size: 13px;
         text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       #dataPalette .node-sample {
         color: #a8d0e6;
@@ -171,6 +181,37 @@
       }
       #dataPalette .node-children {
         margin-left: 12px;
+      }
+      /* Position the small blue handle so it's never clipped and remains visible */
+      #dataPalette .api-handle {
+        position: absolute !important;
+        left: 12px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 14px !important;
+        height: 14px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        background: linear-gradient(180deg, #60a5fa, #3b82f6) !important;
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.22) !important;
+        cursor: grab !important;
+        z-index: 3 !important;
+      }
+      /* Ensure details/info button has reserved space on the right */
+      #dataPalette .node-label .btn-icon-mini {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 0 !important;
+        z-index: 2;
+      }
+      /* Keep children and nodes from clipping absolute handle */
+      #dataPalette .tree-node,
+      #dataPalette .tree-root {
+        overflow: visible;
       }
       #dataPalette .node-label:active {
         cursor: grabbing;
@@ -440,6 +481,38 @@
                           color: #000;
                         "
                       ></iframe>
+                    </div>
+                    <div
+                      id="livePatchPreview"
+                      style="
+                        margin-top: 10px;
+                        padding: 8px;
+                        background: linear-gradient(
+                          180deg,
+                          #071226 0%,
+                          #03121a 100%
+                        );
+                        border-radius: 8px;
+                        border: 1px solid rgba(255, 255, 255, 0.03);
+                      "
+                    >
+                      <div class="muted small">
+                        Live Patch (Handlebars snippet)
+                      </div>
+                      <pre
+                        id="livePatchCode"
+                        style="
+                          margin-top: 6px;
+                          white-space: pre-wrap;
+                          word-break: break-word;
+                          background: transparent;
+                          border-radius: 6px;
+                          padding: 8px;
+                          color: #c7e7ff;
+                          overflow: auto;
+                          max-height: 160px;
+                        "
+                      ></pre>
                     </div>
                   </div>
                 </div>

@@ -10,7 +10,15 @@
     "vercel-build": "npm run build",
     "test": "echo \"No tests configured\" && exit 0"
   },
-  "keywords": ["appbuilder","static-sites","shopify","vercel","local-dev","candy","snacks"],
+  "keywords": [
+    "appbuilder",
+    "static-sites",
+    "shopify",
+    "vercel",
+    "local-dev",
+    "candy",
+    "snacks"
+  ],
   "author": "",
   "contributors": [],
   "license": "MIT",
@@ -18,13 +26,13 @@
     "node": ">=18"
   },
   "dependencies": {
+    "acorn": "^8.15.0",
     "axios": "^1.5.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "lodash.get": "^4.4.2"
-  ,
-    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",

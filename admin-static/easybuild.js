@@ -489,6 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
             methodIndicator.style.color = '#07340f';
           }
           label.appendChild(methodIndicator);
+          try { label.dataset.apiName = key; label.dataset.method = method || ''; } catch(e) {}
         }
       }
       keySpan.textContent = key + (Array.isArray(nodeData) ? ' (array)' : (nodeData && typeof nodeData === 'object' ? ' (object)' : ''));
@@ -500,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsBtn.className = 'btn-icon-mini';
         detailsBtn.innerHTML = 'ⓘ';
         detailsBtn.title = 'Show API details';
-        detailsBtn.style.marginLeft = 'auto';
+        // detailsBtn will be positioned by CSS to the right
         detailsBtn.onclick = (ev) => {
           ev.stopPropagation();
           const apiDef = selectedSite.apis.find(a => a.name === key);
@@ -509,6 +510,24 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         label.appendChild(detailsBtn);
       }
+      // add a small connect handle (click to connect / drag to connect)
+      try {
+        const handle = document.createElement('span');
+        handle.className = 'api-handle';
+        handle.title = 'Drag to connect';
+        handle.dataset.field = fullPath;
+        // Inline styles for compact blue handle to match form-builder look
+        handle.style.display = 'inline-block';
+        handle.style.width = '12px';
+        handle.style.height = '12px';
+        handle.style.borderRadius = '50%';
+        handle.style.background = 'linear-gradient(180deg,#60a5fa,#3b82f6)';
+        // visual positioning handled via CSS; avoid inline margin/flex
+        handle.style.cursor = 'grab';
+        handle.addEventListener('click', (ev) => { ev.stopPropagation(); try { startConnectMode(fullPath, label, 'field'); } catch(e){} });
+        handle.addEventListener('mousedown', (ev) => { ev.stopPropagation(); try { startDragConnect(fullPath, label, ev.clientX, ev.clientY, 'field'); } catch(e){} });
+        label.appendChild(handle);
+      } catch(e) {}
       if(parentEl?.classList?.contains('tree-root')) {
         const methodMeta = meta[key] || {};
         const badge = document.createElement('span');
@@ -626,6 +645,238 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- Connector overlay and click-to-connect behavior (adapted from form-builder) ---
+  const formCanvas = document.body; // overlay sits over whole page
+  let connectingField = null;
+  let connectingAPINode = null;
+  let connectingKind = null; // 'field' or 'method'
+  let connectingKey = null;
+  const connections = {};
+  connections.methods = connections.methods || {};
+
+  function initConnectorOverlay() {
+    if (document.getElementById('connectorSvg')) return;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.id = 'connectorSvg';
+    svg.setAttribute('style','position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999');
+    const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+    const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+    marker.setAttribute('id','arrow-end'); marker.setAttribute('markerWidth','8'); marker.setAttribute('markerHeight','8'); marker.setAttribute('refX','6'); marker.setAttribute('refY','4'); marker.setAttribute('orient','auto');
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d','M0,0 L8,4 L0,8 z'); path.setAttribute('fill','rgba(96,165,250,0.95)');
+    marker.appendChild(path); defs.appendChild(marker); svg.appendChild(defs); document.body.appendChild(svg);
+  }
+
+  function getElementSelector(element) {
+    try {
+      if (!element) return '[data-invalid-target]';
+      if (element.id) return '#' + element.id;
+      if (element.name) return `[name="${element.name.replace(/"/g,'\\"')}"]`;
+      if (element.className && typeof element.className === 'string') {
+        const className = element.className.split(' ')[0]; if (className) return '.' + className;
+      }
+      if (!element.id) {
+        element.id = `abgen_${Date.now().toString(36)}_${Math.floor(Math.random()*10000)}`;
+        return '#' + element.id;
+      }
+      let selector = element.tagName.toLowerCase(); if (element.type) selector += `[type="${element.type}"]`;
+      return selector;
+    } catch (e) { return '[data-invalid-selector]'; }
+  }
+
+  function startConnectMode(key, apiNode, kind) {
+    initConnectorOverlay();
+    connectingKind = kind || 'field';
+    connectingKey = key;
+    if (connectingKind === 'field') connectingField = key; else connectingField = null;
+    connectingAPINode = apiNode;
+    document.querySelectorAll('.api-item, .node-label').forEach(n => n.classList && n.classList.remove('connecting'));
+    try { apiNode.classList.add('connecting'); } catch(e){}
+    const status = document.getElementById('injectStatus'); if(status) status.textContent = connectingKind === 'method' ? `Connecting: select a submit button for method "${key}"` : `Connecting: select a target element for "${key}"`;
+  }
+
+  function cancelConnectMode() {
+    connectingField = null; if(connectingAPINode) try{ connectingAPINode.classList.remove('connecting'); }catch(e){}
+    connectingAPINode = null; const status = document.getElementById('injectStatus'); if(status) status.textContent = '';
+  }
+
+  function createMapping(field, target) {
+    try {
+      window.__mappings = window.__mappings || {};
+      window.__mappings[field] = { element: target, selector: getElementSelector(target) };
+      try { target.classList.add('mapped'); } catch(e){}
+      // update live patch preview area
+      try { const mp = document.getElementById('mappingPreview'); if(mp) { mp.innerHTML = `<div><strong>${field}</strong> → ${window.__mappings[field].selector}</div>`; } } catch(e){}
+      // persist mapping if possible (best-effort)
+      const editor = document.getElementById('pageEditor'); const currentPage = editor ? editor.getAttribute('data-current-page') : null;
+      if(currentPage && connectingAPINode && connectingAPINode.dataset && connectingAPINode.dataset.apiName) {
+        try { savePageMapping(currentPage, connectingAPINode.dataset.apiName, (connectingAPINode.dataset.method||'GET').toUpperCase(), ''); } catch(e){}
+      }
+    } catch(e) { console.warn('createMapping failed', e); }
+  }
+
+  function drawConnection(field, apiNode, target) {
+    try {
+      initConnectorOverlay();
+      const svg = document.getElementById('connectorSvg'); if(!svg) return;
+      if(connections[field] && connections[field].path) { try{ connections[field].path.remove(); }catch(e){} }
+      // start rect (apiNode) may be in main doc, target may be inside iframe
+      let aRect = null;
+      try { const h = apiNode && apiNode.querySelector ? apiNode.querySelector('.api-handle') : null; aRect = h ? h.getBoundingClientRect() : apiNode.getBoundingClientRect(); } catch(e) { aRect = apiNode.getBoundingClientRect(); }
+      let tRect = target.getBoundingClientRect();
+      // if target is inside an iframe, offset by iframe position
+      try {
+        const pf = document.getElementById('previewFrame');
+        if(pf && pf.contentWindow && target.ownerDocument === pf.contentDocument) {
+          const iframeRect = pf.getBoundingClientRect();
+          tRect = { left: iframeRect.left + tRect.left, top: iframeRect.top + tRect.top, width: tRect.width, height: tRect.height, right: iframeRect.left + tRect.right, bottom: iframeRect.top + tRect.bottom };
+        }
+      } catch(e) {}
+      const startX = aRect.left + aRect.width/2; const startY = aRect.top + aRect.height/2;
+      const endX = tRect.left + tRect.width/2; const endY = tRect.top + tRect.height/2;
+      const dx = Math.abs(endX - startX); const controlX1 = startX + dx*0.25; const controlX2 = endX - dx*0.25;
+      const pathStr = `M ${startX} ${startY} C ${controlX1} ${startY} ${controlX2} ${endY} ${endX} ${endY}`;
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', pathStr); path.setAttribute('marker-end','url(#arrow-end)'); path.setAttribute('stroke','rgba(96,165,250,0.9)'); path.setAttribute('stroke-width','3'); path.setAttribute('fill','none'); path.setAttribute('data-field', field); path.style.filter = 'drop-shadow(0 6px 18px rgba(2,6,23,0.6))';
+      svg.appendChild(path);
+      connections[field] = connections[field] || {}; connections[field].path = path; try { connections[field].apiNode = apiNode; connections[field].element = target; } catch(e){}
+    } catch(e) { console.error('drawConnection error', e); }
+  }
+
+  function updateConnectionPath(field) {
+    try {
+      const conn = connections[field]; if(!conn || !conn.path || !conn.element || !conn.apiNode) return;
+      const apiNode = conn.apiNode; const target = conn.element;
+      let aRect = null; try { const h = apiNode && apiNode.querySelector ? apiNode.querySelector('.api-handle') : null; aRect = h ? h.getBoundingClientRect() : apiNode.getBoundingClientRect(); } catch(e) { aRect = apiNode.getBoundingClientRect(); }
+      let tRect = target.getBoundingClientRect(); try { const pf = document.getElementById('previewFrame'); if(pf && pf.contentWindow && target.ownerDocument === pf.contentDocument) { const iframeRect = pf.getBoundingClientRect(); tRect = { left: iframeRect.left + tRect.left, top: iframeRect.top + tRect.top, width: tRect.width, height: tRect.height, right: iframeRect.left + tRect.right, bottom: iframeRect.top + tRect.bottom }; } } catch(e){}
+      const startX = aRect.left + aRect.width/2; const startY = aRect.top + aRect.height/2; const endX = tRect.left + tRect.width/2; const endY = tRect.top + tRect.height/2;
+      const dx = Math.abs(endX - startX); const controlX1 = startX + dx*0.25; const controlX2 = endX - dx*0.25; const pathStr = `M ${startX} ${startY} C ${controlX1} ${startY} ${controlX2} ${endY} ${endX} ${endY}`;
+      conn.path.setAttribute('d', pathStr);
+    } catch(e) {}
+  }
+
+  let _connRaf = null;
+  function updateAllConnections() { try { Object.keys(connections).forEach(f => updateConnectionPath(f)); } catch(e) {} _connRaf = null; }
+  function scheduleConnectionsUpdate(){ if(_connRaf) return; _connRaf = requestAnimationFrame(updateAllConnections); }
+  window.addEventListener('resize', scheduleConnectionsUpdate); window.addEventListener('scroll', scheduleConnectionsUpdate, true);
+
+  // Drag-to-connect (visual)
+  let _dragState = null;
+  function startDragConnect(field, apiNode, startX, startY, kind) {
+    // Clean, robust drag-to-connect implementation.
+    try {
+      initConnectorOverlay();
+    } catch (e) {}
+
+    const svg = document.getElementById('connectorSvg');
+    if (!svg) return;
+
+    // Create temporary path for the drag visualization
+    const tempPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    tempPath.setAttribute('stroke', 'rgba(96,165,250,0.85)');
+    tempPath.setAttribute('stroke-width', '3');
+    tempPath.setAttribute('fill', 'none');
+    tempPath.setAttribute('stroke-dasharray', '6 8');
+    tempPath.setAttribute('marker-end', 'url(#arrow-end)');
+    tempPath.style.pointerEvents = 'none';
+    svg.appendChild(tempPath);
+
+    const prevUserSelect = document.body.style.userSelect || '';
+    const prevCursor = document.body.style.cursor || '';
+    try { document.body.style.userSelect = 'none'; document.body.style.cursor = 'crosshair'; } catch (e) {}
+
+    _dragState = { field, apiNode, tempPath, prevUserSelect, prevCursor, kind };
+
+    function computeSourceCenter(node) {
+      try {
+        const handle = node && node.querySelector ? node.querySelector('.api-handle') : null;
+        const r = handle ? handle.getBoundingClientRect() : (node ? node.getBoundingClientRect() : { left: 0, top: 0, width: 0, height: 0 });
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      } catch (e) { return { x: 0, y: 0 }; }
+    }
+
+    function buildPath(sx, sy, ex, ey) {
+      const dx = Math.abs(ex - sx);
+      const c1 = sx + dx * 0.25;
+      const c2 = ex - dx * 0.25;
+      return `M ${sx} ${sy} C ${c1} ${sy} ${c2} ${ey} ${ex} ${ey}`;
+    }
+
+    function onMove(ev) {
+      try {
+        const x = ev.clientX;
+        const y = ev.clientY;
+        const src = computeSourceCenter(apiNode);
+        const d = buildPath(src.x, src.y, x, y);
+        try { tempPath.setAttribute('d', d); } catch (e) {}
+        try { document.body.style.cursor = 'grabbing'; } catch (e) {}
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    function findTargetAtPoint(x, y) {
+      try {
+        let el = document.elementFromPoint(x, y);
+        if (el) return el.closest('input,textarea,select,button');
+        // If not found, test inside preview iframe
+        const pf = document.getElementById('previewFrame');
+        if (pf && pf.getBoundingClientRect) {
+          const rect = pf.getBoundingClientRect();
+          const relX = x - rect.left;
+          const relY = y - rect.top;
+          if (relX >= 0 && relY >= 0 && relX <= rect.width && relY <= rect.height) {
+            try {
+              const idoc = pf.contentDocument || pf.contentWindow && pf.contentWindow.document;
+              if (idoc && idoc.elementFromPoint) {
+                const el2 = idoc.elementFromPoint(relX, relY);
+                return el2 ? el2.closest('input,textarea,select,button') : null;
+              }
+            } catch (e) { return null; }
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function cleanupAndRestore() {
+      try { if (_dragState && _dragState.tempPath) _dragState.tempPath.remove(); } catch (e) {}
+      try { document.body.style.userSelect = _dragState ? _dragState.prevUserSelect || '' : prevUserSelect; } catch (e) {}
+      try { document.body.style.cursor = _dragState ? _dragState.prevCursor || '' : prevCursor; } catch (e) {}
+      _dragState = null;
+      scheduleConnectionsUpdate();
+    }
+
+    function onUp(ev) {
+      try {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if (!_dragState) return;
+        const x = ev.clientX;
+        const y = ev.clientY;
+        const target = findTargetAtPoint(x, y);
+        if (!target) { cleanupAndRestore(); return; }
+
+        if (_dragState.kind === 'method') {
+          connections.methods = connections.methods || {};
+          connections.methods[_dragState.field] = { element: target, selector: getElementSelector(target) };
+          try { target.classList.add('mapped'); } catch (e) {}
+          drawConnection(_dragState.field, _dragState.apiNode, target);
+        } else {
+          // field mapping
+          createMapping(_dragState.field, target);
+          drawConnection(_dragState.field, _dragState.apiNode, target);
+        }
+
+        cleanupAndRestore();
+      } catch (e) {
+        try { cleanupAndRestore(); } catch (err) {}
+      }
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
   // Show API details modal
   function showApiDetails(apiName, apiMeta, apiDef, responseData) {
     const method = (apiMeta.method || 'GET').toUpperCase();
@@ -1690,9 +1941,33 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const t = ev.target;
           if (!t || t.nodeType !== 1) return;
+
+          // If we are in connector mode, handle mapping clicks specially
+          if (window.connectingKind || typeof connectingKind !== 'undefined' && connectingKind) {
+            ev.preventDefault(); ev.stopPropagation();
+            try {
+              if (connectingKind === 'field') {
+                const target = t.closest('input,textarea,select,button');
+                if (!target) { cancelConnectMode(); return; }
+                createMapping(connectingField, target);
+                drawConnection(connectingField, connectingAPINode, target);
+                cancelConnectMode();
+                return;
+              } else if (connectingKind === 'method') {
+                const target = t.closest('input[type="submit"],button[type="submit"],button:not([type]),input[type="button"],button[type="button"]');
+                if (!target) { cancelConnectMode(); return; }
+                connections.methods = connections.methods || {};
+                connections.methods[connectingKey] = { element: target, selector: getElementSelector(target) };
+                try { target.classList.add('mapped'); } catch(e) {}
+                drawConnection(connectingKey, connectingAPINode, target);
+                cancelConnectMode();
+                return;
+              }
+            } catch (e) { cancelConnectMode(); return; }
+          }
+
           // If user held ctrl or meta, allow the click to proceed (perform action)
           if (ev.ctrlKey || ev.metaKey) {
-            // let the event through; but clear hover/selection visuals
             try { clearHoverLocal(); } catch(e){}
             return;
           }
@@ -1708,6 +1983,104 @@ document.addEventListener('DOMContentLoaded', () => {
           // Also map to editor selection
           try { handlePreviewClick(t); } catch(e) {}
         } catch (e) { /* ignore */ }
+      }, true);
+
+      // Allow dropping API/palette items onto preview elements
+      doc.addEventListener('dragover', (ev) => {
+        try { ev.preventDefault(); } catch(e) {}
+      }, true);
+
+      doc.addEventListener('drop', async (ev) => {
+        try {
+          ev.preventDefault(); ev.stopPropagation();
+          const jsonData = ev.dataTransfer.getData('application/json');
+          const textData = ev.dataTransfer.getData('text/plain');
+          let payload = null;
+          if(jsonData) {
+            try { payload = JSON.parse(jsonData); } catch(e) { payload = null; }
+          }
+
+          const x = ev.clientX; const y = ev.clientY;
+          let target = ev.target;
+          try {
+            // elementFromPoint within iframe doc coordinates
+            const elAt = doc.elementFromPoint(x, y);
+            if(elAt) target = elAt;
+          } catch (e) {}
+
+          // If payload indicates an API insert (top-level with apiName), wrap the target element with an each loop
+          if(payload && payload.apiName) {
+            const apiName = payload.apiName;
+            const editorText = (window.__getEditorValue && typeof window.__getEditorValue === 'function') ? window.__getEditorValue() : (editorCm ? editorCm.getValue() : (document.getElementById('pageEditor') && document.getElementById('pageEditor').value) || '');
+            const match = findMatchingIndexes(target, editorText);
+            if(!match) {
+              try { showMessage('Could not locate corresponding HTML in editor for this drop target.', 'Warning'); } catch(e){}
+              return;
+            }
+
+            // Avoid double-wrapping if already inside same each
+            const beforeSnippet = editorText.slice(Math.max(0, match.start - 200), match.start);
+            if(beforeSnippet.includes('{{#each') && beforeSnippet.includes(apiName)) {
+              try { showMessage('Target already appears to be inside a loop for this API.', 'Notice'); } catch(e){}
+              return;
+            }
+
+            const original = editorText.slice(match.start, match.end);
+            const wrapped = `{{#each ${apiName}}}\n${original}\n{{/each}}`;
+            const newText = editorText.slice(0, match.start) + wrapped + editorText.slice(match.end);
+
+            // Apply to editor (use provided helpers where available)
+            try {
+              if(window.__setEditorValue && typeof window.__setEditorValue === 'function') {
+                window.__setEditorValue(newText);
+              } else if (editorCm) {
+                editorCm.setValue(newText);
+              } else {
+                const ta = document.getElementById('pageEditor'); if(ta) ta.value = newText;
+              }
+            } catch(e){ console.warn('Failed to update editor value', e); }
+
+            // Update live patch preview panel if present
+            try { const codeEl = document.getElementById('livePatchCode'); if(codeEl) codeEl.textContent = wrapped; } catch(e){}
+
+            // Re-render preview from updated editor content
+            try {
+              const pf = document.getElementById('previewFrame');
+              if(pf) {
+                const rendered = await renderTemplateForPreviewAsync(newText, window.latestAggregatedData || {});
+                pf.srcdoc = sanitizeHtmlForPreview(rendered || newText);
+                // Re-attach handlers after load
+                pf.onload = () => { try { attachHandlersToDoc(pf.contentDocument || pf.contentWindow.document); } catch(e){} };
+              }
+            } catch(e) { console.warn('Preview update failed', e); }
+            return;
+          }
+
+          // If payload is a simple field drop (text/plain contains handlebars), insert into target's innerText location
+          if(textData && textData.indexOf('{{') !== -1) {
+            try {
+              const insertText = textData;
+              // We will try to patch the editor's matched node content: find match and replace inner portion
+              const editorText = (window.__getEditorValue && typeof window.__getEditorValue === 'function') ? window.__getEditorValue() : (editorCm ? editorCm.getValue() : (document.getElementById('pageEditor') && document.getElementById('pageEditor').value) || '');
+              const match = findMatchingIndexes(target, editorText);
+              if(!match) { try { showMessage('Could not map field drop to editor HTML.', 'Warning'); } catch(e){} return; }
+              const original = editorText.slice(match.start, match.end);
+              // Insert inside the element: replace innerHTML roughly by replacing the first closing of opening tag
+              const openingEnd = original.indexOf('>');
+              if(openingEnd === -1) return;
+              const innerStart = openingEnd + 1;
+              const closingIndex = original.lastIndexOf('</');
+              const innerEnd = closingIndex === -1 ? original.length : closingIndex;
+              const newInner = original.slice(0, innerStart) + insertText + original.slice(innerEnd);
+              const newText = editorText.slice(0, match.start) + newInner + editorText.slice(match.end);
+              if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(newText); else if(editorCm) editorCm.setValue(newText); else { const ta=document.getElementById('pageEditor'); if(ta) ta.value=newText; }
+              try { const codeEl = document.getElementById('livePatchCode'); if(codeEl) codeEl.textContent = insertText; } catch(e){}
+              // re-render
+              const pf = document.getElementById('previewFrame'); if(pf) { const rendered = await renderTemplateForPreviewAsync(newText, window.latestAggregatedData || {}); pf.srcdoc = sanitizeHtmlForPreview(rendered || newText); pf.onload = () => { try { attachHandlersToDoc(pf.contentDocument || pf.contentWindow.document); } catch(e){} }; }
+            } catch(e) { console.warn('Field drop handling failed', e); }
+          }
+
+        } catch (e) { console.warn('preview drop handler failed', e); }
       }, true);
     }
 
