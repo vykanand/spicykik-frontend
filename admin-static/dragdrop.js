@@ -192,7 +192,7 @@ function savePageMapping(page, apiName, method, componentHtml) {
   }
 
   // Save the mapping
-  fetch(`/api/sites/${selectedSite.name}/page-mappings`, {
+  fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/page-mappings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

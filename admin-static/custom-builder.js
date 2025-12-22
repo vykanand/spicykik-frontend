@@ -90,27 +90,29 @@ document.addEventListener('DOMContentLoaded', () => {
     ul.innerHTML = '';
     sites.forEach(s => {
       const li = document.createElement('li');
-      li.textContent = s.name;
+      const displayName = (s && s.name) ? String(s.name).trim() : '';
+      li.textContent = displayName;
+      li.dataset.siteName = displayName;
       li.style.display = 'flex'; li.style.justifyContent = 'space-between'; li.style.alignItems = 'center';
       // clicking the list item opens the site
-      li.addEventListener('click', ()=> selectSite(s.name));
-      if(selectedSite && selectedSite.name === s.name) li.classList.add('active');
+      li.addEventListener('click', ()=> selectSite(li.dataset.siteName));
+      if(selectedSite && selectedSite.name && selectedSite.name.trim() === displayName) li.classList.add('active');
       ul.appendChild(li);
     });
   }
 
   async function selectSite(name){
     try {
-      selectedSite = await api(`/api/sites/${name}`) || null;
+      selectedSite = await api(`/api/sites/${encodeURIComponent(name)}`) || null;
       window.selectedSite = selectedSite;
       await renderSiteList();
       await renderSiteDetails();
       // After rendering site details, automatically open the first HTML page (if any)
       try {
         // Fetch site tree and find first .html file
-        const tree = await api(`/api/sites/${name}/tree`);
+        const tree = await api(`/api/sites/${encodeURIComponent(name)}/tree`);
         function findFirstHtml(nodeList) {
-          if(!nodeList || !nodeList.length) return null;
+          if(!Array.isArray(nodeList) || nodeList.length === 0) return null;
           for(const n of nodeList) {
             if(n.type === 'file' && typeof n.name === 'string' && n.name.toLowerCase().endsWith('.html')) return n.path;
             if(n.type === 'dir' && Array.isArray(n.children)) {
@@ -251,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadPageIntoEditor(path, siteName) {
     try {
-      const content = await api(`/api/sites/${siteName}/pages/content?path=${encodeURIComponent(path)}`);
+      const content = await api(`/api/sites/${encodeURIComponent(siteName)}/pages/content?path=${encodeURIComponent(path)}`);
       const editor = qs('#pageEditor');
       if(editor) editor.setAttribute('data-current-page', path);
       // If it's a markdown file, set markdown mode and format with Prettier if available
@@ -276,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       const preview = qs('#previewLink');
-      if(preview) preview.href = `/site/${siteName}/${encodePathForUrl(path)}`;
+      if(preview) preview.href = `/site/${encodeURIComponent(siteName)}/${encodePathForUrl(path)}`;
       const previewFrame = qs('#previewFrame');
       if(previewFrame) {
         try {
@@ -374,11 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!selectedSite) return;
     qs('#siteActions').textContent = `Selected: ${selectedSite.name}`;
     const preview = qs('#previewFrame'); if(preview){ /* do not auto-navigate iframe to live site for safety */ }
-    const pl = qs('#previewLink'); if(pl) pl.href = `/site/${selectedSite.name}/`;
+    const pl = qs('#previewLink'); if(pl) pl.href = `/site/${encodeURIComponent(selectedSite.name)}/`;
 
     // render full folder/file tree inside siteFileTree
     try{
-      const tree = await api(`/api/sites/${selectedSite.name}/tree`);
+      const tree = await api(`/api/sites/${encodeURIComponent(selectedSite.name)}/tree`);
       const container = qs('#siteFileTree'); if(container){
         container.innerHTML = '';
           (tree||[]).forEach(n=> renderFileTreeNode(n, container));
@@ -411,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try{
-      const data = await api(`/api/sites/${selectedSite.name}/data`);
+      const data = await api(`/api/sites/${encodeURIComponent(selectedSite.name)}/data`);
       latestAggregatedData = data || {};
       renderDataPalette(data || {});
     }catch(e){ 
@@ -1027,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    fetch(`/api/sites/${selectedSite.name}/page-mappings`, {
+    fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/page-mappings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1053,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = qs('#pageEditor').getAttribute('data-current-page') || 'index.html';
     if(!path) { showMessage('No page selected','Input required'); return; }
     const content = qs('#pageEditor').value;
-    await fetch(`/api/sites/${selectedSite.name}/pages/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, content }) });
+    await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, content }) });
     showMessage('Saved', 'Saved');
     const pf = qs('#previewFrame');
     if(pf) {
@@ -1078,14 +1080,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const pl = qs('#previewLink');
     if(pl) {
-      pl.href = `/site/${selectedSite.name}/${encodePathForUrl(path)}?t=${Date.now()}`;
+      pl.href = `/site/${encodeURIComponent(selectedSite.name)}/${encodePathForUrl(path)}?t=${Date.now()}`;
     }
   });
 
   qs('#previewRenderedBtn').addEventListener('click', () => {
     if(!selectedSite) { showMessage('No site selected', 'Error'); return; }
     const path = qs('#pageEditor').getAttribute('data-current-page') || 'index.html';
-    window.open(`/site/${selectedSite.name}/${encodePathForUrl(path)}`, '_blank');
+    window.open(`/site/${encodeURIComponent(selectedSite.name)}/${encodePathForUrl(path)}`, '_blank');
   });
 
   // Create new HTML page for selected site
@@ -1097,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!name.toLowerCase().endsWith('.html')) name += '.html';
     const demo = '<!doctype html>\n<html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Demo Page</title><style>body{font-family:Inter,system-ui,Arial;background:#f8fafc;color:#0f1724;padding:24px}h1{color:#0b61ff}</style></head><body><h1>Demo Page</h1><p>This is a starter page. Drag variables from the palette into this content to bind API values.</p><div style="margin-top:18px;"><!-- Example placeholder: {{apiName.path}} --></div></body></html>';
     try{
-      await fetch(`/api/sites/${selectedSite.name}/pages/save`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ path: name, content: demo }) });
+      await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ path: name, content: demo }) });
       showMessage(`Created page: ${name}`, 'Saved');
       qs('#newPageNameInput').value = '';
       // refresh site details and open the new page in the editor

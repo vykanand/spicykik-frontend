@@ -4,7 +4,7 @@ async function processApiTestResult(apiDef, responseData) {
   // Update the API definition with the response data as sample
   const updatedApiDef = { ...apiDef, sample: responseData };
   try {
-    const resp = await fetch(`/api/sites/${selectedSite.name}/apis/${encodeURIComponent(apiDef.name)}`, {
+    const resp = await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/apis/${encodeURIComponent(apiDef.name)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedApiDef)
@@ -228,8 +228,14 @@ document.addEventListener('DOMContentLoaded', function() {
               const parser = new DOMParser();
               const doc = parser.parseFromString(html, 'text/html');
               const ul = doc.querySelector('ul');
-              if(ul){
-                sites = Array.from(ul.querySelectorAll('li')).map(li => ({ name: li.textContent.trim() }));
+              if (ul){
+                sites = Array.from(ul.querySelectorAll('li')).map(li => {
+                  // prefer an anchor that links to /site/<name>/ so we avoid the trailing " — (raw)" anchor
+                  const anchors = Array.from(li.querySelectorAll('a'));
+                  let a = anchors.find(x => x.getAttribute('href') && x.getAttribute('href').indexOf('/site/') !== -1) || anchors[0] || null;
+                  const name = a ? a.textContent.trim() : li.textContent.trim();
+                  return { name };
+                });
                 await renderSiteList();
                 if(!selectedSite && sites && sites.length>0){ await selectSite(sites[0].name); }
                 return;
@@ -238,7 +244,16 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }catch(e){ /* ignore and fallback */ }
 
-        try{ sites = await api('/api/sites') || []; }catch(e){ console.error(e); sites = []; }
+        try{ 
+          sites = await api('/api/sites') || []; 
+          // Normalize entries: some older data may contain display suffixes like " — (raw)"; strip them
+          sites = sites.map(s => {
+            if(!s) return s;
+            if(typeof s === 'string') return { name: s.replace(/\s+—\s+\(raw\)$/i, '').trim() };
+            if(typeof s === 'object' && s.name) s.name = String(s.name).replace(/\s+—\s+\(raw\)$/i, '').trim();
+            return s;
+          });
+        }catch(e){ console.error(e); sites = []; }
         await renderSiteList();
         // auto-select first site if none selected to populate editor
         if(!selectedSite && sites && sites.length>0){
@@ -250,12 +265,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const ul = qs('#siteList'); if(!ul) return;
         ul.innerHTML = '';
         sites.forEach(s => {
-          const li = document.createElement('li');
-          li.textContent = s.name;
+            const li = document.createElement('li');
+            const displayName = (s && s.name) ? String(s.name).trim() : '';
+            li.textContent = displayName;
+            // store canonical name on element to avoid text-content mismatches
+            li.dataset.siteName = displayName;
           li.style.display = 'flex'; li.style.justifyContent = 'space-between'; li.style.alignItems = 'center';
-          // clicking the list item opens the site
-          li.addEventListener('click', ()=> selectSite(s.name));
-          if(selectedSite && selectedSite.name === s.name) li.classList.add('active');
+            // clicking the list item opens the site (use stored canonical name)
+            li.addEventListener('click', ()=> selectSite(li.dataset.siteName));
+            if(selectedSite && selectedSite.name && selectedSite.name.trim() === displayName) li.classList.add('active');
           ul.appendChild(li);
         });
       }
@@ -382,13 +400,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // mappings are now auto-created from palette drops and visual editor bindings
 
-        const preview = qs('#previewFrame'); if(preview){ preview.src = `/site/${selectedSite.name}/`; }
-        const pl = qs('#previewLink'); if(pl) pl.href = `/site/${selectedSite.name}/`;
+        const preview = qs('#previewFrame'); if(preview){ preview.src = `/site/${encodeURIComponent(selectedSite.name)}/`; }
+        const pl = qs('#previewLink'); if(pl) pl.href = `/site/${encodeURIComponent(selectedSite.name)}/`;
         // (preview drop handling removed) drag->editor now creates forms for creation methods
 
         try{
-          const pages = await api(`/api/sites/${selectedSite.name}/pages`);
-          const sel = qs('#pageSelect'); if(sel){ sel.innerHTML=''; pages.forEach(p=>{ const o = document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o); }); }
+          const pages = await api(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages`);
+          const sel = qs('#pageSelect'); if(sel){ sel.innerHTML=''; (Array.isArray(pages)?pages:[]).forEach(p=>{ const o = document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o); }); }
           // auto-load first page if editor is empty
           try{
             const editor = qs('#pageEditor');
@@ -400,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // render full folder/file tree inside siteFileTree
         try{
-          const tree = await api(`/api/sites/${selectedSite.name}/tree`);
+          const tree = await api(`/api/sites/${encodeURIComponent(selectedSite.name)}/tree`);
           const container = qs('#siteFileTree'); if(container){
             container.innerHTML = '';
 
@@ -457,7 +475,9 @@ document.addEventListener('DOMContentLoaded', function() {
               parentEl.appendChild(nodeEl);
             }
 
-            (tree||[]).forEach(n=> renderNode(n, container));
+            const treeArr = Array.isArray(tree) ? tree : [];
+            if(!Array.isArray(tree)) console.warn('Site tree is not an array, skipping rendering', tree);
+            treeArr.forEach(n=> renderNode(n, container));
 
             // highlight current page if set
             try {
@@ -471,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }catch(err){ console.warn('could not load site tree', err); }
 
         try{
-          const data = await api(`/api/sites/${selectedSite.name}/data`);
+          const data = await api(`/api/sites/${encodeURIComponent(selectedSite.name)}/data`);
           latestAggregatedData = data || {};
         }catch(e){ console.warn('could not load data palette', e); }
       }
@@ -514,15 +534,15 @@ document.addEventListener('DOMContentLoaded', function() {
   qs('#saveVisualBtn').onclick = async ()=>{
     const html = editor.getHtml(); const css = editor.getCss();
     const out = `<!doctype html><html><head><style>${css}</style></head><body>${html}</body></html>`;
-    await fetch(`/api/sites/${selectedSite.name}/pages/save`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ path, content: out })});
+    await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ path, content: out })});
     const mappings = [];
     function walkModels(models){ models.each && models.each(m=>{ const attrs = m.attributes && m.attributes.attributes ? m.attributes.attributes : (m.attributes || {}); if(attrs['data-bind-api'] && attrs['data-bind-path']) mappings.push({ placeholder: `${attrs['data-bind-api']}_${attrs['data-bind-path'].replace(/\W+/g,'_')}`, apiName: attrs['data-bind-api'], jsonPath: attrs['data-bind-path'] }); if(m.components && m.components.length) walkModels(m.components); }); }
     walkModels(editor.getWrapper().components());
-    for(const mm of mappings){ await fetch(`/api/sites/${selectedSite.name}/mappings`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ placeholder: mm.placeholder, apiName: mm.apiName, jsonPath: mm.jsonPath, pages: [path] })}); }
+    for(const mm of mappings){ await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/mappings`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ placeholder: mm.placeholder, apiName: mm.apiName, jsonPath: mm.jsonPath, pages: [path] })}); }
     showMessage('Saved visual page and created ' + mappings.length + ' mappings for this page.', 'Saved');
     await selectSite(selectedSite.name);
     // refresh preview to show updated visual save
-    try{ const pf = qs('#previewFrame'); if(pf) pf.src = `/site/${selectedSite.name}/${path}?t=${Date.now()}`; }catch(e){}
+    try{ const pf = qs('#previewFrame'); if(pf) pf.src = `/site/${encodeURIComponent(selectedSite.name)}/${encodeURIComponent(path)}?t=${Date.now()}`; }catch(e){}
     modal.style.display = 'none';
   };
   qs('#closeVisualBtn').onclick = ()=>{ modal.style.display = 'none'; if(window.editorInstance){ window.editorInstance.destroy(); window.editorInstance=null; } };
@@ -533,7 +553,7 @@ async function testApi(apiDef){
   try{
     if(!selectedSite){ showMessage('Select a site first','Error'); return; }
     AppUtils.Loader.show('Testing API...');
-    const resp = await fetch(`/api/sites/${selectedSite.name}/endpoints/${encodeURIComponent(apiDef.name)}/execute`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    const resp = await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/endpoints/${encodeURIComponent(apiDef.name)}/execute`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) });
     AppUtils.Loader.hide();
     let body;
     try{ body = await resp.json(); }catch(e){ body = await resp.text(); }
@@ -780,7 +800,7 @@ function openApiMappingModal(apiName, apiDef, sample){
         }
 
         AppUtils.Loader.show('Saving mapping...');
-        const resp = await fetch(`/api/sites/${selectedSite.name}/apis/${encodeURIComponent(apiName)}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ mappingConfig, params }) });
+          const resp = await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/apis/${encodeURIComponent(apiName)}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ mappingConfig, params }) });
         AppUtils.Loader.hide();
         if(!resp.ok) { const txt = await resp.text(); throw new Error(txt || 'Save failed'); }
         const updated = await resp.json();
@@ -942,7 +962,7 @@ const createPageBtn = qs('#createPageBtn'); if(createPageBtn) createPageBtn.addE
   if(!name.toLowerCase().endsWith('.html')) name = name + '.html';
   const demo = `<!doctype html>\n<html><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Demo Page</title><style>body{font-family:Inter,system-ui,Arial;background:#f8fafc;color:#0f1724;padding:24px}h1{color:#0b61ff}</style></head><body><h1>Demo Page</h1><p>This is a starter page. Drag variables from the palette into this content to bind API values.</p><div style="margin-top:18px;"><!-- Example placeholder: {{apiName.path}} --></div></body></html>`;
   try{
-    await fetch(`/api/sites/${selectedSite.name}/pages/save`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ path: name, content: demo }) });
+    await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ path: name, content: demo }) });
     showMessage('Created page: ' + name, 'Saved');
     qs('#newPageNameInput').value = '';
     // refresh site details and open the new page in the editor
@@ -1363,7 +1383,7 @@ if(apiListEl) {
     if(btn.dataset.api){
       const apiName = btn.dataset.api;
       if(!selectedSite) { showMessage('Select a site first','Error'); return; }
-      try{ AppUtils.Loader.show('Testing API...'); const resp = await fetch(`/api/sites/${selectedSite.name}/endpoints/${encodeURIComponent(apiName)}/execute`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}); AppUtils.Loader.hide(); let body; try{ body = await resp.json(); }catch(e){ body = await resp.text(); } 
+      try{ AppUtils.Loader.show('Testing API...'); const resp = await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/endpoints/${encodeURIComponent(apiName)}/execute`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})}); AppUtils.Loader.hide(); let body; try{ body = await resp.json(); }catch(e){ body = await resp.text(); } 
         const html = `<div style="max-height:40vh;overflow:auto"><pre class="api-body-pre">${escapeHtml(typeof body === 'string' ? body : JSON.stringify(body, null, 2))}</pre></div>
           <div style="margin-top:8px;text-align:right"><button id="saveApiTestResultBtn" class="btn">Save</button></div>`;
         AppUtils.Modal.show({
@@ -1430,7 +1450,7 @@ if(apiListEl) {
       if(!ok) return;
       try{
         AppUtils.Loader && AppUtils.Loader.show && AppUtils.Loader.show('Deleting API...');
-        const resp = await fetch(`/api/sites/${selectedSite.name}/apis/${encodeURIComponent(deleteApi)}`, { method: 'DELETE' });
+        const resp = await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/apis/${encodeURIComponent(deleteApi)}`, { method: 'DELETE' });
         AppUtils.Loader && AppUtils.Loader.hide && AppUtils.Loader.hide();
         if(!resp.ok){ const txt = await resp.text(); throw new Error(txt || 'Delete failed'); }
         // remove from local site state and re-render
@@ -1444,15 +1464,15 @@ if(apiListEl) {
 }
 
 // Pages editor handlers
-const loadPageBtn = qs('#loadPageBtn'); if(loadPageBtn) loadPageBtn.addEventListener('click', async ()=>{ if(!selectedSite) { showMessage('Select a site first','Error'); return; } const path = qs('#pageSelect').value; if(!path){ showMessage('Pick a page','Input required'); return; } try{ const content = await api(`/api/sites/${selectedSite.name}/pages/content?path=${encodeURIComponent(path)}`); qs('#pageEditor').value = content; }catch(e){ showMessage('Could not load page', 'Error'); console.error(e); } });
+const loadPageBtn = qs('#loadPageBtn'); if(loadPageBtn) loadPageBtn.addEventListener('click', async ()=>{ if(!selectedSite) { showMessage('Select a site first','Error'); return; } const path = qs('#pageSelect').value; if(!path){ showMessage('Pick a page','Input required'); return; } try{ const content = await api(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/content?path=${encodeURIComponent(path)}`); qs('#pageEditor').value = content; }catch(e){ showMessage('Could not load page', 'Error'); console.error(e); } });
 
-const savePageBtn = qs('#savePageBtn'); if(savePageBtn) savePageBtn.addEventListener('click', async ()=>{ if(!selectedSite) { showMessage('Select a site first','Error'); return; } const path = qs('#pageSelect').value; if(!path){ showMessage('Pick a page','Input required'); return; } const content = qs('#pageEditor').value; await fetch(`/api/sites/${selectedSite.name}/pages/save`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path,content})}); showMessage('Saved','Saved'); const pf = qs('#previewFrame'); if(pf){
+const savePageBtn = qs('#savePageBtn'); if(savePageBtn) savePageBtn.addEventListener('click', async ()=>{ if(!selectedSite) { showMessage('Select a site first','Error'); return; } const path = qs('#pageSelect').value; if(!path){ showMessage('Pick a page','Input required'); return; } const content = qs('#pageEditor').value; await fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path,content})}); showMessage('Saved','Saved'); const pf = qs('#previewFrame'); if(pf){
     // reload preview with cache-buster to ensure latest content is shown
-    try{ const base = `/site/${selectedSite.name}/${path}`; pf.src = `${base}?t=${Date.now()}`; }catch(e){ pf.src = pf.src; }
+    try{ const base = `/site/${encodeURIComponent(selectedSite.name)}/${encodeURIComponent(path)}`; pf.src = `${base}?t=${Date.now()}`; }catch(e){ pf.src = pf.src; }
   }
 });
 
-const previewBtn = qs('#previewRenderedBtn'); if(previewBtn) previewBtn.addEventListener('click', ()=>{ if(!selectedSite){ showMessage('Select a site first','Error'); return; } const path = qs('#pageSelect').value || 'index.html'; window.open(`/site/${selectedSite.name}/${path}`, '_blank'); });
+const previewBtn = qs('#previewRenderedBtn'); if(previewBtn) previewBtn.addEventListener('click', ()=>{ if(!selectedSite){ showMessage('Select a site first','Error'); return; } const path = qs('#pageSelect').value || 'index.html'; window.open(`/site/${encodeURIComponent(selectedSite.name)}/${encodeURIComponent(path)}`, '_blank'); });
 
 // Drag & drop into textarea — auto-create mappings for simple {{api.path}} placeholders
 const editorEl = qs('#pageEditor');
