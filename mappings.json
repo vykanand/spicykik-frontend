@@ -109,6 +109,66 @@
             "userId"
           ],
           "page": "index.html"
+        },
+        {
+          "id": "action_mjhl967o",
+          "selector": "#abgen_mjhl8khk_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhl9cee",
+          "selector": "#abgen_mjhl8khk_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhl9dmm",
+          "selector": "#abgen_mjhl8khk_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhl9eiz",
+          "selector": "#abgen_mjhl8khk_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhl9ku7",
+          "selector": "#abgen_mjhl8khk_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
         }
       ],
       "mappings": [],
@@ -123,7 +183,7 @@
             "body": "#abform_mi8skfs3_bavw_field_body",
             "userId": "#abform_mi8skfs3_bavw_field_userId"
           },
-          "submitSelector": "#abgen_mjhkhwim_4"
+          "submitSelector": "#abgen_mjhl8khk_4"
         },
         {
           "id": "pm_mi983jez",

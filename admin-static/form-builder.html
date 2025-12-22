@@ -106,6 +106,23 @@
         justify-content: space-between;
         align-items: center;
       }
+      .api-item {
+        position: relative;
+      }
+      .api-handle {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent-2);
+        box-shadow: 0 4px 10px rgba(96, 165, 250, 0.12);
+        margin-left: 8px;
+        cursor: crosshair;
+        flex: 0 0 auto;
+      }
+      .api-item.connecting {
+        outline: 2px solid rgba(96, 165, 250, 0.18);
+        transform: translateX(4px);
+      }
       .api-item strong {
         font-size: 13px;
       }
@@ -219,6 +236,54 @@
         color: var(--muted);
         cursor: pointer;
       }
+
+      /* Toast notifications */
+      #toastContainer {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        z-index: 12000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+      .toast {
+        pointer-events: auto;
+        min-width: 220px;
+        max-width: 420px;
+        background: rgba(2, 8, 23, 0.9);
+        color: #e6eef7;
+        padding: 10px 14px;
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        font-size: 13px;
+      }
+      .toast.success {
+        border-left: 4px solid #34d399;
+      }
+      .toast.error {
+        border-left: 4px solid #fb7185;
+      }
+      .toast.info {
+        border-left: 4px solid #60a5fa;
+      }
+      .toast .loader {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.08);
+        border-top-color: #fff;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
       .submit-button-option.selected {
         background: rgba(96, 165, 250, 0.06);
         border-color: rgba(96, 165, 250, 0.12);
@@ -303,6 +368,9 @@
       <div class="panel preview-panel">
         <h3>Live Preview & Generate</h3>
         <div id="mappingPreview"></div>
+
+        <!-- Toasts -->
+        <div id="toastContainer" aria-live="polite"></div>
 
         <div style="margin-top: 12px">
           <h4>Preview Page</h4>
@@ -761,12 +829,32 @@
           div.dataset.value = value;
 
           div.innerHTML = `
-                    <strong>${field}</strong><br>
-                    <small>Type: ${typeof value} | Value: ${value}</small>
+                    <div style="display:flex;align-items:center;gap:8px;flex:1">
+                      <div style="flex:1">
+                        <strong>${field}</strong><br>
+                        <small>Type: ${typeof value} | Value: ${String(value)}</small>
+                      </div>
+                      <div class="api-handle" title="Drag to connect" data-field="${field}"></div>
+                    </div>
                 `;
-          div.addEventListener("click", () =>
-            startConnectMode(field, div, "field")
-          );
+          // clicking item still starts connect mode
+          div.addEventListener("click", (ev) => {
+            // ignore clicks that originate from the handle
+            if (
+              ev.target &&
+              ev.target.classList &&
+              ev.target.classList.contains("api-handle")
+            )
+              return;
+            startConnectMode(field, div, "field");
+          });
+          // handle mousedown on the small handle to start drag-connect
+          div.querySelectorAll(".api-handle").forEach((h) => {
+            h.addEventListener("mousedown", (ev) => {
+              ev.stopPropagation();
+              startDragConnect(field, div, ev.clientX, ev.clientY);
+            });
+          });
           container.appendChild(div);
         });
 
@@ -779,10 +867,25 @@
             const md = document.createElement("div");
             md.className = "api-item";
             md.style.marginTop = "6px";
-            md.innerHTML = `<strong>${m}</strong> <small style="color:var(--muted)">/${currentAPI.name}</small>`;
+            md.innerHTML = `
+              <div style="display:flex;align-items:center;gap:8px;flex:1">
+                <div style="flex:1">
+                  <strong>${m}</strong> <br>
+                  <small style="color:var(--muted)">/${currentAPI.name}</small>
+                </div>
+                <div class="api-handle" title="Drag to connect method" data-field="${m}" data-kind="method"></div>
+              </div>
+            `;
             md.addEventListener("click", () =>
               startConnectMode(m, md, "method")
             );
+            // add drag-handle listener
+            md.querySelectorAll(".api-handle").forEach((h) => {
+              h.addEventListener("mousedown", (ev) => {
+                ev.stopPropagation();
+                startDragConnect(m, md, ev.clientX, ev.clientY, "method");
+              });
+            });
             methodsContainer.appendChild(md);
           });
         }
@@ -809,6 +912,30 @@
           "style",
           "position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999"
         );
+        // add defs for arrowheads
+        const defs = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "defs"
+        );
+        const marker = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "marker"
+        );
+        marker.setAttribute("id", "arrow-end");
+        marker.setAttribute("markerWidth", "8");
+        marker.setAttribute("markerHeight", "8");
+        marker.setAttribute("refX", "6");
+        marker.setAttribute("refY", "4");
+        marker.setAttribute("orient", "auto");
+        const path = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
+        );
+        path.setAttribute("d", "M0,0 L8,4 L0,8 z");
+        path.setAttribute("fill", "rgba(96,165,250,0.95)");
+        marker.appendChild(path);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
         document.body.appendChild(svg);
       }
 
@@ -923,6 +1050,7 @@
             "path"
           );
           path.setAttribute("d", pathStr);
+          path.setAttribute("marker-end", "url(#arrow-end)");
           path.setAttribute("stroke", "rgba(96,165,250,0.9)");
           path.setAttribute("stroke-width", "3");
           path.setAttribute("fill", "none");
@@ -931,9 +1059,169 @@
           svg.appendChild(path);
           connections[field] = connections[field] || {};
           connections[field].path = path;
+          // keep a reference to the api node so we can recompute path on scroll/resize
+          try {
+            connections[field].apiNode = apiNode;
+          } catch (e) {}
         } catch (e) {
           console.error("drawConnection error", e);
         }
+      }
+
+      // Recompute an individual connection's SVG path
+      function updateConnectionPath(field) {
+        try {
+          const conn = connections[field];
+          if (!conn || !conn.path || !conn.element || !conn.apiNode) return;
+          const apiNode = conn.apiNode;
+          const target = conn.element;
+          const aRect = apiNode.getBoundingClientRect();
+          const tRect = target.getBoundingClientRect();
+          const startX = aRect.left + aRect.width / 2;
+          const startY = aRect.top + aRect.height / 2;
+          const endX = tRect.left + tRect.width / 2;
+          const endY = tRect.top + tRect.height / 2;
+          const dx = Math.abs(endX - startX);
+          const controlX1 = startX + dx * 0.25;
+          const controlX2 = endX - dx * 0.25;
+          const pathStr = `M ${startX} ${startY} C ${controlX1} ${startY} ${controlX2} ${endY} ${endX} ${endY}`;
+          conn.path.setAttribute("d", pathStr);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // Update all connections (throttled by rAF)
+      let _connRaf = null;
+      function updateAllConnections() {
+        try {
+          Object.keys(connections).forEach((f) => updateConnectionPath(f));
+        } catch (e) {}
+        _connRaf = null;
+      }
+
+      function scheduleConnectionsUpdate() {
+        if (_connRaf) return;
+        _connRaf = requestAnimationFrame(updateAllConnections);
+      }
+
+      // Keep connectors in sync when the page or canvas scrolls/resizes
+      window.addEventListener("resize", scheduleConnectionsUpdate);
+      window.addEventListener("scroll", scheduleConnectionsUpdate, true);
+      if (formCanvas)
+        formCanvas.addEventListener("scroll", scheduleConnectionsUpdate);
+
+      // --- Drag-to-connect implementation for a smoother UX ---
+      let _dragState = null; // { field, apiNode, tempPath }
+
+      function startDragConnect(field, apiNode, startX, startY, kind) {
+        initConnectorOverlay();
+        const svg = document.getElementById("connectorSvg");
+        if (!svg) return;
+        // create a temp path
+        const temp = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
+        );
+        temp.setAttribute("stroke", "rgba(96,165,250,0.85)");
+        temp.setAttribute("stroke-width", "3");
+        temp.setAttribute("fill", "none");
+        temp.setAttribute("stroke-dasharray", "6 8");
+        temp.setAttribute("marker-end", "url(#arrow-end)");
+        svg.appendChild(temp);
+        _dragState = { field: field, apiNode: apiNode, tempPath: temp };
+
+        function onMove(ev) {
+          try {
+            const x = ev.clientX;
+            const y = ev.clientY;
+            const aRect = apiNode.getBoundingClientRect();
+            const sX = aRect.left + aRect.width / 2;
+            const sY = aRect.top + aRect.height / 2;
+            const dx = Math.abs(x - sX);
+            const c1 = sX + dx * 0.25;
+            const c2 = x - dx * 0.25;
+            const d = `M ${sX} ${sY} C ${c1} ${sY} ${c2} ${y} ${x} ${y}`;
+            temp.setAttribute("d", d);
+          } catch (e) {}
+        }
+
+        function onUp(ev) {
+          try {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            if (!_dragState) return;
+            const x = ev.clientX;
+            const y = ev.clientY;
+            const el = document.elementFromPoint(x, y);
+            let target = el ? el.closest("input,textarea,select,button") : null;
+            if (!target || !formCanvas.contains(target)) {
+              try {
+                _dragState.tempPath.remove();
+              } catch (e) {}
+              _dragState = null;
+              scheduleConnectionsUpdate();
+              return;
+            }
+            // finalize mapping (field vs method)
+            if (kind === "method") {
+              connections.methods = connections.methods || {};
+              connections.methods[_dragState.field] = {
+                element: target,
+                selector: getElementSelector(target),
+              };
+              target.classList.add("mapped");
+              drawConnection(_dragState.field, _dragState.apiNode, target);
+              updateMappingPreview();
+            } else {
+              createMapping(_dragState.field, target);
+              drawConnection(_dragState.field, _dragState.apiNode, target);
+            }
+            try {
+              _dragState.tempPath.remove();
+            } catch (e) {}
+            _dragState = null;
+            scheduleConnectionsUpdate();
+          } catch (e) {
+            try {
+              _dragState && _dragState.tempPath && _dragState.tempPath.remove();
+            } catch (e) {}
+            _dragState = null;
+          }
+        }
+
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", onUp);
+      }
+
+      // --- Toast utilities ---
+      function showToast(message, type = "info", opts = {}) {
+        try {
+          const container = document.getElementById("toastContainer");
+          if (!container) return null;
+          const t = document.createElement("div");
+          t.className = "toast " + (type || "info");
+          if (type === "loading") {
+            const loader = document.createElement("div");
+            loader.className = "loader";
+            t.appendChild(loader);
+          }
+          const msg = document.createElement("div");
+          msg.textContent = message;
+          t.appendChild(msg);
+          container.appendChild(t);
+          const timeout = opts.timeout || (type === "loading" ? 0 : 3500);
+          if (timeout > 0) setTimeout(() => t.remove(), timeout);
+          return t;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function dismissToast(el) {
+        try {
+          if (el && el.remove) el.remove();
+        } catch (e) {}
       }
 
       function assembleInjectionScript() {
@@ -970,20 +1258,41 @@
 
       async function injectMappings() {
         try {
+          const injectBtn = document.querySelector(
+            'button[onclick="injectMappings()"]'
+          );
+          if (injectBtn) injectBtn.disabled = true;
           const code = assembleInjectionScript();
           const status = document.getElementById("injectStatus");
-          const injected = await injectIntoParentEditor(code);
-          if (injected) {
-            if (status) status.textContent = "Mappings injected into editor.";
-          } else {
-            await navigator.clipboard.writeText(code);
+          const loaderToast = showToast("Injecting mappings...", "loading");
+          try {
+            const injected = await injectIntoParentEditor(code);
+            dismissToast(loaderToast);
+            if (injected) {
+              showToast("Mappings injected into editor.", "success");
+              if (status) status.textContent = "Mappings injected into editor.";
+            } else {
+              await navigator.clipboard.writeText(code);
+              showToast(
+                "Editor not detected — code copied to clipboard.",
+                "info"
+              );
+              if (status)
+                status.textContent =
+                  "Could not inject into editor — code copied to clipboard.";
+            }
+          } catch (innerErr) {
+            dismissToast(loaderToast);
+            console.error("injectMappings inner error", innerErr);
+            showToast("Error injecting mappings. See console.", "error");
             if (status)
-              status.textContent =
-                "Could not inject into editor — code copied to clipboard.";
+              status.textContent = `Injection error: ${innerErr && innerErr.message}`;
+          } finally {
+            if (injectBtn) injectBtn.disabled = false;
           }
         } catch (e) {
           console.error("injectMappings error", e);
-          alert("Error injecting mappings: " + (e && e.message));
+          showToast("Error injecting mappings: " + (e && e.message), "error");
         }
       }
 
