@@ -262,7 +262,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
       async function loadPageIntoEditor(path, siteName){
         try{
-          const content = await api(`/api/sites/${siteName}/pages/content?path=${encodeURIComponent(path)}`);
+          if(!siteName){ throw new Error('siteName required'); }
+          const content = await api(`/api/sites/${encodeURIComponent(siteName)}/pages/content?path=${encodeURIComponent(path)}`);
           const sel = qs('#pageSelect'); if(sel) sel.value = path;
           const editor = qs('#pageEditor'); if(editor){ editor.value = content; try{ editor.setAttribute('data-current-page', path); }catch(e){} }
           const preview = qs('#previewFrame'); if(preview){ preview.src = `/site/${siteName}/${path}`; }
@@ -270,7 +271,17 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       async function selectSite(name){
-        selectedSite = await api(`/api/sites/${name}`) || null;
+        if(!name){
+          console.warn('selectSite called without a name');
+          selectedSite = null;
+          window.selectedSite = null;
+          await renderSiteList();
+          return;
+        }
+        const fetched = await api(`/api/sites/${encodeURIComponent(name)}`) || null;
+        // ensure the returned object has a name so downstream code can rely on it
+        if(fetched && !fetched.name) fetched.name = name;
+        selectedSite = fetched;
         window.selectedSite = selectedSite;
         await renderSiteList();
         await renderSiteDetails();
@@ -287,7 +298,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         for (const page of pages) {
           try {
-            const content = await api(`/api/sites/${siteName}/pages/content?path=${encodeURIComponent(page)}`);
+            if(!siteName) throw new Error('siteName required for analysis');
+            const content = await api(`/api/sites/${encodeURIComponent(siteName)}/pages/content?path=${encodeURIComponent(page)}`);
             apis.forEach(api => {
               const apiName = api.name;
               const url = api.url;
@@ -308,13 +320,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       async function renderSiteDetails(){
-        if(!selectedSite) return;
+        if(!selectedSite || !selectedSite.name) return;
         qs('#siteActions').textContent = `Selected: ${selectedSite.name}`;
         const apiList = qs('#apiList'); apiList.innerHTML='';
         let relationships = {};
         try {
-          const pages = await api(`/api/sites/${selectedSite.name}/pages`);
-          relationships = analyzePageApiRelationships(selectedSite.name, selectedSite.apis || [], pages);
+          const pages = await api(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages`);
+          relationships = await analyzePageApiRelationships(selectedSite.name, selectedSite.apis || [], pages);
         } catch (e) {
           console.warn('Could not analyze page-API relationships', e);
         }
@@ -1286,6 +1298,10 @@ const restClientHtml = `<div style="max-height:80vh;overflow:auto;"><style>${sty
     const saveBtn = document.getElementById('saveApiTestResultBtn');
     if (saveBtn) {
       saveBtn.onclick = () => {
+        if (!selectedSite || !selectedSite.name) {
+          showMessage('Please select a site before saving an API', 'Error');
+          return;
+        }
         // Collect API definition from form
         const url = document.getElementById('url').value;
         const method = document.getElementById('method').value;
@@ -1310,16 +1326,20 @@ const restClientHtml = `<div style="max-height:80vh;overflow:auto;"><style>${sty
         if (!apiNameInput) apiNameInput = apiDef.name || url.split('/').pop() || 'new-api-' + Date.now();
         const newApiDef = { name: apiNameInput, url, method, headers, params, bodyTemplate };
         const isNew = !apiDef.name;
-        const endpoint = isNew ? `/api/sites/${selectedSite.name}/apis` : `/api/sites/${selectedSite.name}/apis/${encodeURIComponent(apiDef.name)}`;
+        const encodedSite = encodeURIComponent(selectedSite.name);
+        const endpoint = isNew ? `/api/sites/${encodedSite}/apis` : `/api/sites/${encodedSite}/apis/${encodeURIComponent(apiDef.name)}`;
         const methodHttp = isNew ? 'POST' : 'PUT';
         fetch(endpoint, { method: methodHttp, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newApiDef) })
           .then(resp => resp.json())
           .then(updated => {
+            // Ensure selectedSite.apis is an array before mutating
+            if (!Array.isArray(selectedSite.apis)) selectedSite.apis = [];
             if (isNew) {
               selectedSite.apis.push(updated);
             } else {
               const idx = selectedSite.apis.findIndex(a => a.name === apiDef.name);
               if (idx >= 0) selectedSite.apis[idx] = updated;
+              else selectedSite.apis.push(updated);
             }
             renderSiteDetails();
             AppUtils.Modal.hide();

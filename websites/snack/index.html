@@ -1627,7 +1627,7 @@
                               </div>
                             </div>
                             <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                              <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                              <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                                 <span>Add to cart</span>
                               </a>
                             </div>
@@ -1713,102 +1713,79 @@
                 <!-- AB_TEMPLATE_GENERATOR_V2 -->
                 {{#each filter by category candy}}
                   <!-- LOOP_START -->
-                  <li id="Slide-template--17133120946278__featured_collection_nx3ejD-7" class="grid__item slider__slide scroll-trigger animate--slide-in scroll-trigger--offscreen" data-cascade="" style="--animation-order: 7;">
-                    <div class="card-wrapper product-card-wrapper underline-links-hover" bis_skin_checked="1">
-                      <div class="
+                   <li class="grid__item scroll-trigger animate--slide-in" data-cascade="" style="--animation-order: 0;">
+                      <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-rating.css?v=179577762467860590411744280571" rel="stylesheet" type="text/css" media="all">
+                      <div class="card-wrapper product-card-wrapper underline-links-hover" bis_skin_checked="1">
+                        <div class="
         card card--standard
          card--media" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
-                        <div class="card__inner color-scheme-2 gradient ratio" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
-                          <div class="card__media" bis_skin_checked="1">
-                            <div class="media media--transparent media--hover-effect" bis_skin_checked="1">
-                              <img srcset="{{this.image}}" src="{{this.image}}" class="motion-reduce" loading="lazy" width="1080" height="1350">
-                              <img srcset="{{this.image}}" src="/{{this.image}}" class="motion-reduce" loading="lazy" width="1080" height="1350">
+                          <div class="card__inner color-scheme-2 gradient ratio" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
+                            <div class="card__media" bis_skin_checked="1">
+                              <div class="media media--transparent media--hover-effect" bis_skin_checked="1">
+                                <img srcset="{{this.image}}" src="{{this.image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="Aam papad | one bar | The Snack Smack" class="motion-reduce" width="1080" height="1350">
+                                <img srcset="{{this.image}}" src="{{this.image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.name}}" class="motion-reduce" loading="lazy" width="1080" height="1350">
+                              </div>
+                            </div>
+                            <div class="card__content" bis_skin_checked="1">
+                              <div class="card__information" bis_skin_checked="1">
+                                <h3 class="card__heading">
+                                  <a href="/products/aam-papad-one-bar-the-snack-smack" id="StandardCardNoMediaLink-template--17133120946278__product-grid-7630580678758" class="full-unstyled-link" aria-labelledby="StandardCardNoMediaLink-template--17133120946278__product-grid-7630580678758 NoMediaStandardBadge-template--17133120946278__product-grid-7630580678758">{{this.name}} </a>
+                                </h3>
+                              </div>
+                              <div class="card__badge bottom left" bis_skin_checked="1">
+                              </div>
                             </div>
                           </div>
                           <div class="card__content" bis_skin_checked="1">
                             <div class="card__information" bis_skin_checked="1">
-                              <h3 class="card__heading">
-                                <a href="/products/aam-papad-one-bar-the-snack-smack" id="StandardCardNoMediaLink-template--17133120946278__featured_collection_nx3ejD-7630580678758" class="full-unstyled-link" aria-labelledby="StandardCardNoMediaLink-template--17133120946278__featured_collection_nx3ejD-7630580678758 NoMediaStandardBadge-template--17133120946278__featured_collection_nx3ejD-7630580678758"> {{this.name}} </a>
+                              <h3 class="card__heading h5" id="title-template--17133120946278__product-grid-7630580678758">
+                                <a href="/products/aam-papad-one-bar-the-snack-smack" id="CardLink-template--17133120946278__product-grid-7630580678758" class="full-unstyled-link" aria-labelledby="CardLink-template--17133120946278__product-grid-7630580678758 Badge-template--17133120946278__product-grid-7630580678758">{{this.name}} </a>
                               </h3>
+                              <div class="card-information" bis_skin_checked="1">
+                                <span class="visually-hidden">Vendor:</span>
+                                <div class="caption-with-letter-spacing light" bis_skin_checked="1"> Thesnacksmack </div>
+                                <span class="caption-large light"></span>
+                                <div class="
+      price " bis_skin_checked="1">
+                                  <div class="price__container" bis_skin_checked="1">
+                                    <div class="price__regular" bis_skin_checked="1">
+                                      <span class="visually-hidden visually-hidden--inline">Regular price</span>
+                                      <span class="price-item price-item--regular">Rs {{this.price}}/- </span>
+                                    </div>
+                                    <div class="price__sale" bis_skin_checked="1">
+                                      <span class="visually-hidden visually-hidden--inline">Regular price</span>
+                                      <span>
+                                        <s class="price-item price-item--regular">
+                                        </s>
+                                      </span>
+                                      <span class="visually-hidden visually-hidden--inline">Sale price</span>
+                                      <span class="price-item price-item--sale price-item--last">Rs {{this.price}}/- </span>
+                                    </div>
+                                    <small class="unit-price caption hidden">
+                                      <span class="visually-hidden">Unit price</span>
+                                      <span class="price-item price-item--last">
+                                        <span></span>
+                                        <span aria-hidden="true">/</span>
+                                        <span class="visually-hidden">&nbsp;per&nbsp;</span>
+                                        <span>
+                                        </span>
+                                      </span>
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="quick-add no-js-hidden" bis_skin_checked="1">
+                              <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                                <span>Add to cart</span>
+                              </a>
                             </div>
                             <div class="card__badge bottom left" bis_skin_checked="1">
                             </div>
                           </div>
                         </div>
-                        <div class="card__content" bis_skin_checked="1">
-                          <div class="card__information" bis_skin_checked="1">
-                            <h3 class="card__heading h5" id="title-template--17133120946278__featured_collection_nx3ejD-7630580678758">
-                              <a href="/products/aam-papad-one-bar-the-snack-smack" id="CardLink-template--17133120946278__featured_collection_nx3ejD-7630580678758" class="full-unstyled-link" aria-labelledby="CardLink-template--17133120946278__featured_collection_nx3ejD-7630580678758 Badge-template--17133120946278__featured_collection_nx3ejD-7630580678758"> {{this.name}} </a>
-                            </h3>
-                            <div class="card-information" bis_skin_checked="1">
-                              <span class="visually-hidden">Vendor:</span>
-                              <div class="caption-with-letter-spacing light" bis_skin_checked="1"> Chirag </div>
-                              <span class="caption-large light"></span>
-                              <div class="
-      price " bis_skin_checked="1">
-                                <div class="price__container" bis_skin_checked="1">
-                                  <div class="price__regular" bis_skin_checked="1">
-                                    <span class="visually-hidden visually-hidden--inline">Regular price</span>
-                                    <span class="price-item price-item--regular"> Rs. {{this.price}} </span>
-                                  </div>
-                                  <div class="price__sale" bis_skin_checked="1">
-                                    <span class="visually-hidden visually-hidden--inline">Regular price</span>
-                                    <span>
-                                      <s class="price-item price-item--regular">
-                                      </s>
-                                    </span>
-                                    <span class="visually-hidden visually-hidden--inline">Sale price</span>
-                                    <span class="price-item price-item--sale price-item--last"> {{this.price}}/- </span>
-                                  </div>
-                                  <small class="unit-price caption hidden">
-                                    <span class="visually-hidden">Unit price</span>
-                                    <span class="price-item price-item--last">
-                                      <span></span>
-                                      <span aria-hidden="true">/</span>
-                                      <span class="visually-hidden">&nbsp;per&nbsp;</span>
-                                      <span>
-                                      </span>
-                                    </span>
-                                  </small>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <quick-add-bulk data-min="1" id="quick-add-bulk-42697376006246-template--17133120946278__featured_collection_nx3ejD" class="quick-add-bulk" data-index="42697376006246">
-                            <quantity-input class="quantity cart-quantity">
-                              <button class="quantity__button" name="minus" type="button" data-target="decrement-42697376006246">
-                                <span class="visually-hidden">Decrease quantity for Default Title</span>
-                                <span class="svg-wrapper">
-                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="icon icon-minus" viewBox="0 0 10 2">
-                                    <path fill="currentColor" fill-rule="evenodd" d="M.5 1C.5.7.7.5 1 .5h8a.5.5 0 1 1 0 1H1A.5.5 0 0 1 .5 1" clip-rule="evenodd">
-                                    </path>
-                                  </svg>
-                                </span>
-                              </button>
-                              <input class="quantity__input" data-quantity-variant-id="42697376006246" type="number" name="updates[]" value="1" data-cart-quantity="1" min="0" data-min="1" step="1" aria-label="Quantity for Default Title" id="Quantity-42697376006246" data-index="42697376006246" data-target="quantity-input-42697376006246">
-                              <button class="quantity__button" name="plus" type="button" data-target="increment-42697376006246">
-                                <span class="visually-hidden">Increase quantity for Default Title</span>
-                                <span class="svg-wrapper">
-                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="icon icon-plus" viewBox="0 0 10 10">
-                                    <path fill="currentColor" fill-rule="evenodd" d="M1 4.51a.5.5 0 0 0 0 1h3.5l.01 3.5a.5.5 0 0 0 1-.01V5.5l3.5-.01a.5.5 0 0 0-.01-1H5.5L5.49.99a.5.5 0 0 0-1 .01v3.5l-3.5.01z" clip-rule="evenodd">
-                                    </path>
-                                  </svg>
-                                </span>
-                              </button>
-                              <div class="progress-bar-container hidden" bis_skin_checked="1">
-                                <div class="progress-bar" bis_skin_checked="1">
-                                  <div class="progress-bar-value" bis_skin_checked="1">
-                                  </div>
-                                </div>
-                              </div>
-                            </quantity-input>
-                          </quick-add-bulk>
-                          <div class="card__badge bottom left" bis_skin_checked="1">
-                          </div>
-                        </div>
                       </div>
-                    </div>
-                  </li>
+                    </li>
                   <!-- LOOP_END -->
                 {{/each}}
               </ul>
@@ -1924,7 +1901,7 @@
                           </div>
                         </div>
                         <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                             <span>Add to cart</span>
                           </a>
                         </div>
@@ -2004,7 +1981,7 @@
                           </div>
                         </div>
                         <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                             <span>Add to cart</span>
                           </a> <div class="loading__spinner hidden" bis_skin_checked="1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
@@ -2090,7 +2067,7 @@
                           </div>
                         </div>
                         <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                             <span>Add to cart</span>
                           </a> <div class="loading__spinner hidden" bis_skin_checked="1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
@@ -2174,7 +2151,7 @@
                           </div>
                         </div>
                         <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                             <span>Add to cart</span>
                           </a> <div class="loading__spinner hidden" bis_skin_checked="1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
@@ -2353,7 +2330,7 @@
                           </div>
                         </div>
                         <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                             <span>Add to cart</span>
                           </a> <div class="loading__spinner hidden" bis_skin_checked="1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
@@ -2439,7 +2416,7 @@
                           </div>
                         </div>
                         <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                             <span>Add to cart</span>
                           </a> <div class="loading__spinner hidden" bis_skin_checked="1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
@@ -2715,7 +2692,7 @@
                           </div>
                         </div>
                         <div class="quick-add no-js-hidden" bis_skin_checked="1">
-                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
+                          <a href="cart.html" class="quick-add__submit button button--full-width button--secondary" data-product-id="{{this.id}}" data-price="{{this.price}}" data-title="{{this.name}}" data-image="{{this.image}}" style="display: inline-block; text-align: center; text-decoration: none; line-height: 1.5;">
                             <span>Add to cart</span>
                           </a> <div class="loading__spinner hidden" bis_skin_checked="1">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
@@ -5915,6 +5892,56 @@
     </div>
     <div class="orichiBackgroundOver" style="display: none;" bis_skin_checked="1">
     </div>
+  <script>
+      /* Dynamic product count: updates visible counts based on #product-grid items.
+         Minimal, scoped, and includes debug logging at debug level. */
+      (function () {
+        const LOG_PREFIX = '[DynamicProductCount]';
+        function updateProductCounts() {
+          try {
+            const grid = document.getElementById('product-grid');
+            const items = grid ? grid.querySelectorAll('li.grid__item') : null;
+            const total = items ? items.length : 0;
+            const label = total === 1 ? 'product' : 'products';
+            const text = `${total} ${label} `; // trailing space to match theme spacing
+
+            const desktopEl = document.getElementById('ProductCountDesktop');
+            if (desktopEl) desktopEl.textContent = text;
+
+            const mobileEl = document.getElementById('ProductCount');
+            if (mobileEl) mobileEl.textContent = text;
+
+            const mobileFacetCount = document.querySelector('.mobile-facets__count');
+            if (mobileFacetCount) mobileFacetCount.textContent = text;
+
+            console.debug(LOG_PREFIX, {
+              action: 'updated',
+              total,
+              targets: {
+                desktop: !!desktopEl,
+                mobile: !!mobileEl,
+                mobileFacet: !!mobileFacetCount
+              }
+            });
+          } catch (err) {
+            console.debug(LOG_PREFIX, { action: 'error', error: String(err) });
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', updateProductCounts);
+        } else {
+          updateProductCounts();
+        }
+
+        const grid = document.getElementById('product-grid');
+        if (grid && 'MutationObserver' in window) {
+          const observer = new MutationObserver(updateProductCounts);
+          observer.observe(grid, { childList: true });
+          console.debug(LOG_PREFIX, { action: 'observer_attached' });
+        }
+      })();
+    </script>
   </body>
 
 </html>

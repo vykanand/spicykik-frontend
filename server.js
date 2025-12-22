@@ -1006,19 +1006,44 @@ function escapeRegExp(string) {
 }
 
 // Serve root: list sites
-app.get('/', (req, res) => {
-  // Serve production index if available, otherwise show prototype list
+app.get('/', async (req, res) => {
+  // Serve configured site (activePrototype) or configured production folder index.
   try {
-    const cfg = readConfig();
+    const cfg = await readConfig();
+
+    // If an active prototype is configured, prefer serving its index (rendered)
+    if (cfg && cfg.activePrototype) {
+      const siteIndex = path.join(WEBSITES_DIR, cfg.activePrototype, 'index.html');
+      if (fs.existsSync(siteIndex)) {
+        try {
+          const rendered = await renderSiteHtml(cfg.activePrototype, 'index.html');
+          if (rendered !== null) {
+            res.set('Content-Type', 'text/html');
+            return res.send(rendered);
+          }
+        } catch (e) {
+          logger && logger.warn && logger.warn('Error rendering activePrototype index: ' + (e && e.message));
+        }
+        return res.sendFile(siteIndex);
+      }
+    }
+
+    // Otherwise, try the configured productionFolder (relative to project root)
     const prodFolder = cfg && cfg.productionFolder ? cfg.productionFolder : 'production';
     const prodIndex = path.join(ROOT, prodFolder, 'index.html');
     if (fs.existsSync(prodIndex)) return res.sendFile(prodIndex);
   } catch (err) {
-    logger && logger.warn && logger.warn('Error serving production index: ' + (err && err.message));
+    logger && logger.warn && logger.warn('Error serving production/index for root: ' + (err && err.message));
   }
 
-  const db = readDB();
-  res.send(`<h2>AppBuilder Prototype</h2><p>Sites:</p><ul>${db.sites.map(s=>`<li><a href="/site/${s.name}/">${s.name}</a></li>`).join('')}</ul><p>Admin: <a href="/admin">Open admin</a></p>`);
+  // Fallback: show prototype list from DB
+  try {
+    const db = await readDB();
+    return res.send(`<h2>AppBuilder Prototype</h2><p>Sites:</p><ul>${db.sites.map(s=>`<li><a href="/site/${s.name}/">${s.name}</a></li>`).join('')}</ul><p>Admin: <a href="/admin">Open admin</a></p>`);
+  } catch (err) {
+    logger && logger.warn && logger.warn('Error reading DB for root listing: ' + (err && err.message));
+    return res.status(500).send('unable to display sites');
+  }
 });
 
 // Config API

@@ -1,6 +1,139 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pay — SpicyKik</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 24px;
+        color: #222;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      #summary {
+        border: 1px solid #eee;
+        padding: 16px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+      }
+      #items div {
+        padding: 6px 0;
+        border-bottom: 1px dashed #f0f0f0;
+      }
+      #total {
+        font-weight: 700;
+        margin-top: 12px;
+      }
+      #pay-now {
+        background: #0a74da;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #result {
+        margin-top: 12px;
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Checkout</h1>
+      <div id="summary">
+        <div id="items"></div>
+        <div id="total">Total: Rs. 0.00</div>
+      </div>
+      <button id="pay-now">Pay Now</button>
+      <div id="result" style="display: none"></div>
+    </main>
+
+    <script>
+      (function () {
+        function formatCurrency(cents) {
+          return "Rs. " + (cents / 100).toFixed(2);
+        }
+        function getQuery(name) {
+          return new URLSearchParams(location.search).get(name);
+        }
+        var amountCents = parseInt(getQuery("amount_cents"));
+        var STORAGE_KEY = "spicykik_cart_v1";
+        function loadCart() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : { items: [] };
+          } catch (e) {
+            return { items: [] };
+          }
+        }
+        function computeFromCart() {
+          var cart = loadCart();
+          var subtotal = 0;
+          (cart.items || []).forEach(function (i) {
+            subtotal += (i.price_cents || 0) * (i.quantity || 0);
+          });
+          return { subtotal: subtotal, items: cart.items || [] };
+        }
+
+        var data;
+        if (!isNaN(amountCents)) {
+          data = { subtotal: amountCents, items: loadCart().items || [] };
+        } else {
+          data = computeFromCart();
+        }
+
+        document.getElementById("total").textContent =
+          "Total: " + formatCurrency(data.subtotal || 0);
+        var itemsEl = document.getElementById("items");
+        if (data.items && data.items.length) {
+          data.items.forEach(function (it) {
+            var div = document.createElement("div");
+            div.textContent =
+              (it.quantity || 1) +
+              " x " +
+              (it.title || "Item") +
+              " — " +
+              formatCurrency((it.price_cents || 0) * (it.quantity || 0));
+            itemsEl.appendChild(div);
+          });
+        } else {
+          itemsEl.textContent = "No items to display.";
+        }
+
+        document
+          .getElementById("pay-now")
+          .addEventListener("click", function () {
+            var btn = this;
+            btn.disabled = true;
+            btn.textContent = "Processing...";
+            setTimeout(function () {
+              try {
+                localStorage.removeItem(STORAGE_KEY);
+              } catch (e) {}
+              var res = document.getElementById("result");
+              res.style.display = "block";
+              res.textContent =
+                "Payment successful. Paid " +
+                formatCurrency(data.subtotal || 0) +
+                ". Thank you!";
+              btn.textContent = "Paid";
+              setTimeout(function () {
+                window.location.href = "./index.html";
+              }, 1800);
+            }, 900);
+          });
+      })();
+    </script>
+  </body>
+</html>
+<!doctype html>
+<html>
+  <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TandoorBaaz Payment</title>
     <style>
