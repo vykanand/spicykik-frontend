@@ -102,7 +102,7 @@
       "apis": [
         {
           "name": "allproducts",
-          "url": "https://chirag-backend-production.up.railway.app/products/api.php",
+          "url": "https://spicykik-backend-production.up.railway.app/products/api.php",
           "method": "GET",
           "headers": {},
           "params": {
@@ -112,7 +112,7 @@
         },
         {
           "name": "filter by category candy",
-          "url": "https://chirag-backend-production.up.railway.app/products/api.php?filters=1",
+          "url": "https://spicykik-backend-production.up.railway.app/products/api.php?filters=1",
           "method": "GET",
           "headers": {},
           "params": {
