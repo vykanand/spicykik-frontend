@@ -381,23 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const tree = await api(`/api/sites/${selectedSite.name}/tree`);
       const container = qs('#siteFileTree'); if(container){
         container.innerHTML = '';
-          (tree||[]).forEach(n=> renderFileTreeNode(n, container));
-          // After rendering tree, try to highlight the currently loaded page
-          try {
-            const current = document.getElementById('pageEditor')?.getAttribute('data-current-page');
-            if(current) {
-              const nodes = container.querySelectorAll('.sf-node');
-              for(const nEl of nodes) {
-                if(nEl && nEl.title === current) {
-                  // simulate selection
-                  nEl.classList.add('selected');
-                  window.__currentSelectedFileEl = nEl;
-                  const info = qs('#siteActions'); if(info) info.textContent = `Selected: ${current} — File`;
-                  break;
-                }
-              }
-            }
-          } catch(e) { /* ignore */ }
+        (tree||[]).forEach(n=> renderFileTreeNode(n, container));
       }
       // populate page selector (if present) with a flattened list of pages
       try { if (typeof window.populatePageSelector === 'function') window.populatePageSelector(tree || []); } catch(pErr) { /* ignore */ }
