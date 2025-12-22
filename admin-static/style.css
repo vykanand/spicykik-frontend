@@ -88,6 +88,30 @@ select:focus, .form-select:focus, .loop-field-select:focus { outline: 2px solid 
 .list{display:flex;flex-direction:column;gap:8px}
 .list .item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
 .list .item .meta{color:var(--muted);font-size:0.9rem}
+
+/* Improved API list item layout */
+.api-item{display:flex;justify-content:space-between;align-items:flex-start;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);gap:12px}
+.api-left{flex:1;min-width:0}
+.api-title-row{display:flex;align-items:center;gap:8px}
+.api-title{font-size:1rem;margin:0;color:var(--text);display:inline-block}
+.api-url-meta{color:var(--muted);font-size:0.9rem;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60ch}
+.api-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:200px}
+.api-right .btn{padding:6px 10px;border-radius:8px;font-size:0.9rem}
+.api-right .btn.small{padding:6px 10px}
+.api-right .btn + .btn{margin-left:8px}
+.api-pages{width:100%;text-align:right}
+.api-usedin{color:var(--muted);font-size:0.85rem;display:inline-block;max-width:22ch;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Make sure method badge and status dot don't wrap awkwardly */
+.api-title-row .api-method-badge{margin-left:6px}
+.api-status-dot{margin-right:8px}
+
+@media (max-width:900px){
+  .api-item{flex-direction:column;align-items:flex-start}
+  .api-right{width:100%;flex-direction:row;align-items:center;justify-content:space-between}
+  .api-pages{width:auto;text-align:left}
+  .api-url-meta{max-width:100%}
+}
 .preview-wrap{height:var(--viewer-height);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.03);margin-top:8px}
 .preview-wrap iframe{width:100%;height:100%;border:0;background:white}
 /* Ensure readable text when editing or previewing content on light/white backgrounds.
@@ -372,6 +396,72 @@ small.muted{color:var(--muted);font-size:0.85rem}
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
+
+/* --- Redesigned APIs card (modern fresh dark theme) --- */
+.api-card {
+  background: linear-gradient(180deg, #071025 0%, #071022 100%);
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.02);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+}
+
+.api-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.api-header h3 { font-size: 1.05rem; font-weight:700; margin:0 }
+
+.api-list { display:flex; flex-direction:column; gap:10px; }
+
+/* list item uses a subtle glass card with soft elevation */
+.api-item{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.008));
+  border: 1px solid rgba(255,255,255,0.03);
+  transition: transform .15s ease, box-shadow .15s ease, background .12s ease;
+}
+.api-item:hover{ transform: translateY(-4px); box-shadow: 0 18px 40px rgba(2,6,23,0.55); background: rgba(255,255,255,0.02); }
+
+.api-left{min-width:0;display:flex;flex-direction:column}
+.api-title-row{display:flex;align-items:center;gap:10px}
+.api-title{font-size:1rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+.api-method-badge{font-size:0.72rem;padding:5px 9px;border-radius:999px;font-weight:800;border:1px solid rgba(255,255,255,0.04)}
+.api-url-meta{margin-top:6px;font-size:0.88rem;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.api-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end;justify-content:center;min-width:180px}
+.api-right .btn{min-width:96px;height:36px;padding:6px 12px;border-radius:10px;font-size:0.88rem}
+.api-right .btn.outline{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text)}
+.api-right .btn.success{background:linear-gradient(90deg,#bbf7d0,#4ade80);color:#052912}
+.api-right .btn.danger{background:linear-gradient(90deg,#fecaca,#f87171);color:#3b0b0b}
+.api-right .btn.secondary{background:rgba(148,163,184,0.08);color:var(--muted)}
+.api-right .btn + .btn{margin-left:0}
+
+.api-usedin{background:rgba(255,255,255,0.02);padding:6px 8px;border-radius:8px;color:var(--muted);font-size:0.82rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* status dot placement when server provides metadata */
+.api-status-dot{margin-right:8px;vertical-align:middle}
+
+@media (max-width:900px){
+  .api-item{grid-template-columns:1fr;align-items:flex-start}
+  .api-right{flex-direction:row;align-items:center;justify-content:space-between;width:100%}
+  .api-right .btn{min-width:72px;height:36px}
+  .api-title{max-width:100%}
+  .api-url-meta{-webkit-line-clamp:3}
+}
+
+/* small helper for consistent button variants inside api list */
+.btn.small{padding:6px 10px;font-size:0.86rem;border-radius:10px}
+
+/* End redesigned APIs card */
 
 
 

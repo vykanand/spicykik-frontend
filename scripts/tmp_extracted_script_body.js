@@ -1,357 +1,4 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Custom Form Builder - AppBuilder</title>
-    <style>
-      :root {
-        --bg: #0f1720;
-        --panel: #0b1220;
-        --muted: #9aa4b2;
-        --accent: #6ee7b7;
-        --accent-2: #60a5fa;
-        --card: linear-gradient(180deg, #071021, #0b1624);
-        --glass: rgba(255, 255, 255, 0.03);
-        --radius: 12px;
-        --shadow: 0 6px 24px rgba(2, 6, 23, 0.6);
-        font-synthesis: none;
-      }
 
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        height: 100%;
-      }
-      body {
-        margin: 0;
-        font-family:
-          Inter,
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          Roboto,
-          "Helvetica Neue",
-          Arial;
-        background:
-          radial-gradient(
-            1200px 600px at 10% 10%,
-            rgba(96, 165, 250, 0.06),
-            transparent
-          ),
-          var(--bg);
-        color: #e6eef7;
-        padding: 28px;
-      }
-
-      .header {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 18px;
-      }
-      .header h1 {
-        font-size: 20px;
-        margin: 0;
-        font-weight: 600;
-      }
-      .header p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-      .container {
-        display: flex;
-        gap: 18px;
-        align-items: flex-start;
-      }
-      .panel {
-        background: var(--panel);
-        border-radius: var(--radius);
-        padding: 14px;
-        box-shadow: var(--shadow);
-        flex: 1;
-      }
-      .api-panel {
-        max-width: 320px;
-      }
-      .pages-panel {
-        max-width: 260px;
-      }
-      .preview-panel {
-        max-width: 360px;
-      }
-      .form-panel {
-        flex: 2;
-        min-width: 420px;
-      }
-
-      h3 {
-        margin: 0 0 10px 0;
-        color: #dff6ee;
-        font-size: 14px;
-      }
-
-      .api-item {
-        background: var(--glass);
-        padding: 10px;
-        border-radius: 10px;
-        margin: 8px 0;
-        cursor: grab;
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .api-item strong {
-        font-size: 13px;
-      }
-      .api-item small {
-        color: var(--muted);
-        font-size: 12px;
-      }
-      .api-item.dragging {
-        opacity: 0.5;
-      }
-
-      .form-canvas {
-        min-height: 460px;
-        border-radius: 10px;
-        padding: 18px;
-        background: linear-gradient(180deg, #06111b, #071423);
-        border: 1px solid rgba(255, 255, 255, 0.02);
-        overflow: auto;
-      }
-      .form-canvas.full-page {
-        padding: 12px;
-      }
-
-      .form-element {
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.02),
-          transparent
-        );
-        border-radius: 8px;
-        padding: 10px;
-        margin: 10px 0;
-        border: 1px solid rgba(255, 255, 255, 0.03);
-      }
-
-      .mapped {
-        outline: 2px solid rgba(110, 231, 183, 0.12);
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.04);
-      }
-
-      /* Highlight submit candidates inside the canvas */
-      .selectable-submit {
-        outline: 2px dashed rgba(96, 165, 250, 0.22);
-        border-radius: 6px;
-        padding: 2px;
-        transition:
-          transform 0.12s,
-          box-shadow 0.12s;
-        cursor: pointer;
-      }
-      .selectable-submit:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 30px rgba(96, 165, 250, 0.08);
-      }
-      .selectable-submit.selected {
-        outline: 3px solid rgba(110, 231, 183, 0.6);
-        box-shadow: 0 12px 40px rgba(16, 185, 129, 0.08);
-      }
-
-      .mapping-preview {
-        background: transparent;
-        border: 1px dashed rgba(255, 255, 255, 0.03);
-        padding: 10px;
-        border-radius: 8px;
-        color: var(--muted);
-        font-family:
-          ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
-        font-size: 13px;
-      }
-
-      .btn {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: none;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        color: #042027;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      .btn:hover {
-        filter: brightness(0.98);
-        transform: translateY(-1px);
-      }
-      .btn.ghost {
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        color: var(--muted);
-      }
-      .btn.danger {
-        background: linear-gradient(90deg, #fb7185, #f97316);
-        color: white;
-      }
-      .btn.success {
-        background: linear-gradient(90deg, #34d399, #10b981);
-        color: #022;
-      }
-
-      .submit-buttons {
-        margin-top: 12px;
-      }
-      .submit-button-option {
-        background: transparent;
-        border-radius: 8px;
-        padding: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.02);
-        margin: 6px 0;
-        color: var(--muted);
-        cursor: pointer;
-      }
-      .submit-button-option.selected {
-        background: rgba(96, 165, 250, 0.06);
-        border-color: rgba(96, 165, 250, 0.12);
-        color: #dff6ff;
-      }
-
-      .code-output {
-        background: #04131a;
-        color: #bfeaf1;
-        padding: 12px;
-        border-radius: 8px;
-        font-family:
-          ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
-        white-space: pre-wrap;
-        max-height: 320px;
-        overflow: auto;
-      }
-
-      @media (max-width: 980px) {
-        .container {
-          flex-direction: column;
-        }
-        .api-panel,
-        .pages-panel,
-        .preview-panel {
-          max-width: 100%;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>Custom Form Builder</h1>
-      <p>Drag API inputs to form elements and generate submission code</p>
-    </div>
-
-    <div class="container">
-      <div class="panel pages-panel">
-        <h3>Pages Using This API</h3>
-        <div id="pagesList"></div>
-        <div id="pageSelector" style="display: none">
-          <h4>Select a Page:</h4>
-          <select id="pageSelect" onchange="loadPageContent(this.value)">
-            <option value="">Choose a page...</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="panel api-panel">
-        <h3>API Inputs</h3>
-        <div id="apiInputs"></div>
-        <div id="apiMethods" style="margin-top: 10px">
-          <h4 style="margin: 6px 0 8px 0; color: var(--muted); font-size: 13px">
-            API Methods
-          </h4>
-          <div id="apiMethodsList"></div>
-        </div>
-      </div>
-
-      <div class="panel form-panel">
-        <h3>Form Canvas</h3>
-        <div class="form-canvas" id="formCanvas">
-          <p style="color: #7f8c8d; text-align: center; margin-top: 180px">
-            Paste your HTML form code here or drag form elements
-          </p>
-        </div>
-        <div style="margin-top: 15px">
-          <button class="btn" onclick="loadFormFromClipboard()">
-            Load Form from Clipboard
-          </button>
-          <button class="btn" onclick="clearForm()">Clear Form</button>
-          <button
-            class="btn success"
-            style="float: right"
-            onclick="generateCode()"
-          >
-            Generate & Inject
-          </button>
-        </div>
-      </div>
-
-      <div class="panel preview-panel">
-        <h3>Live Preview & Generate</h3>
-        <div id="mappingPreview"></div>
-
-        <div style="margin-top: 12px">
-          <h4>Preview Page</h4>
-          <select
-            id="previewSelect"
-            style="
-              width: 100%;
-              padding: 8px;
-              border-radius: 6px;
-              border: 1px solid #ddd;
-              margin-top: 6px;
-            "
-          >
-            <option value="">Choose a page...</option>
-          </select>
-          <div style="display: flex; gap: 8px; margin-top: 8px">
-            <button
-              id="openPreviewBtn"
-              class="btn"
-              disabled
-              onclick="openPreviewTab(document.getElementById('previewSelect').value)"
-            >
-              Open full preview
-            </button>
-          </div>
-          <div
-            id="injectStatus"
-            style="margin-top: 8px; font-size: 12px; color: #2c3e50"
-          ></div>
-        </div>
-
-        <div class="submit-buttons">
-          <h4>Choose Submit Button:</h4>
-          <div id="submitButtons"></div>
-        </div>
-
-        <div style="margin-top: 12px">
-          <button
-            class="btn success"
-            onclick="injectMappings()"
-            style="width: 100%"
-          >
-            Inject Mappings
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <script>
       let currentAPI = null;
       let mappings = {};
       let draggedElement = null;
@@ -756,7 +403,7 @@
           const value = currentAPI.inputs[field];
           const div = document.createElement("div");
           div.className = "api-item";
-          // API items are clickable nodes now (connector mode)
+          div.draggable = true;
           div.dataset.field = field;
           div.dataset.value = value;
 
@@ -764,120 +411,76 @@
                     <strong>${field}</strong><br>
                     <small>Type: ${typeof value} | Value: ${value}</small>
                 `;
-          div.addEventListener("click", () =>
-            startConnectMode(field, div, "field")
-          );
+
+          div.addEventListener("dragstart", handleDragStart);
           container.appendChild(div);
         });
+      }
 
-        // Render methods list (allow connecting methods to submit buttons)
-        const methodsContainer = document.getElementById("apiMethodsList");
-        if (methodsContainer) {
-          methodsContainer.innerHTML = "";
-          const methods = currentAPI.methods || [currentAPI.method || "POST"];
-          methods.forEach((m) => {
-            const md = document.createElement("div");
-            md.className = "api-item";
-            md.style.marginTop = "6px";
-            md.innerHTML = `<strong>${m}</strong> <small style="color:var(--muted)">/${currentAPI.name}</small>`;
-            md.addEventListener("click", () =>
-              startConnectMode(m, md, "method")
-            );
-            methodsContainer.appendChild(md);
-          });
+      function handleDragStart(e) {
+        draggedElement = e.target;
+        e.target.classList.add("dragging");
+        e.dataTransfer.setData("text/plain", e.target.dataset.field);
+      }
+
+      function handleDragEnd(e) {
+        if (draggedElement) {
+          draggedElement.classList.remove("dragging");
         }
+        draggedElement = null;
+        clearDropTargets();
       }
 
-      // connector-mode variables and SVG overlay
+      function clearDropTargets() {
+        document.querySelectorAll(".drop-target").forEach((el) => {
+          el.classList.remove("drop-target");
+        });
+      }
+
+      // Form canvas drag and drop
       const formCanvas = document.getElementById("formCanvas");
-      let connectingField = null;
-      let connectingAPINode = null;
-      let connectingKind = null; // 'field' or 'method'
-      let connectingKey = null; // current key being connected (field name or method)
-      const connections = {}; // field -> { element, selector, path }
-      connections.methods = connections.methods || {}; // method -> { element, selector, path }
 
-      function initConnectorOverlay() {
-        // create an SVG overlay that sits on top of UI to draw arrows
-        if (document.getElementById("connectorSvg")) return;
-        const svg = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "svg"
-        );
-        svg.id = "connectorSvg";
-        svg.setAttribute(
-          "style",
-          "position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999"
-        );
-        document.body.appendChild(svg);
-      }
-
-      function startConnectMode(key, apiNode, kind) {
-        if (!formCanvas) return;
-        initConnectorOverlay();
-        // set connecting state
-        connectingKind = kind || "field";
-        connectingKey = key;
-        if (connectingKind === "field") connectingField = key;
-        else if (connectingKind === "method") connectingField = null;
-        connectingAPINode = apiNode;
-        // visual cue
-        document
-          .querySelectorAll(".api-item")
-          .forEach((n) => n.classList.remove("connecting"));
-        apiNode.classList.add("connecting");
-        // inform user
-        const status = document.getElementById("injectStatus");
-        if (status)
-          status.textContent =
-            connectingKind === "method"
-              ? `Connecting: select a submit button for method "${key}"`
-              : `Connecting: select a target element for "${key}"`;
-      }
-
-      // handle clicks inside the canvas to pick a target element
-      formCanvas.addEventListener("click", function (e) {
-        if (!connectingKind) return;
-        if (connectingKind === "field") {
-          // find closest form input/select/textarea/button element inside canvas
-          const target = e.target.closest("input,textarea,select,button");
-          if (!target || !formCanvas.contains(target)) {
-            // clicking outside a valid element cancels
-            cancelConnectMode();
-            return;
+      formCanvas.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        if (draggedElement && draggedElement.classList.contains("api-item")) {
+          const target = getDropTarget(e.target);
+          if (target) {
+            target.classList.add("drop-target");
           }
-          // create mapping and draw arrow
-          createMapping(connectingKey, target);
-          drawConnection(connectingKey, connectingAPINode, target);
-          cancelConnectMode();
-        } else if (connectingKind === "method") {
-          // method should be connected to a submit-like element
-          const target = e.target.closest(
-            'input[type="submit"],button[type="submit"],button:not([type]),input[type="button"],button[type="button"]'
-          );
-          if (!target || !formCanvas.contains(target)) {
-            cancelConnectMode();
-            return;
-          }
-          // store method mapping
-          connections.methods = connections.methods || {};
-          connections.methods[connectingKey] = {
-            element: target,
-            selector: getElementSelector(target),
-          };
-          target.classList.add("mapped");
-          drawConnection(connectingKey, connectingAPINode, target);
-          updateMappingPreview();
-          cancelConnectMode();
         }
       });
 
-      function cancelConnectMode() {
-        connectingField = null;
-        if (connectingAPINode) connectingAPINode.classList.remove("connecting");
-        connectingAPINode = null;
-        const status = document.getElementById("injectStatus");
-        if (status) status.textContent = "";
+      formCanvas.addEventListener("dragleave", clearDropTargets);
+
+      formCanvas.addEventListener("drop", function (e) {
+        e.preventDefault();
+        clearDropTargets();
+
+        if (!draggedElement || !draggedElement.classList.contains("api-item"))
+          return;
+
+        const field = draggedElement.dataset.field;
+        const target = getDropTarget(e.target);
+
+        if (target) {
+          createMapping(field, target);
+        }
+      });
+
+      function getDropTarget(element) {
+        // Find the closest form input element
+        let target = element;
+        while (target && target !== formCanvas) {
+          if (
+            target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.tagName === "SELECT"
+          ) {
+            return target;
+          }
+          target = target.parentElement;
+        }
+        return null;
       }
 
       function createMapping(field, target) {
@@ -889,102 +492,6 @@
         target.classList.add("mapped");
         updateMappingPreview();
         updateSubmitButtons();
-        // store connection
-        connections[field] = connections[field] || {};
-        connections[field].element = target;
-        connections[field].selector = mappings[field].selector;
-      }
-
-      function drawConnection(field, apiNode, target) {
-        try {
-          initConnectorOverlay();
-          const svg = document.getElementById("connectorSvg");
-          // remove old path for this field
-          if (connections[field] && connections[field].path) {
-            try {
-              connections[field].path.remove();
-            } catch (e) {}
-          }
-
-          const aRect = apiNode.getBoundingClientRect();
-          const tRect = target.getBoundingClientRect();
-          const startX = aRect.left + aRect.width / 2;
-          const startY = aRect.top + aRect.height / 2;
-          const endX = tRect.left + tRect.width / 2;
-          const endY = tRect.top + tRect.height / 2;
-
-          // create a smooth cubic bezier path
-          const dx = Math.abs(endX - startX);
-          const controlX1 = startX + dx * 0.25;
-          const controlX2 = endX - dx * 0.25;
-          const pathStr = `M ${startX} ${startY} C ${controlX1} ${startY} ${controlX2} ${endY} ${endX} ${endY}`;
-          const path = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "path"
-          );
-          path.setAttribute("d", pathStr);
-          path.setAttribute("stroke", "rgba(96,165,250,0.9)");
-          path.setAttribute("stroke-width", "3");
-          path.setAttribute("fill", "none");
-          path.setAttribute("data-field", field);
-          path.style.filter = "drop-shadow(0 6px 18px rgba(2,6,23,0.6))";
-          svg.appendChild(path);
-          connections[field] = connections[field] || {};
-          connections[field].path = path;
-        } catch (e) {
-          console.error("drawConnection error", e);
-        }
-      }
-
-      function assembleInjectionScript() {
-        try {
-          const map = {};
-          Object.keys(mappings).forEach((f) => (map[f] = mappings[f].selector));
-          const methods = {};
-          if (connections && connections.methods) {
-            Object.keys(connections.methods).forEach((m) => {
-              methods[m] = connections.methods[m].selector;
-            });
-          }
-          const apiName = currentAPI && currentAPI.name ? currentAPI.name : "";
-          const site = getCurrentSite();
-
-          // Build script string safely
-          let script = "(function(){\n";
-          script += "var mappings = " + JSON.stringify(map) + ";\n";
-          script += "var methods = " + JSON.stringify(methods) + ";\n";
-          script += "var apiName = " + JSON.stringify(apiName) + ";\n";
-          script += "var site = " + JSON.stringify(site) + ";\n";
-          script +=
-            "function getVal(sel){try{var el=document.querySelector(sel);if(!el) return ''; if(el.type==='checkbox') return el.checked; return el.value||el.textContent||'';}catch(e){return ''}}\n";
-          script +=
-            "function submitFor(method,selector){try{var btn=document.querySelector(selector); if(!btn) return; btn.addEventListener('click', function(e){e.preventDefault(); var formData={}; for(var k in mappings){ try{ var s=mappings[k]; var v=getVal(s); formData[k]=v;}catch(e){} } if(method==='GET'||method==='DELETE'){ var qs=Object.keys(formData).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(formData[k]);}).join('&'); var url='/api/sites/'+encodeURIComponent(site)+'/endpoints/'+encodeURIComponent(apiName)+'/execute'+(qs?('?'+qs):''); fetch(url,{method:method}).catch(function(e){console.error(e)}); } else { fetch('/api/sites/'+encodeURIComponent(site)+'/endpoints/'+encodeURIComponent(apiName)+'/execute', { method: method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(formData) }).catch(function(e){console.error(e)}); } }); }catch(e){console.error(e)}}\n";
-          script +=
-            "for(var m in methods){ if(methods[m]) submitFor(m, methods[m]); }\n";
-          script += "})();\n";
-          return script;
-        } catch (e) {
-          return "// Error assembling injection script: " + (e && e.message);
-        }
-      }
-
-      async function injectMappings() {
-        try {
-          const code = assembleInjectionScript();
-          const status = document.getElementById("injectStatus");
-          const injected = await injectIntoParentEditor(code);
-          if (injected) {
-            if (status) status.textContent = "Mappings injected into editor.";
-          } else {
-            await navigator.clipboard.writeText(code);
-            if (status)
-              status.textContent =
-                "Could not inject into editor — code copied to clipboard.";
-          }
-        } catch (e) {
-          console.error("injectMappings error", e);
-          alert("Error injecting mappings: " + (e && e.message));
-        }
       }
 
       function getElementSelector(element) {
@@ -1027,48 +534,23 @@
                 `;
           preview.appendChild(div);
         });
-        // Show method -> button mappings
-        if (connections && connections.methods) {
-          const mkeys = Object.keys(connections.methods);
-          if (mkeys.length) {
-            const hdr = document.createElement("div");
-            hdr.style.marginTop = "8px";
-            hdr.innerHTML = "<h4>Method Bindings:</h4>";
-            preview.appendChild(hdr);
-            mkeys.forEach((m) => {
-              const mobj = connections.methods[m];
-              const div = document.createElement("div");
-              div.className = "mapping-preview";
-              div.innerHTML = `<strong>${m}</strong> → ${mobj.selector}`;
-              preview.appendChild(div);
-            });
-          }
-        }
       }
 
       function updateSubmitButtons() {
         const container = document.getElementById("submitButtons");
         container.innerHTML = "";
+
         const submitElements = formCanvas.querySelectorAll(
           'input[type="submit"], button[type="submit"], button:not([type]), input[type="button"], button[type="button"]'
         );
-
-        // Provide a short instruction in the right panel
-        const hint = document.createElement("div");
-        hint.style.color = "var(--muted)";
-        hint.style.fontSize = "13px";
-        hint.style.marginBottom = "8px";
-        hint.textContent =
-          "Click a submit button inside the form to select it for injection.";
-        container.appendChild(hint);
 
         submitElements.forEach((btn, index) => {
           const div = document.createElement("div");
           div.className = "submit-button-option";
           div.dataset.index = index;
-          div.textContent = `${btn.tagName}${btn.type ? `[${btn.type}]` : ""}: "${btn.value || btn.textContent || "Submit"}`;
+          div.textContent = `${btn.tagName}${btn.type ? `[${btn.type}]` : ""}: "${btn.value || btn.textContent || "Submit"}"`;
 
-          // Highlight the list entry if this button is selected
+          // Check if this button is the currently selected one
           if (
             selectedSubmitButton &&
             (selectedSubmitButton === btn ||
@@ -1077,52 +559,17 @@
             div.classList.add("selected");
           }
 
-          // clicking the list entry will also select the actual button in the canvas
           div.onclick = () => selectSubmitButton(btn, div);
           container.appendChild(div);
         });
-
-        // mark submit candidates inside canvas (visual affordance)
-        markSubmitCandidates();
       }
 
       function selectSubmitButton(button, element) {
-        // set variable
         selectedSubmitButton = button;
-
-        // update right-side list
-        document
-          .querySelectorAll(".submit-button-option")
-          .forEach((el) => el.classList.remove("selected"));
-        if (element) element.classList.add("selected");
-
-        // update in-canvas visual selection
-        const submitElements = formCanvas.querySelectorAll(
-          'input[type="submit"], button[type="submit"], button:not([type]), input[type="button"], button[type="button"]'
-        );
-        submitElements.forEach((b) => b.classList.remove("selected"));
-        try {
-          button.classList.add("selected");
-        } catch (e) {}
-      }
-
-      function markSubmitCandidates() {
-        const els = formCanvas.querySelectorAll(
-          'input[type="submit"], button[type="submit"], button:not([type]), input[type="button"], button[type="button"]'
-        );
-        els.forEach((el, idx) => {
-          // attach selectable class and a click handler to choose this as the submit target
-          el.classList.add("selectable-submit");
-          // avoid duplicate handlers
-          if (!el._fbClick) {
-            el._fbClick = function (e) {
-              e.preventDefault();
-              selectSubmitButton(el);
-              updateSubmitButtons();
-            };
-            el.addEventListener("click", el._fbClick);
-          }
+        document.querySelectorAll(".submit-button-option").forEach((el) => {
+          el.classList.remove("selected");
         });
+        element.classList.add("selected");
       }
 
       function loadFormFromClipboard() {
@@ -1175,10 +622,8 @@
           }
 
           const code = generateSubmissionScript();
-          const genEl = document.getElementById("generatedCode");
-          const codeOut = document.getElementById("codeOutput");
-          if (genEl) genEl.textContent = code;
-          if (codeOut) codeOut.style.display = "block";
+          document.getElementById("generatedCode").textContent = code;
+          document.getElementById("codeOutput").style.display = "block";
 
           // Try to inject code into parent editor, otherwise copy to clipboard.
           const status = document.getElementById("injectStatus");
@@ -1367,10 +812,7 @@
       async function injectIntoParentEditor(code) {
         try {
           // 1) Preferred API - parent exposes an insert function
-          if (
-            window.parent &&
-            typeof window.parent.insertCodeAtCursor === "function"
-          ) {
+          if (window.parent && typeof window.parent.insertCodeAtCursor === "function") {
             try {
               window.parent.insertCodeAtCursor(code);
               return true;
@@ -1384,55 +826,52 @@
             const pdoc = window.parent.document;
             // common editor selectors
             const selectorCandidates = [
-              "textarea.editor",
-              "textarea#editor",
+              'textarea.editor',
+              'textarea#editor',
               'textarea[name="editor"]',
-              "textarea",
+              'textarea',
               'input[type="text"][id*="editor"]',
               '[contenteditable="true"]',
-              "[contenteditable]",
+              '[contenteditable]'
             ];
 
             for (const sel of selectorCandidates) {
               const el = pdoc.querySelector(sel);
               if (el) {
                 // If it's a textarea/input use value, else use innerHTML
-                const scriptTag =
-                  '\n<script type="text/javascript">\n' +
-                  code +
-                  "\n<\/script>\n";
-                if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") {
-                  let val = el.value || "";
+                const scriptTag = "\n<script type=\"text/javascript\">\n" + code + "\n</script>\n";
+                if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+                  let val = el.value || '';
                   const lower = val.toLowerCase();
-                  const idx = lower.lastIndexOf("</html>");
+                  const idx = lower.lastIndexOf('</html>');
                   if (idx !== -1) {
                     val = val.slice(0, idx) + scriptTag + val.slice(idx);
                   } else {
                     val = val + scriptTag;
                   }
                   el.value = val;
-                  el.dispatchEvent(new Event("input", { bubbles: true }));
+                  el.dispatchEvent(new Event('input', { bubbles: true }));
                   return true;
                 } else {
                   // contenteditable or other element
                   try {
                     // If the element contains a full HTML string
-                    let html = el.innerHTML || "";
+                    let html = el.innerHTML || '';
                     const lower = html.toLowerCase();
-                    const idx = lower.lastIndexOf("</html>");
+                    const idx = lower.lastIndexOf('</html>');
                     if (idx !== -1) {
                       html = html.slice(0, idx) + scriptTag + html.slice(idx);
                       el.innerHTML = html;
                     } else {
                       // append a script element directly to parent body
-                      const s = pdoc.createElement("script");
-                      s.type = "text/javascript";
+                      const s = pdoc.createElement('script');
+                      s.type = 'text/javascript';
                       s.textContent = code;
                       pdoc.body.appendChild(s);
                     }
                     return true;
                   } catch (e) {
-                    console.warn("failed to inject into contenteditable", e);
+                    console.warn('failed to inject into contenteditable', e);
                   }
                 }
               }
@@ -1440,33 +879,58 @@
 
             // 3) As a last resort append a script node to parent document body (same-origin only)
             try {
-              const s = pdoc.createElement("script");
-              s.type = "text/javascript";
+              const s = pdoc.createElement('script');
+              s.type = 'text/javascript';
               s.textContent = code;
               pdoc.body.appendChild(s);
               return true;
             } catch (e) {
-              console.warn("append script to parent body failed", e);
+              console.warn('append script to parent body failed', e);
             }
           }
 
           return false;
         } catch (e) {
-          console.error("injectIntoParentEditor error", e);
+          console.error('injectIntoParentEditor error', e);
           return false;
         }
       }
 
       function copyCode() {
-        // preserved for compatibility but not used in new flow
-        alert("Code view removed. Use Inject Mappings to inject wiring.");
+        const code = document.getElementById("generatedCode").textContent;
+
+        // Try to insert code back into parent editor
+        if (window.parent && window.parent.insertCodeAtCursor) {
+          try {
+            window.parent.insertCodeAtCursor(code);
+            alert("Code inserted into editor!");
+            window.close();
+            return;
+          } catch (e) {
+            console.error("Error inserting code into parent editor:", e);
+          }
+        }
+
+        // Fallback to clipboard
+        navigator.clipboard
+          .writeText(code)
+          .then(() => {
+            alert("Code copied to clipboard!");
+          })
+          .catch((err) => {
+            console.error("Error copying to clipboard:", err);
+            alert(
+              "Could not copy to clipboard. Please copy the code manually."
+            );
+          });
       }
 
       function closeCodeOutput() {
-        // no-op (code output removed)
+        document.getElementById("codeOutput").style.display = "none";
       }
 
-      // Global drag events (removed - using connector mode instead)
+      // Global drag events
+      document.addEventListener("dragend", handleDragEnd);
 
       // Preview helper (global) for opening a full preview in a new tab
       window.openPreviewTab = function (pageName) {
@@ -1479,6 +943,4 @@
         const url = `/site/${encodeURIComponent(window.currentSiteName)}/${pageName}?t=${Date.now()}`;
         window.open(url, "_blank");
       };
-    </script>
-  </body>
-</html>
+    

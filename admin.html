@@ -73,12 +73,18 @@
                 <div id="siteActions" class="muted small" style="margin-top:8px"></div>
               </div>
 
-              <div class="card" id="cardAPIs" data-intro="Add API connectors (third-party) for the selected site.">
-                <h3>APIs</h3>
-                <div id="apiList" class="list"></div>
+              <div class="card api-card" id="cardAPIs" data-intro="Add API connectors (third-party) for the selected site.">
+                <div class="api-header">
+                  <h3>APIs</h3>
+                  <button id="addApiBtn" class="btn btn-primary">+ Add API</button>
+                </div>
+
+                <div id="apiList" class="api-list list">
+                  <!-- API items injected here by app.js -->
+                </div>
+
                 <div class="divider"></div>
                 <div style="display:flex;gap:8px;align-items:center">
-                  <button id="addApiBtn" class="btn">+ Add API</button>
                   <div class="muted small" style="margin-left:8px">Open the REST client to create or configure an API</div>
                 </div>
               </div>

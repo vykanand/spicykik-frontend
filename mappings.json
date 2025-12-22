@@ -61,6 +61,54 @@
             "userId"
           ],
           "page": "index.html"
+        },
+        {
+          "id": "action_mjhiz7ij",
+          "selector": "button[type=\"submit\"]",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhji7um",
+          "selector": "button[type=\"submit\"]",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhjq4v2",
+          "selector": "#abgen_mjhjplqe_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
+        },
+        {
+          "id": "action_mjhki95e",
+          "selector": "#abgen_mjhkhwim_4",
+          "apiName": "submituser",
+          "method": "POST",
+          "fields": [
+            "title",
+            "body",
+            "userId"
+          ],
+          "page": "index.html"
         }
       ],
       "mappings": [],
@@ -71,11 +119,11 @@
           "apiName": "submituser",
           "method": "POST",
           "fieldMappings": {
-            "title": "[name=\"title\"]",
-            "body": "[name=\"body\"]",
-            "userId": "[name=\"userId\"]"
+            "title": "#abform_mi8skfs3_bavw_field_title",
+            "body": "#abform_mi8skfs3_bavw_field_body",
+            "userId": "#abform_mi8skfs3_bavw_field_userId"
           },
-          "submitSelector": "button[type=\"submit\"]"
+          "submitSelector": "#abgen_mjhkhwim_4"
         },
         {
           "id": "pm_mi983jez",

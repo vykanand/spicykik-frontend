@@ -349,16 +349,18 @@ document.addEventListener('DOMContentLoaded', function() {
           console.warn('Could not analyze page-API relationships', e);
         }
         (selectedSite.apis||[]).forEach(a=>{
-          const div = document.createElement('div'); div.className='item';
-          const left = document.createElement('div');
-          const title = document.createElement('strong'); title.textContent = a.name;
-          const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = a.url;
+          const div = document.createElement('div'); div.className='api-item';
+          const left = document.createElement('div'); left.className = 'api-left';
+          const title = document.createElement('strong'); title.className = 'api-title'; title.textContent = a.name;
+          const meta = document.createElement('div'); meta.className = 'api-url-meta'; meta.textContent = a.url;
           const methodBadge = document.createElement('span'); methodBadge.className = 'api-method-badge';
           const methodText = (a.method || 'GET').toUpperCase(); methodBadge.textContent = methodText;
           if(['POST','PUT','PATCH','DELETE'].includes(methodText)) methodBadge.classList.add('method-create'); else methodBadge.classList.add('method-fetch');
-          // assemble left column: title, method badge, then url meta
-          left.appendChild(title);
-          left.appendChild(methodBadge);
+          // assemble left column: title row (title + badge), then url meta
+          const titleRow = document.createElement('div'); titleRow.className = 'api-title-row';
+          titleRow.appendChild(title);
+          titleRow.appendChild(methodBadge);
+          left.appendChild(titleRow);
           left.appendChild(meta);
           // Attach status indicator if available from latestAggregatedData.__meta__
           try{
@@ -377,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
               div.classList.add(ok ? 'api-ok' : 'api-fail');
             }
           }catch(e){ /* ignore metadata formatting errors */ }
-          const right = document.createElement('div');
+          const right = document.createElement('div'); right.className = 'api-right';
           let buttonsHtml = `<button class="btn small outline" data-edit-api="${a.name}">Edit</button> <button class="btn small success" data-api="${a.name}">Test</button>`;
           if(['POST','PUT','PATCH'].includes(methodText)) {
             buttonsHtml += ` <button class="btn small success" data-form-builder="${a.name}" data-method="${methodText}">Form Builder</button>`;
@@ -390,11 +392,13 @@ document.addEventListener('DOMContentLoaded', function() {
           if (relationships[a.name] && relationships[a.name].length > 0) {
             const pagesDiv = document.createElement('div');
             pagesDiv.className = 'api-pages';
-            pagesDiv.innerHTML = `<small style="color:#666;margin-top:4px;display:block">Used in: ${relationships[a.name].join(', ')}</small>`;
+            const used = document.createElement('small'); used.className = 'api-usedin'; used.textContent = `Used in: ${relationships[a.name].join(', ')}`;
+            pagesDiv.appendChild(used);
             right.appendChild(pagesDiv);
           }
 
-          div.appendChild(left); div.appendChild(right);
+          div.appendChild(left);
+          div.appendChild(right);
           apiList.appendChild(div);
         });
 
