@@ -1969,18 +1969,15 @@
                   <div class="multicolumn-card content-container" bis_skin_checked="1">
                     <div class="multicolumn-card__image-wrapper multicolumn-card__image-wrapper--full-width multicolumn-card-spacing" bis_skin_checked="1">
                       <div class="media media--transparent media--adapt" style="padding-bottom: 74.86666666666667%;" bis_skin_checked="1">
-                        <img src="//thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=3200" alt="" srcset="//thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=50 50w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=75 75w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=100 100w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=150 150w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=200 200w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=300 300w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=400 400w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=500 500w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=750 750w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=1000 1000w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=1250 1250w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=1500 1500w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=1750 1750w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=2000 2000w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=2250 2250w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=2500 2500w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=2750 2750w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=3000 3000w, //thesnacksmackindia.com/cdn/shop/files/IMG_1850.jpg?v=1744649090&amp;width=3200 3200w" width="3200" height="2396" loading="lazy" sizes="
-                      (min-width: 1200px) calc((1200px - 116px) * 1 /  3),
-                      (min-width: 990px) calc((100vw - 116px) * 1 / 3),
-                      (min-width: 750px) calc((100vw - 100px) * 1 / 1),
-                      calc((100vw - 30px) * 1 / 1)
-                    " class="multicolumn-card__image">
+                        <img src="featured-candy.png" alt="" srcset="featured-candy.png" class="multicolumn-card__image">
                       </div>
                     </div>
                     <div class="multicolumn-card__info" bis_skin_checked="1">
                       <div class="rte" bis_skin_checked="1">
                         <p>
-                          <strong>BRINGING BACK WHAT WE LOST&nbsp;</strong> The Memories, The Love and nostalgia for Indian candies is what we are bringing back to foreign lands. We made these countries our new home, brought a lot of things along here with us but still Candies were missing !! So we are bringing it back for you !!
+                          <strong>THE INDIAN CANDY NOSTALGIA&nbsp;</strong> The memories, the love, and the nostalgia of Indian candies travel with us wherever we go.
+We moved across borders and built new homes, but something was missing.
+Now, we’re bringing those beloved candies back—so home never feels far away.
                         </p>
                       </div>
                     </div>
@@ -2082,6 +2079,8 @@
             countrySelectorSearchCount: `[count] countries/regions found`,
         };
     </script>
+    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/global.js?v=184345515105158409801744280571" defer="defer"></script>
+    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/search-form.js?v=133129549252120666541744280572" defer="defer"></script>
     <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/predictive-search.js?v=57209189334897115771744280572" defer="defer"></script>
     <div id="shopify-block-AN2k5QkMvdUJ0UDFZd__8171265131012698934" class="shopify-block shopify-app-block" bis_skin_checked="1">
       <input type="hidden" id="orichi-col-handle" value="aam-papad-one-bar-the-snack-smack,alpenliebe-gold-caramel-toffee-pack-of-20-the-snack-smack,alpenliebe-strawberry-pack-of-20pcs-the-snack-smack-india,am-pachana-the-snack-smack,anardana-goli-the-snack-smack,anardana-goli-the-snack-smack-1,untitled-apr25_04-08,boomer-chewing-gum-20pcs-the-snack-smack-india,cadbury-eclairs-indian-flavor-the-snack-smack,cadbury-gems-pack-of-10-the-snack-smack-india,centre-fresh-pack-of-20-the-snacksmack,centre-fruit-watermelon-the-snacksmack-indian,">
@@ -5104,6 +5103,68 @@
 
       })();
     </script>
-  </body>
+    <script>
+      (function(){
+        const details = document.getElementById('Details-menu-drawer-container');
+        if(!details) return;
+        const summary = details.querySelector('summary');
 
-</html>
+        function setExpanded(open){
+          if(summary) summary.setAttribute('aria-expanded', !!open);
+          document.body.classList.toggle('menu-open', !!open);
+        }
+
+        console.log('menu-toggle:init', {hasDetails: !!details, hasSummary: !!summary});
+
+        // keep aria state in sync when native toggle happens
+        details.addEventListener('toggle', ()=>{
+          console.log('menu-toggle:toggle', {open: details.open});
+          setExpanded(details.open);
+        });
+
+        // summary click: don't override other scripts that intentionally prevented default
+        if(summary){
+          summary.addEventListener('click', function(e){
+            console.log('menu-toggle:summary-click', {defaultPrevented: e.defaultPrevented});
+            if(e.defaultPrevented){
+              // another script handled the interaction; only sync ARIA/state, do not flip open state
+              console.log('menu-toggle:summary-click prevented; syncing state only');
+              setTimeout(()=> setExpanded(details.open), 0);
+              return;
+            }
+
+            // allow native toggle to run, then sync state and log
+            setTimeout(()=>{
+              console.log('menu-toggle:post-toggle', {open: details.open});
+              setExpanded(details.open);
+            }, 0);
+          });
+        }
+
+        // close on Escape
+        document.addEventListener('keydown', function(e){
+          if(e.key === 'Escape' && details.open){
+            console.log('menu-toggle:escape closing');
+            details.open = false;
+            setExpanded(false);
+          }
+        });
+
+        // click outside to close (capture phase)
+        document.addEventListener('click', function(e){
+          if(!details.open) return;
+          const menu = document.getElementById('menu-drawer');
+          if(menu && !menu.contains(e.target) && (!summary || !summary.contains(e.target))){
+            console.log('menu-toggle:outside-click closing');
+            details.open = false;
+            setExpanded(false);
+          }
+        }, true);
+
+        // init
+        setExpanded(details.hasAttribute('open'));
+      })();
+    </script>
+    </body>
+
+  </html>
