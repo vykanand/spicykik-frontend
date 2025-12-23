@@ -14,6 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // Top-level state
   let sites = [];
   let selectedSite = null;
+  // Selected elements from preview (for Element Explorer)
+  let selectedElements = []; // { selector, snippet, color, fade }
+  window.__selectedElements = selectedElements;
+  // currently selected palette field (apiName or apiName.field)
+  let selectedPaletteField = null;
+
+  // Color management for selection highlights
+  const __usedHues = new Set();
+  function generateUniqueHsl() {
+    // pick a hue not recently used (attempts)
+    for(let i=0;i<36;i++){
+      const h = Math.floor(Math.random()*360);
+      if(!__usedHues.has(h)) { __usedHues.add(h); if(__usedHues.size>40) { /* keep set bounded */ const it = __usedHues.values().next().value; __usedHues.delete(it); } const color = `hsl(${h} 75% 50%)`; const fade = `hsla(${h} 75% 0.12)`; return { color, fade, h }; }
+    }
+    // fallback
+    const h = Math.floor(Math.random()*360); const color = `hsl(${h} 75% 50%)`; const fade = `hsla(${h} 75% 0.12)`; return { color, fade, h };
+  }
 
   function showMessage(text, title = 'Notice'){
     // Prefer top-bar notifications for non-blocking UX when available
@@ -428,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderDataPalette(data) {
     const container = qs('#dataPalette');
     if (!container) return;
+    ensurePaletteStyles();
     try { container.style.display = 'block'; container.innerHTML = ''; } catch (e) {}
 
     const meta = data?.__meta__ || {};
@@ -442,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
       h.className = 'api-handle';
       h.title = 'Click or drag to connect';
       h.dataset.field = fullPath;
-      h.addEventListener('click', (ev) => { ev.stopPropagation(); try { startConnectMode(fullPath, labelEl, 'field'); } catch (e) {} });
+      h.addEventListener('click', (ev) => { ev.stopPropagation(); try { setSelectedPalette(fullPath); startConnectMode(fullPath, labelEl, 'field'); } catch (e) {} });
       h.addEventListener('mousedown', (ev) => { ev.stopPropagation(); try { startDragConnect(fullPath, labelEl, ev.clientX, ev.clientY, 'field'); } catch (e) {} });
       return h;
     }
@@ -458,6 +476,10 @@ document.addEventListener('DOMContentLoaded', () => {
         header.appendChild(caret);
         const title = document.createElement('span'); title.className = 'palette-root-title'; title.textContent = apiName; title.style.fontWeight = '700';
         header.appendChild(title);
+        // expose api name on header for mapping persistence
+        try { header.dataset.apiName = apiName; } catch(e) {}
+        // clicking header selects the entire API (highlights children)
+        header.addEventListener('click', (ev)=>{ ev.stopPropagation(); setSelectedPalette(apiName); });
         const method = (meta[apiName]?.method || '').toUpperCase();
         if (method) {
           const m = document.createElement('span'); m.className = 'palette-method'; m.textContent = method; header.appendChild(m);
@@ -490,8 +512,12 @@ document.addEventListener('DOMContentLoaded', () => {
               const sampleEl = document.createElement('span'); sampleEl.className = 'palette-sample'; sampleEl.textContent = s.length > 40 ? s.slice(0,40) + '…' : s; sampleEl.style.marginLeft = '8px'; sampleEl.style.color = 'var(--palette-sample)'; sampleEl.style.fontSize = '12px';
               label.appendChild(sampleEl);
             } catch(e) {}
+            const fullPath = `${apiName}.${k}`;
+            row.dataset.field = fullPath;
             row.appendChild(label);
-            row.appendChild(makeHandle(`${apiName}.${k}`, label));
+            row.appendChild(makeHandle(fullPath, label));
+            // clicking row selects this field
+            row.addEventListener('click', (ev)=>{ ev.stopPropagation(); setSelectedPalette(fullPath); });
             childrenWrap.appendChild(row);
           }
         } else {
@@ -504,6 +530,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try { container.appendChild(treeWrap); } catch (e) { container.innerHTML = '<div style="padding:12px;color:#fca5a5">Palette render failed</div>'; }
+  }
+
+  // Inject high-contrast palette styles for dark theme (idempotent)
+  function ensurePaletteStyles() {
+    try {
+      if(document.getElementById('ab-palette-styles')) return;
+      const s = document.createElement('style'); s.id = 'ab-palette-styles';
+      s.textContent = `
+        #dataPalette { background: #0b1220; color: #e6f3ff; padding: 8px; font-family: Inter, system-ui, Arial; }
+        #dataPalette .simple-palette { display:block; }
+        #dataPalette .palette-root { margin-bottom:8px; border-radius:8px; overflow:hidden; }
+        #dataPalette .palette-root-header { display:flex; align-items:center; gap:8px; padding:8px; background: linear-gradient(180deg,#071020 0%, #071827 100%); cursor:pointer; border:1px solid rgba(255,255,255,0.03); }
+        #dataPalette .palette-root-header:hover { background: linear-gradient(180deg,#0c1726 0%, #071827 100%); }
+        #dataPalette .palette-root-header.selected { outline: 3px solid rgba(96,165,250,0.95); box-shadow: 0 6px 18px rgba(2,6,23,0.6); }
+        #dataPalette .palette-caret { color: rgba(255,255,255,0.6); }
+        #dataPalette .palette-children { padding:6px 8px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.008)); }
+        #dataPalette .palette-row { display:flex; align-items:center; justify-content:space-between; padding:6px; border-radius:6px; margin-bottom:6px; background:transparent; transition: background .12s, transform .06s; }
+        #dataPalette .palette-row:hover { background: rgba(255,255,255,0.01); transform: translateY(-1px); }
+        #dataPalette .palette-row.selected { background: rgba(96,165,250,0.06); box-shadow: inset 4px 0 0 0 rgba(96,165,250,0.95); }
+        #dataPalette .palette-key { font-weight:600; color: #dbefff; }
+        #dataPalette .palette-sample { color: #a2c0dd; }
+        #dataPalette .api-handle { width:18px; height:18px; display:inline-block; border-radius:6px; background: linear-gradient(180deg,#60a5fa,#3b82f6); box-shadow: 0 6px 18px rgba(2,6,23,0.6); margin-left:8px; cursor:pointer; }
+      `;
+      document.head.appendChild(s);
+    } catch(e) { /* ignore style injection errors */ }
+  }
+
+  // Mark a palette field (api or api.field) as selected and highlight its children
+  function setSelectedPalette(field) {
+    try {
+      selectedPaletteField = field;
+      const container = document.getElementById('dataPalette'); if(!container) return;
+      // clear previous
+      container.querySelectorAll('.palette-root-header.selected, .palette-row.selected').forEach(n=> n.classList.remove('selected'));
+      // highlight matching header (api root)
+      const headers = container.querySelectorAll('.palette-root-header');
+      headers.forEach(h => { try { if(h.dataset && h.dataset.apiName === field) h.classList.add('selected'); } catch(e){} });
+      // highlight matching rows: exact match or children when root selected
+      const rows = container.querySelectorAll('.palette-row');
+      rows.forEach(r => {
+        try {
+          const f = r.dataset && r.dataset.field ? r.dataset.field : null;
+          if(!f) return;
+          if(f === field) r.classList.add('selected');
+          else if(field && field.indexOf('.') === -1 && f.indexOf(field + '.') === 0) r.classList.add('selected');
+          else r.classList.remove('selected');
+        } catch(e) {}
+      });
+    } catch(e) { console.warn('setSelectedPalette failed', e); }
   }
 
   // --- Connector overlay and click-to-connect behavior (adapted from form-builder) ---
@@ -1661,80 +1736,172 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function findMatchingIndexes(node, editorText) {
       try {
-        if(!node || !editorText) return null;
-        // try id match
-        if(node.id) {
-          const re = new RegExp("id\\s*=\\s*(?:\"|')" + escapeRegexText(node.id) + "(?:\"|')", 'i');
-          const m = editorText.match(re);
-          if(m) {
-            const idx = m.index;
-            let tagStart = editorText.lastIndexOf('<', idx);
-            if(tagStart === -1) tagStart = idx;
-            let tagEnd = editorText.indexOf('>', idx);
-            if(tagEnd === -1) tagEnd = Math.min(editorText.length, idx + node.outerHTML.length);
-            return { start: tagStart, end: tagEnd + 1 };
+        if (!node || !editorText) return null;
+        const tag = (node.tagName || '').toLowerCase();
+
+        // 1) Try exact outerHTML match (fastest & most accurate)
+        try {
+          const outer = (node.outerHTML || '').replace(/\s+/g, ' ').trim();
+          if (outer && outer.length > 5) {
+            const idx = editorText.indexOf(outer);
+            if (idx !== -1) return { start: idx, end: idx + outer.length };
+          }
+        } catch (e) {}
+
+        // 2) Build opening-tag match candidates (prefer id, then class, then any opening tag)
+        const id = node.id || null;
+        let firstClass = null;
+        try { firstClass = (node.className || '').split && (node.className || '').split(/\s+/).filter(Boolean)[0]; } catch (e) { firstClass = null; }
+
+        const openingCandidates = [];
+        if (id) openingCandidates.push(new RegExp('<' + tag + '[^>]*\\bid\\s*=\s*(?:"|\')' + escapeRegexText(id) + '(?:"|\')[^>]*>', 'i'));
+        if (firstClass) openingCandidates.push(new RegExp('<' + tag + '[^>]*\\bclass\\s*=\s*(?:"|\')[^"\']*\\b' + escapeRegexText(firstClass) + '\\b[^"\']*(?:"|\')[^>]*>', 'i'));
+        openingCandidates.push(new RegExp('<' + tag + '\\b[^>]*>', 'i'));
+
+        // Helper: from an opening tag index, find the matching closing tag using depth counting
+        function findMatchingCloseFrom(openingEndIndex) {
+          try {
+            const sub = editorText.slice(openingEndIndex);
+            const re = new RegExp('</\\s*' + tag + '\\b[^>]*>|<' + tag + '\\b[^>]*>', 'ig');
+            let depth = 0;
+            let m;
+            while ((m = re.exec(sub)) !== null) {
+              const tok = m[0];
+              const isClose = /^<\//.test(tok);
+              const selfClose = /\/>\s*$/.test(tok) || /<[^>]+\/\s*>$/.test(tok);
+              if (!isClose && !selfClose) {
+                depth++;
+                continue;
+              }
+              if (isClose) {
+                if (depth === 0) {
+                  // match closing for our original open
+                  return openingEndIndex + m.index + tok.length;
+                }
+                depth--;
+              }
+            }
+            return null;
+          } catch (e) { return null; }
+        }
+
+        // Search through editorText for any opening that matches our candidates and try to find its close
+        for (const cand of openingCandidates) {
+          // ensure global search
+          const flags = (cand.flags || '') + (cand.flags && cand.flags.indexOf('g') === -1 ? 'g' : '');
+          const g = new RegExp(cand.source, flags || 'g');
+          let m;
+          while ((m = g.exec(editorText)) !== null) {
+            const start = m.index;
+            const openEnd = start + m[0].length;
+            // If self-closing opening, return that small range
+            if (/\/>\s*$/.test(m[0])) return { start, end: openEnd };
+            const closeEnd = findMatchingCloseFrom(openEnd);
+            if (closeEnd) return { start, end: closeEnd };
           }
         }
 
-        // try class match (first token)
+        // 3) Fallback: try to match by a short innerText snippet within an opening tag occurrence
         try {
-          const cls = (node.className || '').split && (node.className || '').split(/\s+/).filter(Boolean)[0];
-          if(cls) {
-            const re = new RegExp("class\\s*=\\s*(?:\"|')[^\"']*\\b" + escapeRegexText(cls) + "\\b[^\"']*(?:\"|')", 'i');
-            const m = editorText.match(re);
-            if(m) {
-              const idx = m.index;
-              let tagStart = editorText.lastIndexOf('<', idx);
-              if(tagStart === -1) tagStart = idx;
-              let tagEnd = editorText.indexOf('>', idx);
-              if(tagEnd === -1) tagEnd = Math.min(editorText.length, idx + node.outerHTML.length);
-              return { start: tagStart, end: tagEnd + 1 };
-            }
-          }
-        } catch(e) {}
-
-        // try outerHTML snippet match (trim whitespace)
-        try {
-          const outer = (node.outerHTML || '').replace(/\s+/g, ' ').trim();
-          if(outer && outer.length > 10) {
-            const snippet = outer.length > 200 ? outer.slice(0,200) : outer;
-            const idx = editorText.indexOf(snippet);
-            if(idx !== -1) return { start: idx, end: idx + snippet.length };
-            // try opening tag only
-            const opening = snippet.split('>')[0] + '>';
-            const idx2 = editorText.indexOf(opening);
-            if(idx2 !== -1) {
-              const closeTag = editorText.indexOf('</' + node.tagName.toLowerCase(), idx2);
-              if(closeTag !== -1) {
-                const closeEnd = editorText.indexOf('>', closeTag);
-                return { start: idx2, end: (closeEnd !== -1 ? closeEnd+1 : closeTag + 3) };
+          const inner = (node.textContent || '').trim().slice(0, 120);
+          if (inner) {
+            const openingRe = new RegExp('<' + tag + '\\b[^>]*>', 'i');
+            let m = openingRe.exec(editorText);
+            while (m) {
+              const s = m.index;
+              const found = editorText.indexOf(inner, s);
+              if (found !== -1) {
+                const closeTag = editorText.indexOf('</' + tag, found);
+                if (closeTag !== -1) {
+                  const closeEnd = editorText.indexOf('>', closeTag);
+                  return { start: s, end: closeEnd !== -1 ? closeEnd + 1 : closeTag + 3 };
+                }
+                return { start: s, end: found + inner.length };
               }
-              return { start: idx2, end: idx2 + opening.length };
+              // continue searching for next opening
+              const nextIndex = m.index + 1;
+              m = openingRe.exec(editorText.slice(nextIndex));
+              if (m) m.index += nextIndex;
             }
           }
-        } catch(e) {}
-
-        // try text content match
-        try {
-          const txt = (node.textContent || '').trim().slice(0,80);
-          if(txt) {
-            const idx = editorText.indexOf(txt);
-            if(idx !== -1) {
-              // approximate surrounding
-              let start = editorText.lastIndexOf('<', idx);
-              if(start === -1) start = Math.max(0, idx - 20);
-              const close = editorText.indexOf('</' + node.tagName.toLowerCase(), idx);
-              if(close !== -1) {
-                const closeEnd = editorText.indexOf('>', close);
-                return { start: start, end: (closeEnd !== -1 ? closeEnd+1 : close + 3) };
-              }
-              return { start: start, end: idx + txt.length };
-            }
-          }
-        } catch(e) {}
+        } catch (e) {}
 
         return null;
       } catch (e) { return null; }
+    }
+
+    // Attempt more robust matching and provide candidates when automatic match fails
+    function showMatchPicker(node, editorText, onSelect) {
+      try {
+        const tag = (node.tagName || '').toLowerCase();
+        const outer = (node.outerHTML || '').replace(/\s+/g,' ').trim();
+        const innerText = ((node.textContent||'')+'').trim().slice(0,200);
+        const candidates = [];
+
+        // 1) exact outer occurrences
+        try {
+          let idx = editorText.indexOf(outer);
+          while(idx !== -1 && candidates.length < 6) {
+            const end = idx + outer.length;
+            candidates.push({ type:'outer', start: idx, end, snippet: editorText.slice(Math.max(0, idx-80), Math.min(editorText.length, end+80)) });
+            idx = editorText.indexOf(outer, idx+1);
+          }
+        } catch(e) {}
+
+        // 2) search for opening tags of same tag
+        try {
+          const re = new RegExp('<' + tag + '\\b[^>]*>', 'ig');
+          let m; while((m = re.exec(editorText)) && candidates.length < 12) {
+            const s = m.index; const openEnd = s + m[0].length; // find closing for this element roughly
+            const closeIdx = editorText.indexOf('</' + tag, openEnd);
+            const end = closeIdx !== -1 ? (editorText.indexOf('>', closeIdx) + 1) : Math.min(editorText.length, openEnd + 200);
+            candidates.push({ type:'tag', start: s, end, snippet: editorText.slice(Math.max(0, s-80), Math.min(editorText.length, end+80)) });
+          }
+        } catch(e) {}
+
+        // 3) innerText matches
+        try {
+          if(innerText) {
+            let idx = editorText.indexOf(innerText);
+            while(idx !== -1 && candidates.length < 20) {
+              const start = Math.max(0, idx-120);
+              const end = Math.min(editorText.length, idx + innerText.length + 120);
+              candidates.push({ type:'text', start, end, snippet: editorText.slice(start, end) });
+              idx = editorText.indexOf(innerText, idx+1);
+            }
+          }
+        } catch(e) {}
+
+        if(candidates.length === 0) {
+          showMessage('No candidate matches found in the editor. Manual edit required.', 'Warning');
+          return false;
+        }
+
+        // Build modal content
+        const listHtml = candidates.map((c,i) => `<div class="match-candidate" data-idx="${i}" style="padding:8px;border-radius:6px;margin-bottom:8px;background:#071226;border:1px solid rgba(255,255,255,0.03);cursor:pointer"><div style="font-weight:700;margin-bottom:6px">Candidate ${i+1} — ${c.type}</div><pre style="white-space:pre-wrap;max-height:140px;overflow:auto;color:#cfe9ff;margin:0;padding:6px;background:transparent;border-radius:4px">${escapeHtml(c.snippet)}</pre></div>`).join('');
+        const body = `<div style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto">${listHtml}</div>`;
+        if(window.AppUtils && AppUtils.Modal) {
+          AppUtils.Modal.show({ title: 'Select matching location in editor', body });
+          setTimeout(()=>{
+            try {
+              const nodes = document.querySelectorAll('.match-candidate');
+              nodes.forEach(n => { n.onclick = () => {
+                try {
+                  const idx = parseInt(n.dataset.idx,10);
+                  const sel = candidates[idx];
+                  AppUtils.Modal.hide();
+                  if(typeof onSelect === 'function') onSelect(sel.start, sel.end);
+                } catch(e) { console.warn(e); }
+              }; });
+            } catch(e) {}
+          }, 50);
+          return true;
+        }
+
+        // Fallback: alert with count
+        showMessage(`Found ${candidates.length} possible locations. Please open the editor and search for the snippet.`, 'Notice');
+        return false;
+      } catch(e) { console.warn('showMatchPicker failed', e); return false; }
     }
 
     // Keep a helper to perform the mapping for a node (used on click)
@@ -1754,7 +1921,635 @@ document.addEventListener('DOMContentLoaded', () => {
         handlePreviewHover(node);
         // focus editor and keep selection
         try { if (editorCm) editorCm.focus(); else document.getElementById('pageEditor') && document.getElementById('pageEditor').focus(); } catch(e) {}
+        try { addSelectedElement(node); } catch(e) {}
       } catch (e) {}
+    }
+
+    // Ensure an element has a unique identifier we can use as selector (id, class or generated data attribute)
+    function ensureElementIdentifier(node) {
+      try {
+        if (!node) return null;
+        if (node.id) return '#' + node.id;
+        if (node.classList && node.classList.length > 0) {
+          // prefer first class but include full class list in data
+          return '.' + node.classList[0];
+        }
+        // prefer attributes like name, data-* if present
+        const attrs = node.attributes || [];
+        for (let i=0;i<attrs.length;i++) {
+          const a = attrs[i];
+          if (!a) continue;
+          const n = a.name;
+          if (n === 'name' || n.startsWith('data-') || n === 'href') {
+            try { return `[${n}="${a.value}"]`; } catch(e) { return `[${n}]`; }
+          }
+        }
+        // fallback: generate a stable data attribute id
+        if (!node.getAttribute('data-ab-id')) {
+          const gen = `ab_${Date.now().toString(36)}_${Math.floor(Math.random()*10000)}`;
+          try { node.setAttribute('data-ab-id', gen); } catch(e) { /* best-effort */ }
+          // attempt to persist this data-ab-id into the editor source so future renderings keep the selector
+          try { persistDataAbIdForNode(node, gen); } catch(e) { /* ignore persist failures */ }
+        }
+        return '#' + node.getAttribute('data-ab-id');
+      } catch (e) { return null; }
+    }
+
+    // Persist a generated data-ab-id into the editor content by finding the opening tag and injecting the attribute.
+    // Replace the element in editor HTML identified by `selector` with the provided outerHTML.
+    // options: { autoSave: boolean }
+    function patchEditorWithOuterHTML(selector, outerHtml, options) {
+      try {
+        options = options || {};
+        const editorText = (window.__getEditorValue && typeof window.__getEditorValue === 'function') ? window.__getEditorValue() : (editorCm ? editorCm.getValue() : (document.getElementById('pageEditor') && document.getElementById('pageEditor').value) || '');
+        if(!editorText) return false;
+        // preserve doctype if present
+        const doctypeMatch = editorText.match(/^<!doctype[^>]*>/i);
+        const doctype = doctypeMatch ? doctypeMatch[0] + '\n' : '';
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(editorText, 'text/html');
+        let target = null;
+        try { target = doc.querySelector(selector); } catch(e) { target = null; }
+        if(!target) {
+          // try stripping leading # for data-ab-id style selectors like '#ab_x' which may exist as data-ab-id
+          try {
+            if(selector && selector[0] === '#') {
+              const idName = selector.slice(1);
+              target = doc.querySelector('[data-ab-id="' + idName + '"]') || doc.getElementById(idName) || null;
+            }
+          } catch(e) { target = null; }
+        }
+        if(!target) return false;
+        // Replace in parsed DOM
+        try {
+          // create a temporary container to parse outerHtml into nodes
+          const fragDoc = parser.parseFromString(outerHtml, 'text/html');
+          const newNode = fragDoc.body.firstElementChild || fragDoc.body;
+          if(newNode) target.replaceWith(newNode);
+          else {
+            // fallback: set innerHTML of target's parent
+            target.outerHTML = outerHtml;
+          }
+        } catch(e) {
+          try { target.outerHTML = outerHtml; } catch(e2) { return false; }
+        }
+        // serialize back
+        const serializer = new XMLSerializer();
+        // Use innerHTML of documentElement to avoid adding unwanted xmlns attributes; rebuild full HTML
+        const html = doc.documentElement ? doc.documentElement.outerHTML : doc.body.outerHTML;
+        const final = (doctype || '') + html;
+        if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(final);
+        else if(editorCm) editorCm.setValue(final);
+        else { const ta = document.getElementById('pageEditor'); if(ta) ta.value = final; }
+        // re-render preview and reattach handlers
+        try {
+          const pf = document.getElementById('previewFrame');
+          if(pf) {
+            const rendered = awaitMaybeRender(final);
+            pf.srcdoc = sanitizeHtmlForPreview(rendered || final);
+            pf.onload = () => { try { attachHandlersToDoc(pf.contentDocument || pf.contentWindow.document); applyColorsToPreview(); } catch(e){} };
+          }
+        } catch(e) {}
+        // auto-save to server if requested
+        if(options.autoSave && selectedSite) {
+          try {
+            const currentPage = document.getElementById('pageEditor')?.getAttribute('data-current-page');
+            if(currentPage) {
+              fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: currentPage, content: final }) })
+              .then(()=> showMessage('Saved to site', 'Saved'))
+              .catch(()=> {/* ignore */});
+            }
+          } catch(e) {}
+        }
+        return true;
+      } catch(e) { console.warn('patchEditorWithOuterHTML failed', e); return false; }
+    }
+
+    // Helper to optionally render template using handlebars/mustache or return input
+    function awaitMaybeRender(content) {
+      // If rendering is async, use Promise resolution; otherwise return string
+      try {
+        const p = renderTemplateForPreviewAsync(content, window.latestAggregatedData || {});
+        if(p && typeof p.then === 'function') return p;
+        return content;
+      } catch(e) { return content; }
+    }
+
+    // Replace an exact snippet in the editor HTML by parsing the editor DOM and finding a matching element.
+    // Returns true if replacement succeeded.
+    function patchEditorReplaceSnippet(originalSnippet, replacementHtml, options) {
+      try {
+        options = options || {};
+        const editorText = (window.__getEditorValue && typeof window.__getEditorValue === 'function') ? window.__getEditorValue() : (editorCm ? editorCm.getValue() : (document.getElementById('pageEditor') && document.getElementById('pageEditor').value) || '');
+        if(!editorText || !originalSnippet) return false;
+
+        // Try exact substring match first (fast, precise)
+        let startIndex = editorText.indexOf(originalSnippet);
+        let endIndex = startIndex !== -1 ? startIndex + originalSnippet.length : -1;
+
+        // If exact not found, try whitespace-tolerant regex match
+        if (startIndex === -1) {
+          try {
+            // escape regex special chars except whitespace
+            const esc = originalSnippet.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+            // collapse whitespace sequences in original into \s+
+            const pattern = esc.replace(/\\s\+/g, '\\s+').replace(/\s+/g, '\\s+');
+            const re = new RegExp(pattern, 'i');
+            const m = re.exec(editorText);
+            if (m) {
+              startIndex = m.index;
+              endIndex = m.index + m[0].length;
+            }
+          } catch(e) { /* ignore regex errors */ }
+        }
+
+        // If we have indices, compute line numbers and perform line-based replacement
+        if (startIndex !== -1 && endIndex !== -1) {
+          try {
+            const before = editorText.slice(0, startIndex);
+            const inside = editorText.slice(startIndex, endIndex);
+            const after = editorText.slice(endIndex);
+            const startLine = before.split('\n').length; // 1-based
+            const endLine = before.concat(inside).split('\n').length; // 1-based
+
+            const lines = editorText.split('\n');
+            const replacementLines = (replacementHtml || '').split('\n');
+            // Replace lines [startLine-1 .. endLine-1]
+            lines.splice(startLine-1, endLine - startLine + 1, ...replacementLines);
+            const newEditorText = lines.join('\n');
+
+            if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(newEditorText);
+            else if(editorCm) editorCm.setValue(newEditorText);
+            else { const ta = document.getElementById('pageEditor'); if(ta) ta.value = newEditorText; }
+
+            // Re-render preview and reattach handlers
+            try {
+              const pf = document.getElementById('previewFrame');
+              if(pf) {
+                const rendered = awaitMaybeRender(newEditorText);
+                Promise.resolve(rendered).then(r => { try { pf.srcdoc = sanitizeHtmlForPreview(r || newEditorText); pf.onload = () => { try { attachHandlersToDoc(pf.contentDocument || pf.contentWindow.document); applyColorsToPreview(); } catch(e){} }; } catch(e){} });
+              }
+            } catch(e) {}
+
+            if(options.autoSave && selectedSite) {
+              try {
+                const currentPage = document.getElementById('pageEditor')?.getAttribute('data-current-page');
+                if(currentPage) {
+                  fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: currentPage, content: newEditorText }) })
+                  .then(()=> showMessage('Saved to site', 'Saved'))
+                  .catch(()=> {});
+                }
+              } catch(e) {}
+            }
+            return true;
+          } catch(e) { console.warn('line-based replacement failed', e); }
+        }
+
+        // Fallback: DOM-based replacement (best-effort, may change formatting)
+        try {
+          // Normalize whitespace helper
+          function norm(s){ return (s||'').replace(/\s+/g,' ').trim(); }
+          const origNorm = norm(originalSnippet);
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(editorText, 'text/html');
+          const all = doc.querySelectorAll('*');
+          for(const el of all) {
+            try {
+              const out = el.outerHTML || '';
+              if(!out) continue;
+              if(norm(out) === origNorm || norm(out).indexOf(origNorm) !== -1) {
+                try {
+                  const fragDoc = parser.parseFromString(replacementHtml, 'text/html');
+                  const newNode = fragDoc.body.firstElementChild || fragDoc.body;
+                  if(newNode) el.replaceWith(newNode);
+                  else el.outerHTML = replacementHtml;
+                } catch(e2) {
+                  try { el.outerHTML = replacementHtml; } catch(e3) { continue; }
+                }
+                const htmlOut = (doc.documentElement && doc.documentElement.outerHTML) || doc.body.outerHTML;
+                if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(htmlOut);
+                else if(editorCm) editorCm.setValue(htmlOut);
+                else { const ta = document.getElementById('pageEditor'); if(ta) ta.value = htmlOut; }
+                try {
+                  const pf = document.getElementById('previewFrame'); if(pf) {
+                    const rendered = awaitMaybeRender(htmlOut);
+                    Promise.resolve(rendered).then(r => { try { pf.srcdoc = sanitizeHtmlForPreview(r || htmlOut); pf.onload = () => { try { attachHandlersToDoc(pf.contentDocument || pf.contentWindow.document); applyColorsToPreview(); } catch(e){} }; } catch(e){} });
+                  }
+                } catch(e) {}
+                if(options.autoSave && selectedSite) {
+                  try {
+                    const currentPage = document.getElementById('pageEditor')?.getAttribute('data-current-page');
+                    if(currentPage) {
+                      fetch(`/api/sites/${encodeURIComponent(selectedSite.name)}/pages/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: currentPage, content: htmlOut }) })
+                      .then(()=> showMessage('Saved to site', 'Saved'))
+                      .catch(()=> {});
+                    }
+                  } catch(e) {}
+                }
+                return true;
+              }
+            } catch(e) { continue; }
+          }
+        } catch(e) { console.warn('DOM fallback replacement failed', e); }
+
+        return false;
+      } catch(e) { console.warn('patchEditorReplaceSnippet failed', e); return false; }
+    }
+
+    // Persist a generated data-ab-id into the editor content by replacing the element's outerHTML
+    function persistDataAbIdForNode(node, genId) {
+      try {
+        if(!node || !genId) return false;
+        // Ensure attribute on node (preview DOM)
+        try { node.setAttribute('data-ab-id', genId); } catch(e){}
+        const outer = (node.outerHTML || '').trim();
+        // attempt to patch editor and auto-save
+        const patched = patchEditorWithOuterHTML('#' + genId, outer, { autoSave: true });
+        return !!patched;
+      } catch(e) { console.warn('persistDataAbIdForNode failed', e); return false; }
+    }
+
+    function resolveGranularNode(node) {
+      try {
+        if(!node) return null;
+        const sel = document.getElementById('elementGranularity');
+        const mode = sel ? sel.value : 'exact';
+        // support optional numeric depth input for Nth ancestor
+        const depthInput = document.getElementById('elementGranularityDepth');
+        const depth = depthInput ? parseInt(depthInput.value, 10) || 0 : 0;
+
+        if(mode === 'exact') return node;
+        if(mode === 'parent') return node.parentElement || node;
+        if(mode === 'nth') {
+          // climb up N levels (0 -> exact, 1 -> parent, etc.)
+          let cur = node;
+          let remaining = Math.max(0, depth);
+          while(remaining > 0 && cur && cur.parentElement) { cur = cur.parentElement; remaining--; }
+          return cur || node;
+        }
+        if(mode === 'block') return node.closest('div,section,article,li,td,tr,table,header,footer,main,aside') || node;
+        if(mode === 'closestIdClass') return node.closest('[id], [class]') || node;
+        return node;
+      } catch(e) { return node; }
+    }
+
+    function scanPreviewForElements() {
+      try {
+        const pf = document.getElementById('previewFrame'); if(!pf) return;
+        const idoc = pf.contentDocument || (pf.contentWindow && pf.contentWindow.document);
+        if(!idoc) return;
+        const all = idoc.querySelectorAll('*');
+        let added = 0;
+        for(let i=0;i<all.length && added<500;i++){
+          const el = all[i];
+          try{
+            if(!el || el.nodeType !== 1) continue;
+            // skip non-visible or layout-only tags
+            const tag = (el.tagName || '').toLowerCase();
+            if(['script','style','link','meta','head','noscript'].includes(tag)) continue;
+            // prefer visible elements to avoid noise
+            const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+            if(rect && rect.width === 0 && rect.height === 0) continue;
+
+            // ensure stable selector exists (ensureElementIdentifier will create data-ab-id when needed)
+            const sel = ensureElementIdentifier(el);
+            if(!sel) continue;
+            if(selectedElements.find(s=>s.selector===sel)) continue;
+            const snippet = (el.outerHTML||el.tagName.toLowerCase()).trim().slice(0,220);
+            const c = generateUniqueHsl();
+            selectedElements.push({ selector: sel, snippet, color: c.color, fade: c.fade });
+            added++;
+          }catch(e){ /* best-effort */ }
+        }
+        window.__selectedElements = selectedElements;
+        renderElementExplorer();
+      } catch(e) { console.warn('scanPreviewForElements failed', e); }
+    }
+
+    function addSelectedElement(node) {
+      try {
+        if (!node) return;
+        // apply granularity resolution before building selector/snippet
+        const resolved = resolveGranularNode(node) || node;
+        const selector = ensureElementIdentifier(resolved);
+        if (!selector) return;
+        // Deduplicate by selector
+        if (selectedElements.find(s => s.selector === selector)) return;
+        // create brief snippet (outerHTML trimmed)
+        let snippet = '';
+        try { snippet = resolved.outerHTML || resolved.tagName.toLowerCase(); } catch(e) { snippet = resolved.tagName.toLowerCase(); }
+        if (snippet.length > 220) snippet = snippet.slice(0,220) + '…';
+        const c = generateUniqueHsl();
+        const entry = { selector, snippet, color: c.color, fade: c.fade };
+        selectedElements.push(entry);
+        window.__selectedElements = selectedElements;
+
+        // apply inline highlight styling directly to the preview element (best-effort)
+        try {
+          resolved.setAttribute('data-ab-color', c.color);
+          resolved.style.outline = `3px solid ${c.color}`;
+          resolved.style.boxShadow = `0 8px 24px ${c.fade}`;
+          resolved.style.borderRadius = resolved.style.borderRadius || '6px';
+        } catch(e) { /* cross-origin or readonly may fail */ }
+
+        renderElementExplorer();
+      } catch(e) { console.warn('addSelectedElement failed', e); }
+    }
+
+    function renderElementExplorer() {
+      try {
+        const container = document.getElementById('elementExplorer'); if(!container) return;
+        container.innerHTML = '';
+
+        // Controls header: filter + granularity + scan
+        const header = document.createElement('div'); header.style.display='flex'; header.style.gap='8px'; header.style.alignItems='center'; header.style.padding='8px'; header.style.borderBottom='1px solid rgba(255,255,255,0.03)';
+        const filter = document.createElement('input'); filter.id = 'elementFilter'; filter.placeholder = 'Filter selectors or snippet...'; filter.style.flex='1'; filter.style.padding='8px'; filter.style.borderRadius='6px'; filter.style.background='rgba(255,255,255,0.02)'; filter.style.border='1px solid rgba(255,255,255,0.03)';
+        header.appendChild(filter);
+        const gran = document.createElement('select'); gran.id = 'elementGranularity'; gran.style.padding='8px'; gran.style.borderRadius='6px'; gran.style.background='rgba(255,255,255,0.02)'; gran.style.border='1px solid rgba(255,255,255,0.03)';
+        ['exact','closestIdClass','block','parent','nth'].forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent = v === 'exact' ? 'Exact' : (v==='closestIdClass' ? 'Closest id/class' : (v==='block' ? 'Block ancestor' : (v==='parent' ? 'Parent' : 'Nth ancestor'))); gran.appendChild(o); });
+        header.appendChild(gran);
+        const depthInput = document.createElement('input'); depthInput.id = 'elementGranularityDepth'; depthInput.type='number'; depthInput.min='0'; depthInput.value='0'; depthInput.style.width='64px'; depthInput.title='Nth ancestor depth (0 = exact, 1 = parent)'; depthInput.style.padding='8px'; depthInput.style.borderRadius='6px'; depthInput.style.border='1px solid rgba(255,255,255,0.03)';
+        header.appendChild(depthInput);
+        const scanBtn = document.createElement('button'); scanBtn.id='elementScanBtn'; scanBtn.className='btn small'; scanBtn.textContent = 'Scan'; scanBtn.title = 'Scan preview for candidate elements (ids/classes/data-*)'; scanBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); try{ scanPreviewForElements(); }catch(e){} });
+        header.appendChild(scanBtn);
+        container.appendChild(header);
+
+        // update on filter input change
+        filter.addEventListener('input', ()=> renderElementExplorer());
+
+        if (!selectedElements || selectedElements.length === 0) {
+          const info = document.createElement('div'); info.style.padding='12px'; info.style.color='#64748b'; info.style.fontStyle='italic'; info.textContent = 'No elements selected yet. Click elements in the preview to add them here or use Scan.';
+          container.appendChild(info); return;
+        }
+
+        const listWrap = document.createElement('div'); listWrap.style.display = 'flex'; listWrap.style.flexDirection = 'column'; listWrap.style.gap = '6px'; listWrap.style.padding = '8px';
+        const q = (filter.value||'').trim().toLowerCase();
+        selectedElements.forEach((it, idx) => {
+          try{
+            if(q) {
+              const hay = (it.selector + ' ' + it.snippet).toLowerCase(); if(hay.indexOf(q) === -1) return;
+            }
+            const row = document.createElement('div'); row.className = 'explorer-row'; row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.padding='6px'; row.style.borderRadius='6px'; row.style.background='rgba(255,255,255,0.01)';
+            // clicking the row opens the editor modal for editing this snippet
+            row.addEventListener('click', (ev) => {
+              try {
+                ev.stopPropagation();
+                // ensure palette selection updated
+                try { setSelectedPalette(it.selector); } catch(e){}
+                // Open the editor modal directly for this selector
+                try { openExplorerItemEditor(it.selector); } catch(e) { console.warn('openExplorerItemEditor failed', e); showMessage('Could not open editor', 'Error'); }
+              } catch(e) { console.warn('Explorer row click failed', e); }
+            });
+            const left = document.createElement('div'); left.style.display='flex'; left.style.flexDirection='column'; left.style.gap='4px'; left.style.flex='1';
+            const title = document.createElement('div'); title.textContent = it.selector; title.style.fontWeight = '700'; title.style.color = '#d8f0ff'; title.style.fontSize = '13px';
+            const snippet = document.createElement('div'); snippet.textContent = it.snippet; snippet.style.fontSize='12px'; snippet.style.color='#9fb6d6'; snippet.style.overflow='hidden'; snippet.style.textOverflow='ellipsis'; snippet.style.whiteSpace='nowrap';
+            // color swatch & left border
+            try {
+              if(it.color) {
+                row.style.borderLeft = `4px solid ${it.color}`;
+                row.style.paddingLeft = '10px';
+                const sw = document.createElement('span'); sw.style.display='inline-block'; sw.style.width='12px'; sw.style.height='12px'; sw.style.borderRadius='3px'; sw.style.marginRight='8px'; sw.style.background = it.color; sw.title = it.color;
+                title.prepend(sw);
+              }
+            } catch(e) {}
+            left.appendChild(title); left.appendChild(snippet);
+            const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='6px';
+            const focusBtn = document.createElement('button'); focusBtn.className='btn small'; focusBtn.textContent='Focus'; focusBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); try { focusExplorerElement(it.selector); } catch(e){} });
+            const mapBtn = document.createElement('button'); mapBtn.className='btn small primary'; mapBtn.textContent='Map'; mapBtn.title = 'Map currently-selected variable to this element (click palette handle first)';
+            mapBtn.addEventListener('click', async (ev) => {
+              ev.stopPropagation();
+              try {
+                if (!connectingField) { try { showMessage('Click a variable handle in the palette first to start mapping.', 'Notice'); } catch(e){} return; }
+                const pf = document.getElementById('previewFrame'); if(!pf) { try { showMessage('Preview frame not available', 'Error'); } catch(e){} return; }
+                let idoc = null; try { idoc = pf.contentDocument || (pf.contentWindow && pf.contentWindow.document); } catch(e) { idoc = null; }
+                if(!idoc) { try { showMessage('Cannot access preview document (cross-origin?)', 'Error'); } catch(e){} return; }
+                let target = null;
+                try { target = idoc.querySelector(it.selector); } catch(e) { target = null; }
+                if(!target) { try { showMessage('Could not find the element in preview for selector: ' + it.selector, 'Warning'); } catch(e){} return; }
+
+                // If connectingField is a parent API (no dot) -> wrap element in {{#each api}} .. {{/each}}
+                const isParentApi = typeof connectingField === 'string' && connectingField.indexOf('.') === -1;
+                if (isParentApi) {
+                  try {
+                    const apiName = connectingField;
+                    const editorText = editorCm ? editorCm.getValue() : (document.getElementById('pageEditor') && document.getElementById('pageEditor').value) || '';
+                    const match = findMatchingIndexes(target, editorText);
+                    if(!match) { try { showMessage('Could not map element to editor HTML for wrapping.', 'Warning'); } catch(e){} return; }
+                    const original = editorText.slice(match.start, match.end);
+                    const wrapped = `{{#each ${apiName}}}\n${original}\n{{/each}}`;
+                    // Try robust DOM-based replacement first
+                    let ok = patchEditorReplaceSnippet(original, wrapped, { autoSave: true });
+                    if(!ok) {
+                      const newText = editorText.slice(0, match.start) + wrapped + editorText.slice(match.end);
+                      if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(newText);
+                      else if(editorCm) editorCm.setValue(newText);
+                      else { const ta = document.getElementById('pageEditor'); if(ta) ta.value = newText; }
+                    }
+
+                    // create mapping for the parent API to this element
+                    createMapping(apiName, target);
+                    try { drawConnection(apiName, connectingAPINode || document.querySelector(`[data-api-name="${apiName}"]`), target); } catch(e) {}
+                    cancelConnectMode();
+
+                    // re-render preview from updated editor content
+                    try {
+                      const pf2 = document.getElementById('previewFrame');
+                      if(pf2) {
+                        const rendered = await renderTemplateForPreviewAsync(newText, window.latestAggregatedData || {});
+                        pf2.srcdoc = sanitizeHtmlForPreview(rendered || newText);
+                        pf2.onload = () => { try { attachHandlersToDoc(pf2.contentDocument || pf2.contentWindow.document); } catch(e){} };
+                      }
+                    } catch(e) {}
+                    return;
+                  } catch(e) { console.warn('Parent API mapping failed', e); try { showMessage('Mapping failed', 'Error'); } catch(_){} return; }
+                }
+
+                // Field mapping (api.field)
+                try {
+                  createMapping(connectingField, target);
+                  try { drawConnection(connectingField, connectingAPINode, target); } catch(e) {}
+                  cancelConnectMode();
+                  try { showMessage('Mapped ' + connectingField + ' → ' + it.selector, 'Success'); } catch(e) {}
+                } catch(e) { console.warn('Field mapping failed', e); try { showMessage('Mapping failed', 'Error'); } catch(_){} }
+              } catch (e) { console.warn('mapBtn handler failed', e); }
+            });
+            const editBtn = document.createElement('button'); editBtn.className='btn small'; editBtn.textContent='Edit'; editBtn.title = 'Edit selected HTML snippet'; editBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); try{ openExplorerItemEditor(it.selector); }catch(e){ console.warn(e);} });
+
+            const removeBtn = document.createElement('button'); removeBtn.className='btn small ghost'; removeBtn.textContent='Remove'; removeBtn.addEventListener('click', (ev)=>{ ev.stopPropagation();
+              // remove preview inline styles
+              try {
+                const pf = document.getElementById('previewFrame'); if(pf){ const idoc = pf.contentDocument || (pf.contentWindow && pf.contentWindow.document); if(idoc){ const el = idoc.querySelector(it.selector); if(el){ try{ el.style.outline = ''; el.style.boxShadow = ''; el.removeAttribute('data-ab-color'); }catch(e){} } } }
+              } catch(e) {}
+              selectedElements = selectedElements.filter(s => s.selector !== it.selector); window.__selectedElements = selectedElements; renderElementExplorer();
+            });
+            actions.appendChild(focusBtn); actions.appendChild(mapBtn); actions.appendChild(editBtn); actions.appendChild(removeBtn);
+            row.appendChild(left); row.appendChild(actions);
+            listWrap.appendChild(row);
+          }catch(e){/* per-item best-effort */}
+        });
+        container.appendChild(listWrap);
+      } catch(e){ console.warn('renderElementExplorer failed', e); }
+    }
+
+    function focusExplorerElement(selector) {
+      try {
+        const pf = document.getElementById('previewFrame'); if(!pf) return;
+        const idoc = pf.contentDocument || (pf.contentWindow && pf.contentWindow.document);
+        if(!idoc) return;
+        let el = null;
+        try { el = idoc.querySelector(selector); } catch(e) {}
+        if(!el) {
+          // try matching by attribute fallback (#data-ab-id)
+          const sel = selector.replace(/\"/g, '\\"');
+          try { el = idoc.querySelector(selector); } catch(e) { el = null; }
+        }
+        if(el) {
+          try {
+            // colorized focus if available
+            const se = selectedElements.find(s=>s.selector===selector);
+            const color = se && se.color ? se.color : null;
+            if(color) {
+              const prev = el.getAttribute('data-ab-prev-outline');
+              try { el.setAttribute('data-ab-prev-outline', el.style.outline || ''); } catch(e){}
+              try { el.style.outline = `3px solid ${color}`; el.style.boxShadow = `0 10px 30px ${se.fade || 'rgba(0,0,0,0.12)'}`; } catch(e){}
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setTimeout(()=>{ try{ el.style.outline = el.getAttribute('data-ab-prev-outline') || ''; el.style.boxShadow = ''; el.removeAttribute('data-ab-prev-outline'); }catch(_){} }, 2000);
+            } else {
+              el.classList.add('ab-selected'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(()=>{ try{ el.classList.remove('ab-selected'); }catch(_){} }, 2000);
+            }
+          } catch(e){}
+        }
+      } catch(e) { console.warn('focusExplorerElement failed', e); }
+    }
+
+    // Apply stored colors to elements inside the preview iframe (idempotent)
+    function applyColorsToPreview() {
+      try {
+        const pf = document.getElementById('previewFrame'); if(!pf) return;
+        const idoc = pf.contentDocument || (pf.contentWindow && pf.contentWindow.document);
+        if(!idoc) return;
+        selectedElements.forEach(se => {
+          try {
+            if(!se || !se.selector) return;
+            const el = idoc.querySelector(se.selector);
+            if(!el) return;
+            try { el.setAttribute('data-ab-color', se.color || ''); } catch(e){}
+            try { el.style.outline = se.color ? `3px solid ${se.color}` : ''; } catch(e){}
+            try { el.style.boxShadow = se.fade ? `0 10px 30px ${se.fade}` : ''; } catch(e){}
+            try { el.style.borderRadius = el.style.borderRadius || '6px'; } catch(e){}
+          } catch(e) {}
+        });
+      } catch(e) { console.warn('applyColorsToPreview failed', e); }
+    }
+
+    // Open editor modal for an explorer item, allow editing snippet and saving to page/editor
+    function openExplorerItemEditor(selector) {
+      try {
+        const se = selectedElements.find(s=>s.selector === selector);
+        if(!se) { showMessage('Selected element not found', 'Error'); return; }
+
+        const textareaId = 'explorerEditArea';
+        const html = `<div style="display:flex;flex-direction:column;gap:8px;min-width:560px;max-width:960px;">
+          <label style="font-weight:600">Selector: <code style="font-size:12px">${escapeHtml(selector)}</code></label>
+          <textarea id="${textareaId}" style="min-height:240px;width:100%;font-family:monospace;font-size:12px;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.05)">${escapeHtml(se.snippet)}</textarea>
+          <div style="display:flex;gap:8px;justify-content:flex-end"><button id="explorerEditCancel" class="btn">Cancel</button><button id="explorerEditSave" class="btn primary">Save</button></div>
+        </div>`;
+
+        if(window.AppUtils && AppUtils.Modal) {
+          AppUtils.Modal.show({ title: `Edit element: ${selector}`, body: html });
+          setTimeout(()=>{
+            const ta = document.getElementById(textareaId);
+            const btnSave = document.getElementById('explorerEditSave');
+            const btnCancel = document.getElementById('explorerEditCancel');
+            if(btnCancel) btnCancel.onclick = ()=> { try{ AppUtils.Modal.hide(); }catch(e){} };
+            if(btnSave) btnSave.onclick = async () => {
+              try {
+                const newSnippet = ta ? ta.value : se.snippet;
+                // Update editor: find matching indexes for selector in editor text via preview element
+                const pf = document.getElementById('previewFrame'); if(!pf) { showMessage('Preview not available', 'Error'); return; }
+                const idoc = pf.contentDocument || (pf.contentWindow && pf.contentWindow.document);
+                if(!idoc) { showMessage('Cannot access preview document', 'Error'); return; }
+                const target = idoc.querySelector(selector);
+                if(!target) { showMessage('Could not locate element in preview', 'Warning'); return; }
+
+                const editorText = (window.__getEditorValue && typeof window.__getEditorValue === 'function') ? window.__getEditorValue() : (editorCm ? editorCm.getValue() : (document.getElementById('pageEditor') && document.getElementById('pageEditor').value) || '');
+                const match = findMatchingIndexes(target, editorText);
+                if(!match) {
+                  // open match picker to let user select exact location
+                  const picked = showMatchPicker(target, editorText, (start, end) => {
+                    try {
+                      const original = editorText.slice(start, end);
+                      const patched = patchEditorReplaceSnippet(original, newSnippet, { autoSave: true });
+                      if(!patched) {
+                        const newText = editorText.slice(0, start) + newSnippet + editorText.slice(end);
+                        if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(newText);
+                        else if(editorCm) editorCm.setValue(newText);
+                        else { const taEd = document.getElementById('pageEditor'); if(taEd) taEd.value = newText; }
+                      }
+                      se.snippet = newSnippet.length > 220 ? newSnippet.slice(0,220) + '…' : newSnippet;
+                      renderElementExplorer(); applyColorsToPreview();
+                      showMessage('Saved snippet (manual selection)', 'Saved');
+                    } catch(e) { console.warn('manual match patch failed', e); showMessage('Save failed', 'Error'); }
+                  });
+                  if(!picked) { showMessage('Could not locate corresponding HTML in editor. Edit manually.', 'Warning'); }
+                  return;
+                }
+
+                const original = editorText.slice(match.start, match.end);
+                // Use DOM-based replacement to avoid duplication
+                let patched = patchEditorReplaceSnippet(original, newSnippet, { autoSave: true });
+                if(!patched) {
+                  const newText = editorText.slice(0, match.start) + newSnippet + editorText.slice(match.end);
+                  if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(newText);
+                  else if(editorCm) editorCm.setValue(newText);
+                  else { const taEd = document.getElementById('pageEditor'); if(taEd) taEd.value = newText; }
+                }
+
+                // update stored snippet and reapply colors after preview update
+                se.snippet = newSnippet.length > 220 ? newSnippet.slice(0,220) + '…' : newSnippet;
+                window.__selectedElements = selectedElements;
+
+                // re-render preview
+                try {
+                  const rendered = await renderTemplateForPreviewAsync(newText, window.latestAggregatedData || {});
+                  pf.srcdoc = sanitizeHtmlForPreview(rendered || newText);
+                  pf.onload = () => { try { attachHandlersToDoc(pf.contentDocument || pf.contentWindow.document); applyColorsToPreview(); } catch(e){} };
+                } catch(e) { /* best-effort */ }
+
+                try { AppUtils.Modal.hide(); } catch(e) {}
+                renderElementExplorer();
+                showMessage('Saved snippet and updated preview', 'Saved');
+              } catch(e) { console.error('Explorer edit save failed', e); showMessage('Save failed', 'Error'); }
+            };
+          }, 50);
+        } else {
+          // fallback simple prompt
+          const newSnippet = prompt('Edit snippet for ' + selector, se.snippet);
+          if(newSnippet != null) {
+            // attempt to patch editor similarly (best-effort)
+            try {
+              const pf = document.getElementById('previewFrame'); const idoc = pf && (pf.contentDocument || (pf.contentWindow && pf.contentWindow.document)); const target = idoc && idoc.querySelector(selector);
+              const editorText = (window.__getEditorValue && typeof window.__getEditorValue === 'function') ? window.__getEditorValue() : (editorCm ? editorCm.getValue() : (document.getElementById('pageEditor') && document.getElementById('pageEditor').value) || '');
+              const match = target ? findMatchingIndexes(target, editorText) : null;
+              if(match) {
+                const original = editorText.slice(match.start, match.end);
+                const patched = patchEditorReplaceSnippet(original, newSnippet, { autoSave: true });
+                if(!patched) {
+                  const newText = editorText.slice(0, match.start) + newSnippet + editorText.slice(match.end);
+                  if(window.__setEditorValue && typeof window.__setEditorValue === 'function') window.__setEditorValue(newText);
+                  else if(editorCm) editorCm.setValue(newText);
+                  else { const taEd = document.getElementById('pageEditor'); if(taEd) taEd.value = newText; }
+                }
+                se.snippet = newSnippet.length > 220 ? newSnippet.slice(0,220) + '…' : newSnippet;
+                renderElementExplorer(); applyColorsToPreview();
+                showMessage('Saved snippet', 'Saved');
+              } else {
+                showMessage('Could not update editor automatically. Please edit manually.', 'Warning');
+              }
+            } catch(e) { console.warn(e); showMessage('Save failed', 'Error'); }
+          }
+        }
+      } catch(e) { console.warn('openExplorerItemEditor failed', e); showMessage('Could not open editor', 'Error'); }
     }
 
     function attachHandlersToDoc(doc) {
@@ -1888,18 +2683,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const original = editorText.slice(match.start, match.end);
             const wrapped = `{{#each ${apiName}}}\n${original}\n{{/each}}`;
-            const newText = editorText.slice(0, match.start) + wrapped + editorText.slice(match.end);
-
-            // Apply to editor (use provided helpers where available)
-            try {
-              if(window.__setEditorValue && typeof window.__setEditorValue === 'function') {
-                window.__setEditorValue(newText);
-              } else if (editorCm) {
-                editorCm.setValue(newText);
-              } else {
-                const ta = document.getElementById('pageEditor'); if(ta) ta.value = newText;
-              }
-            } catch(e){ console.warn('Failed to update editor value', e); }
+            // Attempt DOM-based replacement first
+            let didReplace = patchEditorReplaceSnippet(original, wrapped, { autoSave: true });
+            if(!didReplace) {
+              const newText = editorText.slice(0, match.start) + wrapped + editorText.slice(match.end);
+              try {
+                if(window.__setEditorValue && typeof window.__setEditorValue === 'function') {
+                  window.__setEditorValue(newText);
+                } else if (editorCm) {
+                  editorCm.setValue(newText);
+                } else {
+                  const ta = document.getElementById('pageEditor'); if(ta) ta.value = newText;
+                }
+              } catch(e){ console.warn('Failed to update editor value', e); }
+            }
 
             // Update live patch preview panel if present
             try { const codeEl = document.getElementById('livePatchCode'); if(codeEl) codeEl.textContent = wrapped; } catch(e){}
