@@ -1,15 +1,33 @@
+<!doctype html>
 <html class="js" lang="en" style="--header-height: 169px;">
-  <plasmo-csui>
-  </plasmo-csui>
-  <plasmo-csui>
-  </plasmo-csui>
+  
   <script type="text/javascript" async="" src="https://cdn-odl.avada.io/scripttag/avada-order-limit.min.js?v=1763730687398"></script>
   <script type="text/javascript" async="" src="//thesnacksmackindia.com/cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js"></script>
-  <script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/content/location/location.js" id="eppiocemhmnlbhjplcgkofciiegomcon"></script>
-  <script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script>
-  <script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script>
-
+  
   <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>The Snack Smack — Snacks & Treats</title>
+    <style>
+      /* Responsive helpers to avoid horizontal overflow and scale media */
+      img, picture, video, iframe, svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      /* Make common layout containers fluid on small viewports */
+      .page-width, .container, .section, .grid {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      /* Ensure fonts scale reasonably on small devices */
+      @media (max-width: 749px) {
+        body { font-size: 1.5rem; }
+      }
+    </style>
     <style class="darkreader darkreader--text" media="screen"></style>
     <style class="darkreader darkreader--invert" media="screen"></style>
     <style class="darkreader darkreader--inline" media="screen">
@@ -79,111 +97,8 @@
             transition: opacity ease-in 0.2s;
         }
 
-        body[unresolved] {
-            opacity: 0;
-            display: block;
-            overflow: hidden;
-            position: relative;
-        }
-    </style>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="">
-    <link rel="canonical" href="https://thesnacksmackindia.com/collections/all-products">
-    <link rel="icon" type="image/png" href="//thesnacksmackindia.com/cdn/shop/files/IMG_1199.png?crop=center&amp;height=32&amp;v=1744641003&amp;width=32">
-    <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin="">
-    <title> Sweetly Snacked — Candies, Toffees & Jellies</title>
-    <meta name="description" content="Sweetly Snacked: handcrafted candies, toffees and jellies made for joyful moments.">
-    <meta property="og:site_name" content="Sweetly Snacked">
-    <meta property="og:url" content="/collections/all-products">
-    <meta property="og:title" content="Sweetly Snacked — Candies & Toffees">
-    <meta property="og:type" content="website">
-    <meta property="og:description" content="Explore a curated selection of candies, toffees and jellies — small-batch sweets for every craving.">
-    <meta property="og:image" content="/cdn/shop/files/IMG_1894.jpg?height=628&amp;pad_color=ffffff&amp;v=1745574602&amp;width=1200">
-    <meta property="og:image:secure_url" content="/cdn/shop/files/IMG_1894.jpg?height=628&amp;pad_color=ffffff&amp;v=1745574602&amp;width=1200">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="628">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Sweetly Snacked — Candies & Toffees">
-    <meta name="twitter:description" content="Handpicked candies, classic toffees and fruity jellies — delivered with care.">
-    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/constants.js?v=132983761750457495441744280571" defer="defer"></script>
-    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/pubsub.js?v=25310214064522200911744280572" defer="defer"></script>
-    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/global.js?v=184345515105158409801744280571" defer="defer"></script>
-    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/details-disclosure.js?v=13653116266235556501744280571" defer="defer"></script>
-    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/details-modal.js?v=25581673532751508451744280571" defer="defer"></script>
-    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/search-form.js?v=133129549252120666541744280572" defer="defer"></script>
-    <script src="//thesnacksmackindia.com/cdn/shop/t/1/assets/animations.js?v=88693664871331136111744280570" defer="defer"></script>
-    <script>window.performance && window.performance.mark && window.performance.mark('shopify.content_for_header.start');</script>
-    <meta id="shopify-digital-wallet" name="shopify-digital-wallet" content="/63979683942/digital_wallets/dialog">
-    <link rel="alternate" type="application/atom+xml" title="Feed" href="/collections/all-products.atom">
-    <link rel="next" href="/collections/all-products?page=2">
-    <link rel="alternate" type="application/json+oembed" href="https://thesnacksmackindia.com/collections/all-products.oembed">
-    <script async="async" src="/checkouts/internal/preloads.js?locale=en-IN"></script>
-    <script id="shopify-features" type="application/json">{"accessToken":"1a7dfd4f3118d3d1ff2a2e37e56422aa","betas":["rich-media-storefront-analytics"],"domain":"thesnacksmackindia.com","predictiveSearch":true,"shopId":63979683942,"locale":"en"}</script>
-    <script>var Shopify = Shopify || {};
-        Shopify.shop = "n1mrmf-np.myshopify.com";
-        Shopify.locale = "en";
-        Shopify.currency = { "active": "INR", "rate": "1.0" };
-        Shopify.country = "IN";
-        Shopify.theme = { "name": "Dawn", "id": 135387611238, "schema_name": "Dawn", "schema_version": "15.3.0", "theme_store_id": 887, "role": "main" };
-        Shopify.theme.handle = "null";
-        Shopify.theme.style = { "id": null, "handle": null };
-        Shopify.cdnHost = "thesnacksmackindia.com/cdn";
-        Shopify.routes = Shopify.routes || {};
-        Shopify.routes.root = "/";</script>
-    <script type="module">!function (o) { (o.Shopify = o.Shopify || {}).modules = !0 }(window);</script>
-    <script>!function (o) { function n() { var o = []; function n() { o.push(Array.prototype.slice.apply(arguments)) } return n.q = o, n } var t = o.Shopify = o.Shopify || {}; t.loadFeatures = n(), t.autoloadFeatures = n() }(window);</script>
-    <script id="shop-js-analytics" type="application/json">{"pageType":"collection"}</script>
-    <script defer="defer" async="" type="module" src="//thesnacksmackindia.com/cdn/shopifycloud/shop-js/modules/v2/client.init-shop-cart-sync_DRRuZ9Jb.en.esm.js"></script>
-    <script defer="defer" async="" type="module" src="//thesnacksmackindia.com/cdn/shopifycloud/shop-js/modules/v2/chunk.common_Bq80O0pE.esm.js"></script>
-    <script type="module">
-        await import("//thesnacksmackindia.com/cdn/shopifycloud/shop-js/modules/v2/client.init-shop-cart-sync_DRRuZ9Jb.en.esm.js");
-        await import("//thesnacksmackindia.com/cdn/shopifycloud/shop-js/modules/v2/chunk.common_Bq80O0pE.esm.js");
-
-        window.Shopify.SignInWithShop?.initShopCartSync?.({ "fedCMEnabled": true, "windoidEnabled": true });
-
-    </script>
-    <script id="__st">var __st = { "a": 63979683942, "offset": 19800, "reqid": "353c0b28-c8bc-4897-95ad-d61caef2ef35-1763729995", "pageurl": "thesnacksmackindia.com\/collections\/all-products", "t": "prospect", "u": "1fee2bd9e055", "p": "collection", "rtyp": "collection", "rid": 294467403878 };</script>
-    <script>window.ShopifyPaypalV4VisibilityTracking = true;</script>
-    <script id="captcha-bootstrap">!function () { 'use strict'; const t = 'contact', e = 'account', n = 'new_comment', o = [[t, t], ['blogs', n], ['comments', n], [t, 'customer']], c = [[e, 'customer_login'], [e, 'guest_login'], [e, 'recover_customer_password'], [e, 'create_customer']], r = t => t.map((([t, e]) => `form[action*='/${t}']:not([data-nocaptcha='true']) input[name='form_type'][value='${e}']`)).join(','), a = t => () => t ? [...document.querySelectorAll(t)].map((t => t.form)) : []; function s() { const t = [...o], e = r(t); return a(e) } const i = 'password', u = 'form_key', d = ['recaptcha-v3-token', 'g-recaptcha-response', 'h-captcha-response', i], f = () => { try { return window.sessionStorage } catch { return } }, m = '__shopify_v', _ = t => t.elements[u]; function p(t, e, n = !1) { try { const o = window.sessionStorage, c = JSON.parse(o.getItem(e)), { data: r } = function (t) { const { data: e, action: n } = t; return t[m] || n ? { data: e, action: n } : { data: t, action: n } }(c); for (const [e, n] of Object.entries(r)) t.elements[e] && (t.elements[e].value = n); n && o.removeItem(e) } catch (o) { console.error('form repopulation failed', { error: o }) } } const l = 'form_type', E = 'cptcha'; function T(t) { t.dataset[E] = !0 } const w = window, h = w.document, L = 'Shopify', v = 'ce_forms', y = 'captcha'; let A = !1; ((t, e) => { const n = (g = 'f06e6c50-85a8-45c8-87d0-21a2b65856fe', I = 'https://cdn.shopify.com/shopifycloud/storefront-forms-hcaptcha/ce_storefront_forms_captcha_hcaptcha.v1.5.2.iife.js', D = { infoText: 'Protected by hCaptcha', privacyText: 'Privacy', termsText: 'Terms' }, (t, e, n) => { const o = w[L][v], c = o.bindForm; if (c) return c(t, g, e, D).then(n); var r; o.q.push([[t, g, e, D], n]), r = I, A || (h.body.append(Object.assign(h.createElement('script'), { id: 'captcha-provider', async: !0, src: r })), A = !0) }); var g, I, D; w[L] = w[L] || {}, w[L][v] = w[L][v] || {}, w[L][v].q = [], w[L][y] = w[L][y] || {}, w[L][y].protect = function (t, e) { n(t, void 0, e), T(t) }, Object.freeze(w[L][y]), function (t, e, n, w, h, L) { const [v, y, A, g] = function (t, e, n) { const i = e ? o : [], u = t ? c : [], d = [...i, ...u], f = r(d), m = r(i), _ = r(d.filter((([t, e]) => n.includes(e)))); return [a(f), a(m), a(_), s()] }(w, h, L), I = t => { const e = t.target; return e instanceof HTMLFormElement ? e : e && e.form }, D = t => v().includes(t); t.addEventListener('submit', (t => { const e = I(t); if (!e) return; const n = D(e) && !e.dataset.hcaptchaBound && !e.dataset.recaptchaBound, o = _(e), c = g().includes(e) && (!o || !o.value); (n || c) && t.preventDefault(), c && !n && (function (t) { try { if (!f()) return; !function (t) { const e = f(); if (!e) return; const n = _(t); if (!n) return; const o = n.value; o && e.removeItem(o) }(t); const e = Array.from(Array(32), (() => Math.random().toString(36)[2])).join(''); !function (t, e) { _(t) || t.append(Object.assign(document.createElement('input'), { type: 'hidden', name: u })), t.elements[u].value = e }(t, e), function (t, e) { const n = f(); if (!n) return; const o = [...t.querySelectorAll(`input[type='${i}']`)].map((({ name: t }) => t)), c = [...d, ...o], r = {}; for (const [a, s] of new FormData(t).entries()) c.includes(a) || (r[a] = s); n.setItem(e, JSON.stringify({ [m]: 1, action: t.action, data: r })) }(t, e) } catch (e) { console.error('failed to persist form', e) } }(e), e.submit()) })); const S = (t, e) => { t && !t.dataset[E] && (n(t, e.some((e => e === t))), T(t)) }; for (const o of ['focusin', 'change']) t.addEventListener(o, (t => { const e = I(t); D(e) && S(e, y()) })); const B = e.get('form_key'), M = e.get(l), P = B && M; t.addEventListener('DOMContentLoaded', (() => { const t = y(); if (P) for (const e of t) e.elements[l].value === M && p(e, B);[...new Set([...A(), ...v().filter((t => 'true' === t.dataset.shopifyCaptcha))])].forEach((e => S(e, t))) })) }(h, new URLSearchParams(w.location.search), n, t, e, ['guest_login']) })(!0, !0) }();</script>
-    <script integrity="sha256-52AcMU7V7pcBOXWImdc/TAGTFKeNjmkeM1Pvks/DTgc=" data-source-attribution="shopify.loadfeatures" defer="defer" src="//thesnacksmackindia.com/cdn/shopifycloud/storefront/assets/storefront/load_feature-81c60534.js" crossorigin="anonymous"></script>
-    <script data-source-attribution="shopify.dynamic_checkout.dynamic.init">var Shopify = Shopify || {}; Shopify.PaymentButton = Shopify.PaymentButton || { isStorefrontPortableWallets: !0, init: function () { window.Shopify.PaymentButton.init = function () { }; var t = document.createElement("script"); t.src = "https://thesnacksmackindia.com/cdn/shopifycloud/portable-wallets/latest/portable-wallets.en.js", t.type = "module", document.head.appendChild(t) } };
-    </script>
-    <script data-source-attribution="shopify.dynamic_checkout.buyer_consent">
-        function portableWalletsHideBuyerConsent(e) { var t = document.getElementById("shopify-buyer-consent"), n = document.getElementById("shopify-subscription-policy-button"); t && n && (t.classList.add("hidden"), t.setAttribute("aria-hidden", "true"), n.removeEventListener("click", e)) } function portableWalletsShowBuyerConsent(e) { var t = document.getElementById("shopify-buyer-consent"), n = document.getElementById("shopify-subscription-policy-button"); t && n && (t.classList.remove("hidden"), t.removeAttribute("aria-hidden"), n.addEventListener("click", e)) } window.Shopify?.PaymentButton && (window.Shopify.PaymentButton.hideBuyerConsent = portableWalletsHideBuyerConsent, window.Shopify.PaymentButton.showBuyerConsent = portableWalletsShowBuyerConsent);
-    </script>
-    <script data-source-attribution="shopify.dynamic_checkout.cart.bootstrap">document.addEventListener("DOMContentLoaded", (function () { function t() { return document.querySelector("shopify-accelerated-checkout-cart, shopify-accelerated-checkout") } if (t()) Shopify.PaymentButton.init(); else { new MutationObserver((function (e, n) { t() && (Shopify.PaymentButton.init(), n.disconnect()) })).observe(document.body, { childList: !0, subtree: !0 }) } }));
-    </script>
-    <script id="sections-script" data-sections="header" defer="defer" src="//thesnacksmackindia.com/cdn/shop/t/1/compiled_assets/scripts.js?167"></script>
-    <script>window.performance && window.performance.mark && window.performance.mark('shopify.content_for_header.end');</script>
-    <style data-shopify="">
-        @font-face {
-            font-family: Assistant;
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-            src: url("//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n4.9120912a469cad1cc292572851508ca49d12e768.woff2") format("woff2"),
-                url("//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n4.6e9875ce64e0fefcd3f4446b7ec9036b3ddd2985.woff") format("woff");
-        }
-
-        @font-face {
-            font-family: Assistant;
-            font-weight: 700;
-            font-style: normal;
-            font-display: swap;
-            src: url("//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n7.bf44452348ec8b8efa3aa3068825305886b1c83c.woff2") format("woff2"),
-                url("//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n7.0c887fee83f6b3bda822f1150b912c72da0f7b64.woff") format("woff");
-        }
-
-        @font-face {
-            font-family: Assistant;
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-            src: url("//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n4.9120912a469cad1cc292572851508ca49d12e768.woff2") format("woff2"),
-                url("//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n4.6e9875ce64e0fefcd3f4446b7ec9036b3ddd2985.woff") format("woff");
-        }
+        /* placeholder for frameworks during SSR; intentionally left empty */
+        
 
         :root,
         .color-scheme-1 {
@@ -449,7 +364,6 @@
     <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/base.css?v=159841507637079171801744280570" rel="stylesheet" type="text/css" media="all">
     <link rel="stylesheet" href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-cart-items.css?v=123238115697927560811744280570" media="all" onload="this.media='all'">
     <link rel="preload" as="font" href="//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n4.9120912a469cad1cc292572851508ca49d12e768.woff2" type="font/woff2" crossorigin="">
-    <link rel="preload" as="font" href="//thesnacksmackindia.com/cdn/fonts/assistant/assistant_n4.9120912a469cad1cc292572851508ca49d12e768.woff2" type="font/woff2" crossorigin="">
     <link rel="stylesheet" href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-predictive-search.css?v=118923337488134913561744280570" media="all" onload="this.media='all'">
     <!-- Restored essential component styles early to avoid FOUC -->
     <link rel="stylesheet" href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-list-menu.css?v=151968516119678728991744280570" media="all">
@@ -460,15 +374,9 @@
     <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-slider.css?v=14039311878856620671744280571" rel="stylesheet" type="text/css" media="all">
     <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-slideshow.css?v=17933591812325749411744280571" rel="stylesheet" type="text/css" media="all">
     <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-price.css?v=70172745017360139101744280570" rel="stylesheet" type="text/css" media="all">
-    <script>
-        if (Shopify.designMode) {
-            document.documentElement.classList.add('shopify-design-mode');
-        }
-    </script>
-    <script bis_use="true" type="text/javascript" charset="utf-8" data-bis-config="[&quot;facebook.com/&quot;,&quot;twitter.com/&quot;,&quot;youtube-nocookie.com/embed/&quot;,&quot;//vk.com/&quot;,&quot;//www.vk.com/&quot;,&quot;linkedin.com/&quot;,&quot;//www.linkedin.com/&quot;,&quot;//instagram.com/&quot;,&quot;//www.instagram.com/&quot;,&quot;//www.google.com/recaptcha/api2/&quot;,&quot;//hangouts.google.com/webchat/&quot;,&quot;//www.google.com/calendar/&quot;,&quot;//www.google.com/maps/embed&quot;,&quot;spotify.com/&quot;,&quot;soundcloud.com/&quot;,&quot;//player.vimeo.com/&quot;,&quot;//disqus.com/&quot;,&quot;//tgwidget.com/&quot;,&quot;//js.driftt.com/&quot;,&quot;friends2follow.com&quot;,&quot;/widget&quot;,&quot;login&quot;,&quot;//video.bigmir.net/&quot;,&quot;blogger.com&quot;,&quot;//smartlock.google.com/&quot;,&quot;//keep.google.com/&quot;,&quot;/web.tolstoycomments.com/&quot;,&quot;moz-extension://&quot;,&quot;chrome-extension://&quot;,&quot;/auth/&quot;,&quot;//analytics.google.com/&quot;,&quot;adclarity.com&quot;,&quot;paddle.com/checkout&quot;,&quot;hcaptcha.com&quot;,&quot;recaptcha.net&quot;,&quot;2captcha.com&quot;,&quot;accounts.google.com&quot;,&quot;www.google.com/shopping/customerreviews&quot;,&quot;buy.tinypass.com&quot;,&quot;gstatic.com&quot;,&quot;secureir.ebaystatic.com&quot;,&quot;docs.google.com&quot;,&quot;contacts.google.com&quot;,&quot;github.com&quot;,&quot;mail.google.com&quot;,&quot;chat.google.com&quot;,&quot;audio.xpleer.com&quot;,&quot;keepa.com&quot;,&quot;static.xx.fbcdn.net&quot;,&quot;sas.selleramp.com&quot;,&quot;1plus1.video&quot;,&quot;console.googletagservices.com&quot;,&quot;//lnkd.demdex.net/&quot;,&quot;//radar.cedexis.com/&quot;,&quot;//li.protechts.net/&quot;,&quot;challenges.cloudflare.com/&quot;,&quot;ogs.google.com&quot;]" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/traffic.js"></script>
     <script src="https://cdn.shopify.com/extensions/019aa4a3-d895-754e-b7dc-a8d4951bc185/avada-app-76/assets/avada-order-limit.js" type="text/javascript" defer="defer"></script>
     <link href="https://monorail-edge.shopifysvc.com" rel="dns-prefetch">
-    <script>(function () { if ("sendBeacon" in navigator && "performance" in window) { try { var session_token_from_headers = performance.getEntriesByType('navigation')[0].serverTiming.find(x => x.name == '_s').description; } catch { var session_token_from_headers = undefined; } var session_cookie_matches = document.cookie.match(/_shopify_s=([^;]*)/); var session_token_from_cookie = session_cookie_matches && session_cookie_matches.length === 2 ? session_cookie_matches[1] : ""; var session_token = session_token_from_headers || session_token_from_cookie || ""; function handle_abandonment_event(e) { var entries = performance.getEntries().filter(function (entry) { return /monorail-edge.shopifysvc.com/.test(entry.name); }); if (!window.abandonment_tracked && entries.length === 0) { window.abandonment_tracked = true; var currentMs = Date.now(); var navigation_start = performance.timing.navigationStart; var payload = { shop_id: 63979683942, url: window.location.href, navigation_start, duration: currentMs - navigation_start, session_token, page_type: "collection" }; window.navigator.sendBeacon("https://monorail-edge.shopifysvc.com/v1/produce", JSON.stringify({ schema_id: "online_store_buyer_site_abandonment/1.1", payload: payload, metadata: { event_created_at_ms: currentMs, event_sent_at_ms: currentMs } })); } } window.addEventListener('pagehide', handle_abandonment_event); } }());</script>
+    <script>(function () { if ("sendBeacon" in navigator && "performance" in globalThis) { try { var session_token_from_headers = performance.getEntriesByType('navigation')[0].serverTiming.find(x => x.name == '_s').description; } catch (err) { /* ignore */ } var session_cookie_matches = document.cookie.match(/_shopify_s=([^;]*)/); var session_token_from_cookie = session_cookie_matches && session_cookie_matches.length === 2 ? session_cookie_matches[1] : ""; var session_token = session_token_from_headers || session_token_from_cookie || ""; function handle_abandonment_event(e) { var entries = performance.getEntries().filter(function (entry) { return /monorail-edge.shopifysvc.com/.test(entry.name); }); if (!globalThis.abandonment_tracked && entries.length === 0) { globalThis.abandonment_tracked = true; var currentMs = Date.now(); var navigation_start = performance.timing.navigationStart; var payload = { shop_id: 63979683942, url: globalThis.location.href, navigation_start: navigation_start, duration: currentMs - navigation_start, session_token: session_token, page_type: "collection" }; navigator.sendBeacon("https://monorail-edge.shopifysvc.com/v1/produce", JSON.stringify({ schema_id: "online_store_buyer_site_abandonment/1.1", payload: payload, metadata: { event_created_at_ms: currentMs, event_sent_at_ms: currentMs } })); } } globalThis.addEventListener('pagehide', handle_abandonment_event); } }());</script>
     <script class="analytics">
         (function () {
             var customDocumentWrite = function (content) {
@@ -1140,7 +1048,7 @@
                     </style>
             <div class="slideshow__slide grid__item grid--1-col slider__slide" id="Slide-template--17133120946278__slideshow_QqVzdp-1" role="group" aria-roledescription="Slide" aria-label="1 of 2" aria-hidden="true" bis_skin_checked="1" tabindex="-1">
               <div class="slideshow__media banner__media media" bis_skin_checked="1">
-                <img src="https://www.shutterstock.com/image-photo/lollipops-candies-colorful-sweets-festive-600nw-1814876717.jpg" height="1428" sizes="100vw" fetchpriority="high">
+                <img src="https://www.shutterstock.com/image-photo/lollipops-candies-colorful-sweets-festive-600nw-1814876717.jpg" height="1428" sizes="100vw" fetchpriority="high" alt="Colorful lollipops and candies">
               </div>
               <div class="slideshow__text-wrapper banner__content banner__content--middle-center page-width scroll-trigger animate--slide-in" bis_skin_checked="1">
                 <div class="slideshow__text banner__box content-container content-container--full-width-mobile color-scheme-1 gradient slideshow__text--center slideshow__text-mobile--center" bis_skin_checked="1">
@@ -1686,7 +1594,7 @@
             #collection-template--17133120946278__featured_collection_nx3ejD {
               /* Slightly narrow this section to harmonize with layout */
               --page-width: 110rem;
-            }<!-- AB_TEMPLATE_GENERATOR_V2 -->
+            } /* AB_TEMPLATE_GENERATOR_V2 */
 
             #Slider-template--17133120946278__featured_collection_nx3ejD {
               padding-left: 0;
@@ -2203,7 +2111,7 @@
     <div id="shopify-block-AVmRZODJvS3BJU24vR__15472879455061085326" class="shopify-block shopify-app-block" bis_skin_checked="1">
     </div>
     <div tabindex="-1" aria-hidden="true" id="web-pixels-manager-sandbox-container" data-shopify-privacy="exclude" style="height: 0px !important; width: 0px !important; position: fixed !important; visibility: hidden !important; overflow: hidden !important; z-index: -100 !important; margin: 0px !important; padding: 0px !important; border: 0px !important;" bis_skin_checked="1">
-      <iframe tabindex="-1" aria-hidden="true" name="web-pixel-sandbox-CUSTOM-shopify-custom-pixel-LAX-ae1676cfwd2530674p4253c800m34e853cb" src="https://thesnacksmackindia.com/web-pixels@ae1676cfwd2530674p4253c800m34e853cb/custom/web-pixel-shopify-custom-pixel@0450/sandbox/modern/collections/all-products" id="web-pixel-sandbox-CUSTOM-shopify-custom-pixel-LAX-ae1676cfwd2530674p4253c800m34e853cb" sandbox="allow-scripts allow-forms" style="height: 0px !important; width: 0px !important; visibility: hidden !important;" bis_size="{&quot;x&quot;:0,&quot;y&quot;:6304,&quot;w&quot;:3,&quot;h&quot;:3,&quot;abs_x&quot;:0,&quot;abs_y&quot;:6304}"></iframe>
+      <iframe tabindex="-1" title="Web pixel sandbox" aria-hidden="true" name="web-pixel-sandbox-CUSTOM-shopify-custom-pixel-LAX-ae1676cfwd2530674p4253c800m34e853cb" src="https://thesnacksmackindia.com/web-pixels@ae1676cfwd2530674p4253c800m34e853cb/custom/web-pixel-shopify-custom-pixel@0450/sandbox/modern/collections/all-products" id="web-pixel-sandbox-CUSTOM-shopify-custom-pixel-LAX-ae1676cfwd2530674p4253c800m34e853cb" sandbox="allow-scripts allow-forms" style="height: 0px !important; width: 0px !important; visibility: hidden !important;" bis_size="{&quot;x&quot;:0,&quot;y&quot;:6304,&quot;w&quot;:3,&quot;h&quot;:3,&quot;abs_x&quot;:0,&quot;abs_y&quot;:6304}"></iframe>
     </div>
     <modal-dialog id="QuickAddBulk-7630596243558-template--17133120946278__featured_collection_nx3ejD" class="quick-add-modal color-scheme-1" data-section="template--17133120946278__featured_collection_nx3ejD">
       <div role="dialog" aria-label="Choose options for Jamun gola  | The Snack Smack" aria-modal="true" class="quick-add-modal__content quick-add-modal__content--bulk global-settings-popup" tabindex="-1" bis_skin_checked="1">
@@ -4991,10 +4899,7 @@
     <div id="c4g-content-root" class="c4g-widget" data-darkreader-mode="dynamic" data-darkreader-scheme="dark" bis_skin_checked="1">
       <meta name="darkreader" content="3ee9b6609e3e43b9a08b3996b3f81da5">
     </div>
-    <style>
-        null
-    </style>
-    <script>null</script>
+    <!-- Removed stray null entries injected by tooling -->
     <div class="orichiWrapperPop" style="display: none;" bis_skin_checked="1">
       <div class="orichiPopupHeader" bis_skin_checked="1"> Order is not valid </div>
       <hr>
@@ -5055,6 +4960,148 @@
           observer.observe(grid, { childList: true });
           console.debug(LOG_PREFIX, { action: 'observer_attached' });
         }
+      })();
+    </script>
+
+    <!-- WhatsApp-like floating chat widget (compact) -->
+    <style>
+      /* Map chat colors to the site's theme variables (with sensible fallbacks) */
+      :root{
+        --wa-btn-bg: rgb(var(--color-button, 37,211,102));
+        --wa-btn-text: rgb(var(--color-button-text, 255,255,255));
+        --wa-chat-bg: rgb(var(--color-background, 255,255,255));
+        --wa-chat-border: rgba(var(--color-foreground, 18,18,18), 0.06);
+        --wa-header-bg: rgb(var(--color-link, 18,18,18));
+        --wa-header-text: rgb(var(--color-button-text, 255,255,255));
+        --wa-bot-bg: rgb(var(--color-badge-background, 255,255,255));
+        --wa-bot-text: rgb(var(--color-foreground, 18,18,18));
+        --wa-user-bg: rgb(var(--color-button, 37,211,102));
+        --wa-user-text: rgb(var(--color-button-text, 255,255,255));
+        --wa-send-bg: #000000;
+        --wa-send-text: #ffffff;
+      }
+
+      .wa-chat-btn{position:fixed;right:18px;bottom:18px;z-index:9999;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--wa-btn-bg);color:var(--wa-btn-text);box-shadow:0 6px 18px rgba(var(--color-shadow,18,18,18),0.18);font-family:Assistant, sans-serif;font-size:20px}
+      .wa-chat{position:fixed;right:18px;bottom:86px;z-index:9999;width:320px;max-width:92%;height:420px;background:var(--wa-chat-bg);border-radius:12px;display:none;flex-direction:column;overflow:hidden;border:1px solid var(--wa-chat-border);box-shadow:0 12px 36px rgba(var(--color-shadow,18,18,18),0.18);font-family:Assistant, sans-serif}
+      .wa-header{background:var(--wa-header-bg);color:var(--wa-header-text);padding:12px 12px;display:flex;align-items:center;justify-content:space-between}
+      .wa-header .wa-title{font-weight:600}
+      .wa-header button{background:transparent;border:0;color:rgba(255,255,255,0.9);font-size:16px;cursor:pointer}
+      .wa-messages{padding:12px;flex:1;overflow:auto;background:transparent}
+      .wa-msg{display:inline-block;clear:both;padding:8px 10px;border-radius:8px;margin:6px 0;max-width:78%;font-size:14px}
+      .wa-bot{background:var(--wa-bot-bg);color:var(--wa-bot-text);border:1px solid rgba(var(--color-background-contrast,191,191,191),0.06);float:left}
+      .wa-user{background:var(--wa-user-bg);color:var(--wa-user-text);float:right}
+      .wa-actions{display:flex;gap:8px;margin-top:8px}
+      .wa-actions button{flex:1;padding:8px;border-radius:6px;border:0;cursor:pointer;font-size:13px}
+      .wa-yes{background:#25D366;color:#fff}
+      .wa-no{background:transparent;border:1px solid rgba(0,0,0,0.08);color:#222}
+      .wa-input{display:flex;padding:8px;border-top:1px solid rgba(0,0,0,0.06);align-items:center;gap:8px}
+      .wa-input input{flex:1;padding:8px 10px;border-radius:20px;border:1px solid rgba(0,0,0,0.06);outline:none;font-size:14px}
+      .wa-input button{background:var(--wa-send-bg);color:var(--wa-send-text);border:0;padding:8px 11px;border-radius:50%;cursor:pointer}
+      .wa-msg.small{font-size:13px;opacity:0.95}
+      /* Typing indicator (three animated dots) */
+      .wa-typing{display:inline-block;clear:both;padding:8px 10px;border-radius:8px;margin:6px 0;max-width:78%;font-size:14px}
+      .wa-typing .wa-dots{display:inline-block;height:14px;vertical-align:middle}
+      .wa-dots span{display:inline-block;width:6px;height:6px;margin:0 4px;background:#cfcfcf;border-radius:50%;opacity:0;transform:translateY(0);animation:wa-dot 900ms infinite ease-in-out}
+      .wa-dots span:nth-child(1){animation-delay:0ms}
+      .wa-dots span:nth-child(2){animation-delay:120ms}
+      .wa-dots span:nth-child(3){animation-delay:240ms}
+      @keyframes wa-dot{
+        0%{opacity:0;transform:translateY(0)}
+        40%{opacity:1;transform:translateY(-4px)}
+        80%{opacity:0.6;transform:translateY(0)}
+        100%{opacity:0;transform:translateY(0)}
+      }
+    </style>
+
+    <div id="waChatBtn" class="wa-chat-btn" aria-label="Open chat">💬</div>
+    <div id="waChat" class="wa-chat" role="dialog" aria-label="Chat window">
+      <div class="wa-header">
+        <div class="wa-title">Sales Support</div>
+        <button id="waClose">✕</button>
+      </div>
+      <div class="wa-messages" id="waMessages">
+        <!-- messages will be appended dynamically to simulate chat timing -->
+      </div>
+      <div class="wa-input">
+        <input id="waInput" placeholder="Type a message..." aria-label="Message input" />
+        <button id="waSend" aria-label="Send">➤</button>
+      </div>
+    </div>
+
+    <script>
+      (function(){
+        const openBtn = document.getElementById('waChatBtn');
+        const win = document.getElementById('waChat');
+        const closeBtn = document.getElementById('waClose');
+        const send = document.getElementById('waSend');
+        const input = document.getElementById('waInput');
+        const messages = document.getElementById('waMessages');
+
+        function open(){ win.style.display='flex'; scrollToBottom(); startConversationIfNeeded(); }
+        function close(){ win.style.display='none'; }
+        function scrollToBottom(){ messages.scrollTop = messages.scrollHeight; }
+
+        openBtn.addEventListener('click', ()=>{ open(); });
+        closeBtn.addEventListener('click', ()=>{ close(); });
+
+        // Auto-open chat after page load (every visit). Adjust `autoOpenDelay` (ms).
+        (function(){
+          const autoOpenDelay = 800;
+          function doAutoOpen(){ try { open(); } catch(e){} }
+          if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(doAutoOpen, autoOpenDelay);
+          } else {
+            document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(doAutoOpen, autoOpenDelay); });
+          }
+        })();
+
+        // Note: yes/no buttons are created dynamically; handlers attach after creation.
+
+        send.addEventListener('click', ()=>{ sendMessage(); });
+        input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendMessage(); });
+
+        function appendUser(text){ const d=document.createElement('div'); d.className='wa-msg wa-user'; d.textContent=text; messages.appendChild(d); scrollToBottom(); }
+        function appendBot(text){ const d=document.createElement('div'); d.className='wa-msg wa-bot'; d.textContent=text; messages.appendChild(d); scrollToBottom(); }
+
+        // typing indicator helper
+        function showTyping(ms, cb){
+          const t = document.createElement('div'); t.className='wa-typing'; t.innerHTML = '<span class="wa-dots"><span></span><span></span><span></span></span>';
+          messages.appendChild(t); scrollToBottom();
+          setTimeout(()=>{ t.remove(); if(cb) cb(); }, ms);
+        }
+
+        // Start initial chat flow only once per page load
+        function startConversationIfNeeded(){ if(win.dataset.started) return; win.dataset.started = '1';
+          appendBot('Hi!');
+          setTimeout(()=>{
+            showTyping(900, ()=>{
+              appendBot('Would you like to buy or purchase our products?');
+              // after 2s show the left-side button bubble with a brief typing indicator
+              setTimeout(()=>{
+                showTyping(900, ()=>{
+                  const bubble = document.createElement('div');
+                  bubble.className = 'wa-msg wa-bot';
+                  bubble.innerHTML = '<div style="margin-bottom:6px;color:#fff;font-size:14px">Choose an option:</div>' +
+                    '<div style="display:flex;gap:8px"><button id="waYes" class="wa-yes" style="flex:0 0 auto;padding:6px 10px;border-radius:6px">Yes</button><button id="waNo" class="wa-no" style="flex:0 0 auto;padding:6px 10px;border-radius:6px">No</button></div>';
+                  messages.appendChild(bubble);
+                  scrollToBottom();
+
+                  // attach handlers to dynamic buttons
+                  const dynYes = document.getElementById('waYes');
+                  const dynNo = document.getElementById('waNo');
+                  if(dynYes) dynYes.addEventListener('click', ()=>{ const text=encodeURIComponent("Hi, I'm interested in purchasing your products."); window.open('https://wa.me/918959285336?text='+text,'_blank'); });
+                  if(dynNo) dynNo.addEventListener('click', ()=>{ showTyping(700, ()=>{ appendBot('Okay — thanks for visiting!'); setTimeout(()=>{ close(); openBtn.style.display='flex'; },1200); }); });
+                });
+              },2000);
+            });
+          },400);
+        }
+
+        function sendMessage(){ const v = input.value && input.value.trim(); if(!v) return; appendUser(v); input.value='';
+          // show typing indicator then reply
+          showTyping(900, ()=>{ appendBot('Thanks! To complete purchase, tap Yes or chat on WhatsApp.'); });
+        }
+
       })();
     </script>
   </body>
