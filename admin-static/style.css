@@ -188,6 +188,10 @@ label, .muted, .small{color:var(--muted)}
 .btn-icon-mini{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:2px 6px;border-radius:6px;cursor:pointer;font-size:0.9rem;margin-left:8px}
 .btn-icon-mini:hover{background:rgba(255,255,255,0.04);color:var(--text)}
 
+/* Blue connect handle used for click-to-connect and drag-to-connect */
+.api-handle{display:inline-block;width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-left:8px;cursor:grab;background:linear-gradient(180deg,#60a5fa,#3b82f6);box-shadow:0 4px 10px rgba(59,130,246,0.18);border:2px solid rgba(255,255,255,0.06)}
+.api-handle:active{cursor:grabbing}
+
 /* API details panel */
 .api-details-panel{max-height:70vh;overflow:auto}
 .detail-section{margin-bottom:20px;padding:12px;background:rgba(255,255,255,0.02);border-radius:8px}

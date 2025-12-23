@@ -111,53 +111,38 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         // Fetch site tree and find first .html file
         const tree = await api(`/api/sites/${encodeURIComponent(name)}/tree`);
-        function findFirstHtml(nodeList) {
-          if(!Array.isArray(nodeList) || nodeList.length === 0) return null;
-          for(const n of nodeList) {
-            if(n.type === 'file' && typeof n.name === 'string' && n.name.toLowerCase().endsWith('.html')) return n.path;
-            if(n.type === 'dir' && Array.isArray(n.children)) {
+        const firstHtml = (function findFirstHtml(nodeList) {
+          if (!Array.isArray(nodeList) || nodeList.length === 0) return null;
+          for (const n of nodeList) {
+            if (n.type === 'file' && typeof n.name === 'string' && n.name.toLowerCase().endsWith('.html')) return n.path;
+            if (n.type === 'dir' && Array.isArray(n.children)) {
               const found = findFirstHtml(n.children);
-              if(found) return found;
+              if (found) return found;
             }
           }
           return null;
-        }
+        })(tree);
 
-        const firstPagePath = findFirstHtml(tree || []);
-        if(firstPagePath) {
-          // only load if editor isn't already showing a page
-          const editor = document.querySelector('#pageEditor');
-          if(editor && !editor.getAttribute('data-current-page')) {
-            await loadPageIntoEditor(firstPagePath, name);
-          }
-        }
+        if (firstHtml) await loadPageIntoEditor(firstHtml, name);
       } catch (e) {
-        // ignore failures to auto-open page
+        /* ignore auto-open failures */
       }
-      showMessage(`Selected site: ${name}`, 'Success');
-    } catch(e) {
-      console.error('Failed to select site:', e);
-      showMessage(`Failed to load site: ${name}. Some features may not work.`, 'Error');
-      selectedSite = null;
-      window.selectedSite = null;
-      await renderSiteList();
-      await renderSiteDetails();
+    } catch (e) {
+      console.error('selectSite failed', e);
+      showMessage('Could not select site', 'Error');
     }
-  }
 
-  // Beautify and unminify HTML content for better readability in editor
-  function getFormatOptions() {
-    // Read user preference from control if present, otherwise defaults
-    const sel = document.getElementById('formatIndentSelect');
-    const val = sel ? sel.value : '2';
-    if (val === 'tab') {
-      return { indent_with_tabs: true, indent_size: 1, indent_char: '\t' };
+    function getFormatOptions() {
+      const sel = document.getElementById('formatIndentSelect');
+      const val = sel ? sel.value : '2';
+      if (val === 'tab') {
+        return { indent_with_tabs: true, indent_size: 1, indent_char: '\t' };
+      }
+      const size = parseInt(val, 10) || 2;
+      return { indent_with_tabs: false, indent_size: size, indent_char: ' ' };
     }
-    const size = parseInt(val, 10) || 2;
-    return { indent_with_tabs: false, indent_size: size, indent_char: ' ' };
-  }
 
-  function beautifyHtml(html, opts) {
+    function beautifyHtml(html, opts) {
     try {
       // First, unminify the HTML by adding strategic whitespace
       let unminified = html
@@ -282,24 +267,50 @@ document.addEventListener('DOMContentLoaded', () => {
       const previewFrame = qs('#previewFrame');
       if(previewFrame) {
         try {
-          // Prefer server-rendered HTML so preview matches production rendering
-          try {
-            // encode each path segment but preserve slashes so Express wildcard matching works
-            const encodePathForUrl = (p) => p.split('/').map(encodeURIComponent).join('/');
-            const resp = await fetch(`/site/${encodeURIComponent(siteName)}/${encodePathForUrl(path)}?t=${Date.now()}`);
-            const rendered = await resp.text();
-            previewFrame.srcdoc = sanitizeHtmlForPreview(rendered || '');
-          } catch (e) {
-              // fallback: try client-side render + sanitize
+          // Allow an opt-in "Native Live Preview" where the page is loaded via src
+          const nativeToggle = document.getElementById('nativePreviewToggle');
+          const useNative = nativeToggle && nativeToggle.checked;
+          // ensure iframe is positioned so overlay SVG can sit above it
+          try { previewFrame.style.position = 'relative'; previewFrame.style.zIndex = '1'; } catch(e){}
+
+          const encodePathForUrl = (p) => p.split('/').map(encodeURIComponent).join('/');
+          const serverUrl = `/site/${encodeURIComponent(siteName)}/${encodePathForUrl(path)}?t=${Date.now()}`;
+
+          if (useNative) {
             try {
-              const rendered = await renderTemplateForPreviewAsync(content || '', window.latestAggregatedData || {});
-              previewFrame.srcdoc = sanitizeHtmlForPreview(rendered || '');
-            } catch (e2) {
-              previewFrame.srcdoc = sanitizeHtmlForPreview(content || '');
+              // Load the live page via src and remove sandbox so scripts run (user opt-in)
+              previewFrame.removeAttribute('sandbox');
+              previewFrame.src = serverUrl;
+            } catch (err) {
+              // fallback to safe srcdoc if direct load fails
+              try {
+                const resp = await fetch(serverUrl);
+                const rendered = await resp.text();
+                previewFrame.srcdoc = sanitizeHtmlForPreview(rendered || '');
+              } catch (e2) {
+                previewFrame.srcdoc = sanitizeHtmlForPreview(content || '');
+              }
             }
+          } else {
+            // Prefer server-rendered HTML so preview matches production rendering
+            try {
+              const resp = await fetch(serverUrl);
+              const rendered = await resp.text();
+              previewFrame.srcdoc = sanitizeHtmlForPreview(rendered || '');
+            } catch (e) {
+              // fallback: try client-side render + sanitize
+              try {
+                const rendered = await renderTemplateForPreviewAsync(content || '', window.latestAggregatedData || {});
+                previewFrame.srcdoc = sanitizeHtmlForPreview(rendered || '');
+              } catch (e2) {
+                previewFrame.srcdoc = sanitizeHtmlForPreview(content || '');
+              }
+            }
+            // keep sandbox attribute for safer preview
+            try { previewFrame.setAttribute('sandbox','allow-same-origin allow-forms'); } catch(e){}
           }
         } catch (e) {
-            try { previewFrame.src = `/site/${siteName}/${encodePathForUrl(path)}`; } catch(_) {}
+          try { previewFrame.src = `/site/${siteName}/${encodePathForUrl(path)}`; } catch(_) {}
         }
       }
     } catch(e) {
@@ -427,83 +438,146 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render data palette
   function renderDataPalette(data) {
     const container = qs('#dataPalette');
-    if (!container) return;
-    try { container.style.display = 'block'; container.innerHTML = ''; } catch (e) {}
-
+    if(!container) {
+      console.warn('renderDataPalette: #dataPalette not found');
+      return;
+    }
+    // ensure palette is visible in case CSS or other scripts hid it
+    try { container.style.display = 'block'; container.style.visibility = 'visible'; } catch(e) {}
     const meta = data?.__meta__ || {};
-    const apiKeys = Object.keys(data || {}).filter(k => k !== '__meta__');
-    if (apiKeys.length === 0) {
-      container.innerHTML = '<div style="padding:16px;text-align:center;color:#64748b;font-style:italic;">No APIs configured for this site.<br>Add APIs in the admin panel to enable drag-and-drop components.</div>';
+    try {
+      console.debug('renderDataPalette called with data:', data);
+      container.innerHTML = '';
+      // Force visible, high-contrast styles at runtime to override any external CSS issues
+      try {
+        container.style.minHeight = '120px';
+        container.style.opacity = '1';
+        container.style.color = '#e6eef8';
+        container.style.background = '#071226';
+        container.style.border = '1px solid rgba(255,255,255,0.04)';
+        container.style.padding = '8px';
+        container.style.borderRadius = '8px';
+        container.style.position = 'relative';
+        container.style.zIndex = '12';
+        container.style.display = 'block';
+        container.style.boxShadow = '0 6px 20px rgba(2,6,23,0.5)';
+        container.style.outline = '3px solid rgba(191,90,242,0.85)';
+      } catch(_){}
+      // conspicuous debug box so the user can see the palette area immediately
+      try {
+        const dbgHtml = `<div id="palette-debug-visibility" style="padding:10px;border-radius:6px;background:linear-gradient(90deg,#0b1220,#102033);border:2px dashed rgba(191,90,242,0.9);color:#fff;font-weight:700;margin-bottom:8px;text-align:center">PALETTE DEBUG — ${Object.keys(data||{}).filter(k=>k!=='__meta__').length} APIs</div>`;
+        container.insertAdjacentHTML('afterbegin', dbgHtml);
+      } catch(_){}
+    } catch (e) {
+      console.error('renderDataPalette error', e);
+      try { container.innerHTML = '<div style="padding:12px;background:#2b2730;color:#ffd7d7;border-radius:6px">Palette failed to render — check console for details.</div>'; } catch(_){}
       return;
     }
 
-    function makeHandle(fullPath, labelEl) {
-      const h = document.createElement('span');
-      h.className = 'api-handle';
-      h.title = 'Click or drag to connect';
-      h.dataset.field = fullPath;
-      h.addEventListener('click', (ev) => { ev.stopPropagation(); try { startConnectMode(fullPath, labelEl, 'field'); } catch (e) {} });
-      h.addEventListener('mousedown', (ev) => { ev.stopPropagation(); try { startDragConnect(fullPath, labelEl, ev.clientX, ev.clientY, 'field'); } catch (e) {} });
-      return h;
+    // Check if we have any APIs
+    const apiKeys = Object.keys(data || {}).filter(k => k !== '__meta__');
+    if(apiKeys.length === 0) {
+      // Show the raw data for debugging so user can see what arrived
+      try {
+        container.innerHTML = '<div style="padding:12px;color:#94a3b8;font-style:italic;">No APIs configured for this site.</div><pre style="margin-top:8px;max-height:240px;overflow:auto;background:rgba(255,255,255,0.02);padding:8px;border-radius:6px;color:#cfe9ff;">' + escapeHtml(JSON.stringify(data || {}, null, 2)) + '</pre>';
+      } catch (e) {
+        container.innerHTML = '<div style="padding:16px;text-align:center;color:#64748b;font-style:italic;">No APIs configured for this site.<br>Add APIs in the admin panel to enable drag-and-drop components.</div>';
+      }
+      return;
     }
 
-    const treeWrap = document.createElement('div'); treeWrap.className = 'simple-palette';
-    for (const apiName of apiKeys) {
-      try {
-        const root = document.createElement('div'); root.className = 'palette-root';
+    const renderNode = (key, nodeData, parentEl, fullPath, isRoot=false) => {
+      const row = document.createElement('div');
+      row.className = 'tree-node';
 
-        // Header with caret, title, method and root handle
-        const header = document.createElement('div'); header.className = 'palette-root-header'; header.tabIndex = 0;
-        const caret = document.createElement('span'); caret.className = 'palette-caret'; caret.textContent = '▸'; caret.style.marginRight = '8px'; caret.style.opacity = '0.9';
-        header.appendChild(caret);
-        const title = document.createElement('span'); title.className = 'palette-root-title'; title.textContent = apiName; title.style.fontWeight = '700';
-        header.appendChild(title);
-        const method = (meta[apiName]?.method || '').toUpperCase();
-        if (method) {
-          const m = document.createElement('span'); m.className = 'palette-method'; m.textContent = method; header.appendChild(m);
-        }
-        // blue handle on the parent API root as well
-        try { header.appendChild(makeHandle(apiName, header)); } catch(e){}
-        root.appendChild(header);
+      const label = document.createElement('div');
+      label.className = 'node-label simple';
 
-        const childrenWrap = document.createElement('div'); childrenWrap.className = 'palette-children'; childrenWrap.style.display = 'none';
+      const isContainer = nodeData && typeof nodeData === 'object';
+      const toggle = document.createElement('span');
+      toggle.className = 'node-toggle';
+      toggle.textContent = isContainer ? (isRoot ? '▾' : '▸') : '';
+      label.appendChild(toggle);
 
-        // Expand/collapse behavior
-        function toggleChildren() {
-          const isHidden = childrenWrap.style.display === 'none';
-          childrenWrap.style.display = isHidden ? 'block' : 'none';
-          caret.textContent = isHidden ? '▾' : '▸';
-        }
-        header.addEventListener('click', (ev) => { ev.stopPropagation(); toggleChildren(); });
-        header.addEventListener('keypress', (ev) => { if(ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggleChildren(); } });
+      const text = document.createElement('span');
+      text.className = 'node-text';
+      text.textContent = key + (Array.isArray(nodeData) ? ' (array)' : (isContainer ? ' (object)' : ''));
+      label.appendChild(text);
 
-        // Determine a sample object to inspect fields (arrays -> first element)
-        const sample = Array.isArray(data[apiName]) ? (data[apiName][0] || {}) : (data[apiName] && typeof data[apiName] === 'object' ? data[apiName] : {});
-        if (sample && typeof sample === 'object' && Object.keys(sample).length > 0) {
-          for (const k of Object.keys(sample)) {
-            const row = document.createElement('div'); row.className = 'palette-row';
-            const label = document.createElement('span'); label.className = 'palette-key'; label.textContent = k;
-            // sample value (beautified short)
-            try {
-              const v = sample[k];
-              const s = (v === null) ? 'null' : (typeof v === 'object' ? JSON.stringify(v) : String(v));
-              const sampleEl = document.createElement('span'); sampleEl.className = 'palette-sample'; sampleEl.textContent = s.length > 40 ? s.slice(0,40) + '…' : s; sampleEl.style.marginLeft = '8px'; sampleEl.style.color = 'var(--palette-sample)'; sampleEl.style.fontSize = '12px';
-              label.appendChild(sampleEl);
-            } catch(e) {}
-            row.appendChild(label);
-            row.appendChild(makeHandle(`${apiName}.${k}`, label));
-            childrenWrap.appendChild(row);
+      // Blue connect handle (click or drag to connect)
+      const handle = document.createElement('span');
+      handle.className = 'api-handle';
+      handle.title = 'Click or drag to connect';
+      handle.dataset.field = fullPath;
+      handle.addEventListener('click', (ev) => { ev.stopPropagation(); try { startConnectMode(fullPath, label, 'field'); } catch(e){} });
+      handle.addEventListener('mousedown', (ev) => { ev.stopPropagation(); try { startDragConnect(fullPath, label, ev.clientX, ev.clientY, 'field'); } catch(e){} });
+      label.appendChild(handle);
+
+      row.appendChild(label);
+      parentEl.appendChild(row);
+
+      if (isContainer) {
+        const childrenWrap = document.createElement('div');
+        childrenWrap.className = 'node-children';
+        childrenWrap.style.display = isRoot ? 'block' : 'none';
+        row.appendChild(childrenWrap);
+
+        toggle.style.cursor = 'pointer';
+        toggle.onclick = (ev) => {
+          ev.stopPropagation();
+          childrenWrap.style.display = childrenWrap.style.display === 'none' ? 'block' : 'none';
+          toggle.textContent = childrenWrap.style.display === 'none' ? '▸' : '▾';
+        };
+
+        if (Array.isArray(nodeData)) {
+          if (nodeData.length > 0 && typeof nodeData[0] === 'object') {
+            Object.keys(nodeData[0]).forEach(k => renderNode(k, nodeData[0][k], childrenWrap, `${fullPath}.${k}`, false));
           }
         } else {
-          const row = document.createElement('div'); row.className = 'palette-row'; row.textContent = '(no fields)'; row.style.color = 'var(--palette-sample)'; childrenWrap.appendChild(row);
+          Object.keys(nodeData).forEach(k => renderNode(k, nodeData[k], childrenWrap, fullPath ? `${fullPath}.${k}` : k, false));
         }
+      }
+    };
 
-        root.appendChild(childrenWrap);
-        treeWrap.appendChild(root);
-      } catch (e) { /* best-effort per-API */ }
+    container.classList.add('data-tree');
+    // Keep the debug header/content already inserted above; now append API roots
+    for(const apiName of apiKeys) {
+      const rootWrap = document.createElement('div');
+      rootWrap.className = 'tree-root';
+      try {
+        renderNode(apiName, data[apiName], rootWrap, apiName, true);
+        container.appendChild(rootWrap);
+      } catch (err) {
+        console.error('renderDataPalette: failed to render API', apiName, err);
+        const errEl = document.createElement('div');
+        errEl.style.padding = '8px';
+        errEl.style.background = 'rgba(255,0,0,0.04)';
+        errEl.style.color = '#ffd7d7';
+        errEl.textContent = `Failed to render API: ${apiName}`;
+        container.appendChild(errEl);
+      }
     }
 
-    try { container.appendChild(treeWrap); } catch (e) { container.innerHTML = '<div style="padding:12px;color:#fca5a5">Palette render failed</div>'; }
+    // If detailed rendering failed for some reason, append a simple fallback list of API keys
+    try {
+      const hasApiItems = container.querySelectorAll('.tree-root').length > 0;
+      if(!hasApiItems && apiKeys.length > 0) {
+        const ul = document.createElement('ul');
+        ul.style.listStyle = 'none';
+        ul.style.padding = '6px';
+        ul.style.margin = '6px 0';
+        apiKeys.forEach(k => {
+          const li = document.createElement('li');
+          li.textContent = k;
+          li.style.padding = '6px 8px';
+          li.style.borderRadius = '6px';
+          li.style.background = 'rgba(255,255,255,0.02)';
+          li.style.color = '#e6eef8';
+          ul.appendChild(li);
+        });
+        container.appendChild(ul);
+      }
+    } catch (e) { /* ignore fallback errors */ }
   }
 
   // --- Connector overlay and click-to-connect behavior (adapted from form-builder) ---
@@ -519,7 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('connectorSvg')) return;
     const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
     svg.id = 'connectorSvg';
-    svg.setAttribute('style','position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999');
+    svg.setAttribute('style','position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2147483646');
     const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
     const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
     marker.setAttribute('id','arrow-end'); marker.setAttribute('markerWidth','8'); marker.setAttribute('markerHeight','8'); marker.setAttribute('refX','6'); marker.setAttribute('refY','4'); marker.setAttribute('orient','auto');
@@ -580,6 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       initConnectorOverlay();
       const svg = document.getElementById('connectorSvg'); if(!svg) return;
+      try { svg.parentNode && svg.parentNode.appendChild(svg); } catch (e) {}
       if(connections[field] && connections[field].path) { try{ connections[field].path.remove(); }catch(e){} }
       // start rect (apiNode) may be in main doc, target may be inside iframe
       let aRect = null;
@@ -631,6 +706,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const svg = document.getElementById('connectorSvg');
     if (!svg) return;
+    // ensure overlay is the last child so it visually sits above the iframe
+    try { svg.parentNode && svg.parentNode.appendChild(svg); } catch (e) {}
 
     // Create temporary path for the drag visualization
     const tempPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -678,23 +755,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function findTargetAtPoint(x, y) {
       try {
+        // Prefer the immediate element at viewport point
         let el = document.elementFromPoint(x, y);
-        if (el) return el.closest('input,textarea,select,button');
-        // If not found, test inside preview iframe
+        // If the hit is the iframe itself or nothing useful, test inside iframe
         const pf = document.getElementById('previewFrame');
         if (pf && pf.getBoundingClientRect) {
           const rect = pf.getBoundingClientRect();
           const relX = x - rect.left;
           const relY = y - rect.top;
+          // If pointer is inside iframe viewport, try iframe document lookup
           if (relX >= 0 && relY >= 0 && relX <= rect.width && relY <= rect.height) {
             try {
-              const idoc = pf.contentDocument || pf.contentWindow && pf.contentWindow.document;
-              if (idoc && idoc.elementFromPoint) {
+              const idoc = pf.contentDocument || (pf.contentWindow && pf.contentWindow.document);
+              if (idoc && typeof idoc.elementFromPoint === 'function') {
+                // elementFromPoint inside iframe expects coordinates relative to iframe viewport
                 const el2 = idoc.elementFromPoint(relX, relY);
-                return el2 ? el2.closest('input,textarea,select,button') : null;
+                if (el2 && el2.nodeType === 1) {
+                  // prefer the nearest meaningful element (not html/body)
+                  let candidate = el2.closest('a,button,input,textarea,select,label,img,svg,div,span,p,li,td,th') || el2;
+                  if (candidate && candidate !== idoc.body && candidate !== idoc.documentElement) return candidate;
+                }
               }
-            } catch (e) { return null; }
+            } catch (e) {
+              // ignore cross-origin or other access issues
+            }
           }
+        }
+        // Fallback to host document element (allow any element except root nodes)
+        if (el && el.nodeType === 1 && el !== document.body && el !== document.documentElement) {
+          // If the hit is the iframe itself, skip
+          if (el.id === 'previewFrame') return null;
+          return el;
         }
       } catch (e) {}
       return null;
