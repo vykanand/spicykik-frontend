@@ -125,6 +125,16 @@
             "category": "candy"
           },
           "bodyTemplate": ""
+        },
+        {
+          "name": "bestseller",
+          "url": "https://spicykik-backend-production.up.railway.app/product/api.php?filters=1",
+          "method": "GET",
+          "headers": {},
+          "params": {
+            "bestseller": "yes"
+          },
+          "bodyTemplate": null
         }
       ],
       "mappings": []

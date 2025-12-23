@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Login — The Snack Smack</title>
+    <link rel="stylesheet" href="/cdn/shop/t/1/assets/component-card.css" />
+    <link rel="stylesheet" href="/cdn/shop/t/1/assets/component-price.css" />
+    <link rel="stylesheet" href="/admin-static/style.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap");
+      body {
+        font-family: Assistant, sans-serif;
+        background: #ffffff;
+        color: #121212;
+        -webkit-font-smoothing: antialiased;
+      }
+      .auth-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 32px;
+      }
+      .auth-card {
+        background: #ffffff;
+        border: 1px solid rgba(18, 18, 18, 0.06);
+        border-radius: 12px;
+        padding: 28px;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 6px 20px rgba(18, 18, 18, 0.06);
+      }
+      .auth-card h1 {
+        margin: 0 0 6px;
+        font-size: 20px;
+        color: #121212;
+      }
+      .auth-card p.lead {
+        margin: 0 0 18px;
+        color: #5b6470;
+      }
+      .form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .form-row input {
+        background: transparent;
+        border: 1px solid rgba(18, 18, 18, 0.06);
+        padding: 10px 12px;
+        color: #121212;
+        border-radius: 8px;
+      }
+      .btn-primary {
+        display: inline-block;
+        background: #121212;
+        color: #ffffff;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 700;
+        border: 0;
+        cursor: pointer;
+      }
+      .muted {
+        color: #5b6470;
+      }
+      .alt-links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 12px;
+      }
+      .social-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .social {
+        border: 1px solid rgba(18, 18, 18, 0.06);
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: transparent;
+        color: #121212;
+      }
+      .brand {
+        text-align: center;
+        margin-bottom: 16px;
+      }
+      .brand img {
+        height: 44px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="site-header-placeholder"></div>
+    <script>
+      (function () {
+        function insertHtml(id, candidates) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          (function tryFetch(i) {
+            if (i >= candidates.length) return;
+            fetch(candidates[i], { cache: "no-cache" })
+              .then(function (r) {
+                if (!r.ok) throw 0;
+                return r.text();
+              })
+              .then(function (html) {
+                el.innerHTML = html;
+              })
+              .catch(function () {
+                tryFetch(i + 1);
+              });
+          })(0);
+        }
+        insertHtml("site-header-placeholder", [
+          "./includes/header.html",
+          "/includes/header.html",
+          "../includes/header.html",
+          "../../includes/header.html",
+        ]);
+      })();
+    </script>
+
+    <div class="auth-wrap">
+      <div class="auth-card" role="main">
+        <div class="brand">
+          <a href="/" aria-label="Home"
+            ><img
+              src="/cdn/shop/files/logo.png"
+              alt="The Snack Smack"
+              onerror="this.style.display='none'"
+          /></a>
+        </div>
+        <h1>Welcome back</h1>
+        <p class="lead">
+          Sign in to access your account, orders and saved items.
+        </p>
+        <form
+          id="loginForm"
+          action="#"
+          method="post"
+          onsubmit="event.preventDefault(); handleLogin();"
+        >
+          <div class="form-row">
+            <label class="muted">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@domain.com"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label class="muted">Password</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+            "
+          >
+            <button class="btn-primary" type="submit">Sign in</button>
+            <a href="/collections/all-products" class="muted"
+              >Continue shopping</a
+            >
+          </div>
+          <div class="alt-links">
+            <a href="/account/register" class="muted">Create account</a>
+            <a href="/account/recover" class="muted">Forgot password?</a>
+          </div>
+          <div class="social-row">
+            <button
+              type="button"
+              class="social"
+              onclick="alert('Social login not configured')"
+            >
+              Continue with Google
+            </button>
+            <button
+              type="button"
+              class="social"
+              onclick="alert('Social login not configured')"
+            >
+              Continue with Facebook
+            </button>
+          </div>
+        </form>
+        <script>
+          function handleLogin() {
+            const email = document.getElementById("email").value;
+            const pw = document.getElementById("password").value;
+            // Placeholder: simulate successful login and redirect to dashboard
+            if (email && pw) {
+              localStorage.setItem("fakeUser", JSON.stringify({ email }));
+              window.location.href = "/snack/dashboard.html";
+            } else {
+              alert("Enter credentials");
+            }
+          }
+        </script>
+      </div>
+    </div>
+    <div id="site-footer-placeholder"></div>
+    <script>
+      (function () {
+        function insertHtml(id, candidates) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          (function tryFetch(i) {
+            if (i >= candidates.length) return;
+            fetch(candidates[i], { cache: "no-cache" })
+              .then(function (r) {
+                if (!r.ok) throw 0;
+                return r.text();
+              })
+              .then(function (html) {
+                el.innerHTML = html;
+              })
+              .catch(function () {
+                tryFetch(i + 1);
+              });
+          })(0);
+        }
+        insertHtml("site-footer-placeholder", [
+          "./includes/footer.html",
+          "/includes/footer.html",
+          "../includes/footer.html",
+          "../../includes/footer.html",
+        ]);
+      })();
+    </script>
+  </body>
+</html>

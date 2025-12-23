@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>About Us — The Snack Smack</title>
+    <link rel="stylesheet" href="/admin-static/style.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap");
+      body {
+        font-family: Assistant, sans-serif;
+        background: #ffffff;
+        color: #121212;
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+      .hero {
+        padding: 26px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+      }
+      .hero .logo {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #ffe29f, #ffb86b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b2b00;
+        font-weight: 800;
+        font-size: 22px;
+      }
+      .hero h1 {
+        margin: 0;
+        color: #121212;
+      }
+      .lead {
+        color: #5b6470;
+        margin-top: 6px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 20px;
+        margin-top: 22px;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid rgba(18, 18, 18, 0.06);
+        padding: 18px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(18, 18, 18, 0.06);
+      }
+      .stats {
+        display: flex;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .stat {
+        background: rgba(18, 18, 18, 0.02);
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      a.cta,
+      .btn-primary {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: #121212;
+        color: #ffffff;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .muted {
+        color: #5b6470;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="site-header-placeholder"></div>
+    <script>
+      (function () {
+        function insertHtml(id, candidates) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          (function tryFetch(i) {
+            if (i >= candidates.length) return;
+            fetch(candidates[i], { cache: "no-cache" })
+              .then(function (r) {
+                if (!r.ok) throw 0;
+                return r.text();
+              })
+              .then(function (html) {
+                el.innerHTML = html;
+              })
+              .catch(function () {
+                tryFetch(i + 1);
+              });
+          })(0);
+        }
+        insertHtml("site-header-placeholder", [
+          "./includes/header.html",
+          "/includes/header.html",
+          "../includes/header.html",
+          "../../includes/header.html",
+        ]);
+      })();
+    </script>
+    <div class="container">
+      <div class="hero">
+        <div class="logo">SNS</div>
+        <div>
+          <h1>About The Snack Smack</h1>
+          <p class="lead">
+            We curate the most delightful candies, toffees and snacks — bringing
+            classic flavours and new favourites to your doorstep.
+          </p>
+          <div style="margin-top: 12px">
+            <a class="cta" href="/collections/all-products">Shop now</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="card">
+            <h2 style="margin-top: 0; color: #d8f0ff">Our Story</h2>
+            <p class="muted">
+              Founded with a love for nostalgic treats and a passion for
+              discovery. We partner with local makers and trusted brands to
+              bring you a wide variety of sweets and snacks from across India.
+            </p>
+            <p style="margin-top: 10px; color: #9fb6d6">
+              From street-side classics to carefully crafted artisanal bites,
+              our selection is curated for taste, freshness and joy.
+            </p>
+          </div>
+
+          <div class="card" style="margin-top: 12px">
+            <h3 style="margin-top: 0; color: #d8f0ff">What we promise</h3>
+            <ul class="muted">
+              <li>Freshness and quality</li>
+              <li>Fast delivery across India</li>
+              <li>Friendly customer service</li>
+            </ul>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card">
+            <h3 style="margin-top: 0; color: #d8f0ff">Quick facts</h3>
+            <div class="stats">
+              <div class="stat">
+                <div style="font-weight: 700">1200+</div>
+                <div class="muted">Products</div>
+              </div>
+              <div class="stat">
+                <div style="font-weight: 700">50k+</div>
+                <div class="muted">Happy customers</div>
+              </div>
+            </div>
+            <hr
+              style="margin: 12px 0; border-color: rgba(255, 255, 255, 0.03)"
+            />
+            <div class="muted">
+              Contact us:
+              <a href="mailto:hello@thesnacksmackindia.com" class="muted"
+                >hello@thesnacksmackindia.com</a
+              >
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 12px">
+            <h3 style="margin-top: 0; color: #d8f0ff">Follow us</h3>
+            <div style="display: flex; gap: 8px; margin-top: 8px">
+              <a class="muted" href="#">Instagram</a>
+              <a class="muted" href="#">Facebook</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <div id="site-footer-placeholder"></div>
+    <script>
+      (function () {
+        function insertHtml(id, candidates) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          (function tryFetch(i) {
+            if (i >= candidates.length) return;
+            fetch(candidates[i], { cache: "no-cache" })
+              .then(function (r) {
+                if (!r.ok) throw 0;
+                return r.text();
+              })
+              .then(function (html) {
+                el.innerHTML = html;
+              })
+              .catch(function () {
+                tryFetch(i + 1);
+              });
+          })(0);
+        }
+        insertHtml("site-footer-placeholder", [
+          "./includes/footer.html",
+          "/includes/footer.html",
+          "../includes/footer.html",
+          "../../includes/footer.html",
+        ]);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Profile — The Snack Smack</title>
+    <link rel="stylesheet" href="/admin-static/style.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap");
+      body {
+        font-family: Assistant, sans-serif;
+        background: #ffffff;
+        color: #121212;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        padding: 28px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .profile-grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid rgba(18, 18, 18, 0.06);
+        padding: 18px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(18, 18, 18, 0.06);
+      }
+      .avatar {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #ffe29f, #ffb86b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #6b2b00;
+        font-size: 28px;
+      }
+      h2 {
+        margin: 0 0 6px;
+        color: #121212;
+      }
+      .meta {
+        color: #5b6470;
+        margin-bottom: 12px;
+      }
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .list a {
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: transparent;
+        border: 1px solid rgba(18, 18, 18, 0.04);
+        color: #121212;
+        text-decoration: none;
+      }
+      .orders {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+      }
+      .order-card {
+        background: #fafafa;
+        border-radius: 10px;
+        padding: 12px;
+        border: 1px solid rgba(18, 18, 18, 0.04);
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px solid rgba(18, 18, 18, 0.08);
+        color: #121212;
+        padding: 8px 10px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="site-header-placeholder"></div>
+    <script>
+      (function () {
+        function insertHtml(id, candidates) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          (function tryFetch(i) {
+            if (i >= candidates.length) return;
+            fetch(candidates[i], { cache: "no-cache" })
+              .then(function (r) {
+                if (!r.ok) throw 0;
+                return r.text();
+              })
+              .then(function (html) {
+                el.innerHTML = html;
+              })
+              .catch(function () {
+                tryFetch(i + 1);
+              });
+          })(0);
+        }
+        insertHtml("site-header-placeholder", [
+          "./includes/header.html",
+          "/includes/header.html",
+          "../includes/header.html",
+          "../../includes/header.html",
+        ]);
+      })();
+    </script>
+
+    <div class="wrap">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 18px;
+        "
+      >
+        <a href="/" style="text-decoration: none; color: inherit"
+          ><strong>The Snack Smack</strong></a
+        >
+        <div>
+          <a href="/snack/login.html" class="btn-ghost">Sign out</a>
+        </div>
+      </div>
+
+      <div class="profile-grid">
+        <div class="card">
+          <div style="display: flex; gap: 12px; align-items: center">
+            <div class="avatar">U</div>
+            <div>
+              <h2 id="userName">Hello, User</h2>
+              <div class="meta" id="userEmail">user@example.com</div>
+              <div>
+                <a
+                  href="#"
+                  class="btn-ghost"
+                  onclick="alert('Edit profile not implemented')"
+                  >Edit profile</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <hr style="margin: 12px 0; border-color: rgba(255, 255, 255, 0.03)" />
+
+          <div class="list">
+            <a href="#orders">My Orders</a>
+            <a href="#addresses">Addresses</a>
+            <a href="#cards">Saved cards</a>
+            <a href="#newsletter">Newsletter</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom: 12px">
+            <h3 style="margin-top: 0; color: #d8f0ff">Recent Orders</h3>
+            <div class="orders" id="ordersList">
+              <div class="order-card">
+                <div style="font-weight: 700">Order #9281</div>
+                <div class="meta">Placed 3 days ago — ₹299</div>
+                <div style="margin-top: 8px">
+                  <a href="#" class="btn-ghost">View</a>
+                </div>
+              </div>
+              <div class="order-card">
+                <div style="font-weight: 700">Order #9120</div>
+                <div class="meta">Placed 2 months ago — ₹499</div>
+                <div style="margin-top: 8px">
+                  <a href="#" class="btn-ghost">View</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-top: 0; color: #d8f0ff">Account Actions</h3>
+            <div style="display: flex; gap: 8px; margin-top: 12px">
+              <button
+                class="btn-ghost"
+                onclick="alert('Download orders CSV not implemented')"
+              >
+                Export Orders
+              </button>
+              <button
+                class="btn-ghost"
+                onclick="localStorage.removeItem('fakeUser'); window.location.href='/snack/login.html'"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // populate from localStorage fakeUser for demo
+      try {
+        const u = JSON.parse(localStorage.getItem("fakeUser") || "null");
+        if (u && u.email) {
+          document.getElementById("userEmail").textContent = u.email;
+          document.getElementById("userName").textContent =
+            "Hello, " + (u.email.split("@")[0] || "User");
+        }
+      } catch (e) {}
+    </script>
+  </body>
+</html>

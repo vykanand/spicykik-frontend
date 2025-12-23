@@ -310,6 +310,14 @@
           "method": "GET",
           "fieldMappings": {},
           "submitSelector": null
+        },
+        {
+          "id": "pm_mjiq1na7",
+          "page": "index.html",
+          "apiName": "bestseller",
+          "method": "GET",
+          "fieldMappings": {},
+          "submitSelector": null
         }
       ]
     }
