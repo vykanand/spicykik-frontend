@@ -1,141 +1,8 @@
 <!doctype html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Pay — SpicyKik</title>
-    <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        margin: 24px;
-        color: #222;
-      }
-      main {
-        max-width: 720px;
-        margin: 0 auto;
-      }
-      #summary {
-        border: 1px solid #eee;
-        padding: 16px;
-        border-radius: 6px;
-        margin-bottom: 12px;
-      }
-      #items div {
-        padding: 6px 0;
-        border-bottom: 1px dashed #f0f0f0;
-      }
-      #total {
-        font-weight: 700;
-        margin-top: 12px;
-      }
-      #pay-now {
-        background: #0a74da;
-        color: #fff;
-        border: none;
-        padding: 10px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      #result {
-        margin-top: 12px;
-        color: green;
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>Checkout</h1>
-      <div id="summary">
-        <div id="items"></div>
-        <div id="total">Total: Rs. 0.00</div>
-      </div>
-      <button id="pay-now">Pay Now</button>
-      <div id="result" style="display: none"></div>
-    </main>
-
-    <script>
-      (function () {
-        function formatCurrency(cents) {
-          return "Rs. " + (cents / 100).toFixed(2);
-        }
-        function getQuery(name) {
-          return new URLSearchParams(location.search).get(name);
-        }
-        var amountCents = parseInt(getQuery("amount_cents"));
-        var STORAGE_KEY = "spicykik_cart_v1";
-        function loadCart() {
-          try {
-            var raw = localStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw) : { items: [] };
-          } catch (e) {
-            return { items: [] };
-          }
-        }
-        function computeFromCart() {
-          var cart = loadCart();
-          var subtotal = 0;
-          (cart.items || []).forEach(function (i) {
-            subtotal += (i.price_cents || 0) * (i.quantity || 0);
-          });
-          return { subtotal: subtotal, items: cart.items || [] };
-        }
-
-        var data;
-        if (!isNaN(amountCents)) {
-          data = { subtotal: amountCents, items: loadCart().items || [] };
-        } else {
-          data = computeFromCart();
-        }
-
-        document.getElementById("total").textContent =
-          "Total: " + formatCurrency(data.subtotal || 0);
-        var itemsEl = document.getElementById("items");
-        if (data.items && data.items.length) {
-          data.items.forEach(function (it) {
-            var div = document.createElement("div");
-            div.textContent =
-              (it.quantity || 1) +
-              " x " +
-              (it.title || "Item") +
-              " — " +
-              formatCurrency((it.price_cents || 0) * (it.quantity || 0));
-            itemsEl.appendChild(div);
-          });
-        } else {
-          itemsEl.textContent = "No items to display.";
-        }
-
-        document
-          .getElementById("pay-now")
-          .addEventListener("click", function () {
-            var btn = this;
-            btn.disabled = true;
-            btn.textContent = "Processing...";
-            setTimeout(function () {
-              try {
-                localStorage.removeItem(STORAGE_KEY);
-              } catch (e) {}
-              var res = document.getElementById("result");
-              res.style.display = "block";
-              res.textContent =
-                "Payment successful. Paid " +
-                formatCurrency(data.subtotal || 0) +
-                ". Thank you!";
-              btn.textContent = "Paid";
-              setTimeout(function () {
-                window.location.href = "./index.html";
-              }, 1800);
-            }, 900);
-          });
-      })();
-    </script>
-  </body>
-</html>
-<!doctype html>
-<html>
-  <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TandoorBaaz Payment</title>
+    <title>Payment</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -144,53 +11,83 @@
         background: #f5f5f5;
       }
       .amount-display {
-        font-size: 24px;
-        font-weight: bold;
-        margin: 20px 0;
-        color: #333;
+        font-size: 20px;
+        font-weight: 700;
+        margin: 18px 0;
+        color: #222;
       }
       .payment-card {
         background: white;
-        border-radius: 15px;
-        padding: 15px;
-        margin: 15px auto;
-        width: 80%;
-        max-width: 300px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        padding: 12px;
+        margin: 10px auto;
+        width: 86%;
+        max-width: 360px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
         display: flex;
         align-items: center;
         text-decoration: none;
         color: #333;
-        transition: transform 0.2s;
-      }
-      .payment-card:hover {
-        transform: scale(1.02);
       }
       .app-logo {
         width: 48px;
         height: 48px;
-        margin-right: 15px;
+        margin-right: 12px;
         object-fit: contain;
-        padding: 4px;
       }
       .app-name {
-        font-size: 18px;
-        font-weight: 500;
+        font-size: 16px;
+        font-weight: 600;
       }
-      .paytm-card {
-        border-left: 5px solid #00b9f1;
+      #overlay {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
       }
-      .phonepe-card {
-        border-left: 5px solid #5f259f;
+      #overlay .card {
+        background: #fff;
+        padding: 18px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 420px;
+        text-align: left;
       }
-      .gpay-card {
-        border-left: 5px solid #2da94f;
+      #overlay .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .btn {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 0;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: #25d366;
+        color: #fff;
+      }
+      .btn-muted {
+        background: #f0f0f0;
+        color: #222;
+      }
+      .note {
+        font-size: 13px;
+        color: #444;
+        margin-top: 8px;
       }
     </style>
   </head>
   <body>
     <h2>Complete Your Payment</h2>
-    <div class="amount-display" id="amount"></div>
+    <div class="amount-display" id="amount">Loading...</div>
 
     <a id="paytm-link" class="payment-card paytm-card">
       <img
@@ -201,10 +98,14 @@
       <span class="app-name">Pay with Paytm</span>
     </a>
 
-    <!-- <a id="phonepe-link" class="payment-card phonepe-card">
-        <img src="https://i.pinimg.com/736x/88/ff/f3/88fff330d69dcd30c90efbfa6410376d.jpg" class="app-logo" alt="PhonePe">
-        <span class="app-name">Pay with PhonePe</span>
-    </a> -->
+    <a id="phonepe-link" class="payment-card phonepe-card">
+      <img
+        src="data:image/png;base64,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"
+        class="app-logo"
+        alt="PhonePe"
+      />
+      <span class="app-name">Pay with PhonePe</span>
+    </a>
 
     <a id="gpay-link" class="payment-card gpay-card">
       <img
@@ -215,31 +116,180 @@
       <span class="app-name">Pay with Google Pay</span>
     </a>
 
+    <div style="margin-top: 14px">
+      <button id="i-paid-btn" class="btn btn-primary">
+        I Paid — Notify via WhatsApp
+      </button>
+      <button id="close-overlay" class="btn btn-muted" style="margin-left: 8px">
+        Close
+      </button>
+    </div>
+
     <script>
-      const params = new URLSearchParams(window.location.search);
-      const amount = params.get("amount");
-      const orderId = params.get("orderId");
+      (function () {
+        const WA_NUMBER = "918959285336";
+        const params = new URLSearchParams(window.location.search);
+        let amount =
+          params.get("amount") ||
+          sessionStorage.getItem("lastOrderAmount") ||
+          "0.00";
+        let amount_cents =
+          params.get("amount_cents") ||
+          sessionStorage.getItem("lastOrderAmountCents") ||
+          "0";
+        let orderId =
+          params.get("orderId") ||
+          sessionStorage.getItem("lastOrderId") ||
+          null;
 
-      document.getElementById("amount").innerHTML = `
-        Order #${orderId}<br>
-        Amount: Rs ${amount}
-    `;
+        // If orderId is missing (some checkout flows redirect without it),
+        // generate a 9-digit numeric id, persist to sessionStorage and
+        // update the browser URL (replaceState) so the id is visible.
+        if (!orderId) {
+          orderId = String(Math.floor(100000000 + Math.random() * 900000000));
+          try {
+            sessionStorage.setItem("lastOrderId", orderId);
+            // preserve existing params and add orderId
+            const u = new URL(window.location.href);
+            u.searchParams.set("orderId", orderId);
+            // update history without reloading
+            history.replaceState(null, "", u.href);
+          } catch (e) {}
+        }
+        if (!amount) amount = "0.00";
 
-      const upiIds = {
-        paytm: "vykanand@ptaxis",
-        // phonepe: 'vykanand@ybl',
-        gpay: "nishagautamnishu@okhdfcbank",
-      };
+        document.getElementById("amount").innerHTML =
+          `Order #${orderId}<br>Amount: Rs ${amount}`;
 
-      const merchantName = "TandoorBaaz";
+        const upiIds = {
+          paytm: "vykanand@ptaxis",
+          phonepe: "vykanand@ybl",
+          gpay: "nishagautamnishu@okhdfcbank",
+        };
+        const merchantName = "TandoorBaaz";
 
-      // Add order reference to payment links
-      document.getElementById("paytm-link").href =
-        `paytmmp://pay?pa=${upiIds.paytm}&pn=${merchantName}&am=${amount}&cu=INR&tr=${orderId}`;
-      document.getElementById("phonepe-link").href =
-        `phonepe://pay?pa=${upiIds.phonepe}&pn=${merchantName}&am=${amount}&cu=INR&tr=${orderId}`;
-      document.getElementById("gpay-link").href =
-        `gpay://upi/pay?pa=${upiIds.gpay}&pn=${merchantName}&am=${amount}&cu=INR&tr=${orderId}`;
+        try {
+          document.getElementById("paytm-link").href =
+            `paytmmp://pay?pa=${upiIds.paytm}&pn=${merchantName}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        } catch (e) {}
+
+        const phonepeUri = `upi://pay?pa=${encodeURIComponent(upiIds.phonepe)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        document.getElementById("phonepe-link").href = phonepeUri;
+
+        const gpayUri = `upi://pay?pa=${encodeURIComponent(upiIds.gpay)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        document.getElementById("gpay-link").href = gpayUri;
+
+        function showOverlay() {
+          if (document.getElementById("overlay")) return;
+          const ov = document.createElement("div");
+          ov.id = "overlay";
+          ov.innerHTML = `<div class="card"><div style="font-size:18px;font-weight:700">Payment Instructions</div>
+            <div class="note">After completing the transfer, please press <strong>"I Paid — Notify via WhatsApp"</strong> and attach your payment screenshot so we can confirm and dispatch your order quickly.</div>
+            <div class="actions"><button id="wa-send" class="btn btn-primary">I Paid — Notify on WhatsApp</button><button id="ov-close" class="btn btn-muted">Close</button></div>
+            </div>`;
+          document.body.appendChild(ov);
+          document
+            .getElementById("ov-close")
+            .addEventListener("click", function () {
+              ov.remove();
+            });
+          document
+            .getElementById("wa-send")
+            .addEventListener("click", function () {
+              const text = `I paid Rs ${amount} (Order #${orderId}) just now. Attaching screenshot for confirmation.`;
+              const waUrl =
+                `https://wa.me/${WA_NUMBER}?text=` + encodeURIComponent(text);
+              window.open(waUrl, "_blank");
+            });
+        }
+
+        document
+          .getElementById("i-paid-btn")
+          .addEventListener("click", function () {
+            const text = `I paid Rs ${amount} (Order #${orderId}) just now. Attaching screenshot for confirmation.`;
+            const waUrl =
+              `https://wa.me/${WA_NUMBER}?text=` + encodeURIComponent(text);
+            window.open(waUrl, "_blank");
+          });
+        document
+          .getElementById("close-overlay")
+          .addEventListener("click", function () {
+            var el = document.getElementById("overlay");
+            if (el) el.remove();
+          });
+
+        function showUpiFallback(upi) {
+          if (document.getElementById("upiFallback")) return;
+          const box = document.createElement("div");
+          box.id = "upiFallback";
+          box.style.cssText =
+            "position:fixed;left:12px;right:12px;bottom:12px;background:#fff;border:1px solid #ddd;padding:12px;border-radius:8px;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,0.12);display:flex;align-items:center;gap:12px;";
+          box.innerHTML = `<div style="flex:1"><strong>Can't open UPI app?</strong><div style="color:#555;margin-top:6px">Copy this UPI ID and paste it into your UPI app: <code id=upiCode style="background:#f7f7f7;padding:4px 6px;border-radius:4px">${upi}</code></div></div>`;
+          const copyBtn = document.createElement("button");
+          copyBtn.textContent = "Copy UPI";
+          copyBtn.style.cssText =
+            "background:#2da94f;color:#fff;border:0;padding:8px 10px;border-radius:6px;cursor:pointer";
+          copyBtn.addEventListener("click", function () {
+            navigator.clipboard &&
+              navigator.clipboard.writeText(upi).then(function () {
+                copyBtn.textContent = "Copied";
+                setTimeout(() => (copyBtn.textContent = "Copy UPI"), 1200);
+              });
+          });
+          const closeBtn = document.createElement("button");
+          closeBtn.textContent = "Close";
+          closeBtn.style.cssText =
+            "background:transparent;border:1px solid #ddd;padding:8px 10px;border-radius:6px;cursor:pointer;margin-left:8px";
+          closeBtn.addEventListener("click", function () {
+            box.remove();
+          });
+          box.appendChild(copyBtn);
+          box.appendChild(closeBtn);
+          document.body.appendChild(box);
+        }
+
+        function openUriWithFallback(uri, upi) {
+          const start = Date.now();
+          try {
+            window.location = uri;
+          } catch (e) {}
+          setTimeout(function () {
+            if (document.visibilityState === "visible") {
+              showUpiFallback(upi);
+              showOverlay();
+            }
+          }, 1600);
+        }
+
+        document
+          .getElementById("gpay-link")
+          .addEventListener("click", function (e) {
+            e.preventDefault();
+            openUriWithFallback(gpayUri, upiIds.gpay);
+          });
+        document
+          .getElementById("phonepe-link")
+          .addEventListener("click", function (e) {
+            e.preventDefault();
+            openUriWithFallback(phonepeUri, upiIds.phonepe);
+          });
+        document
+          .getElementById("paytm-link")
+          .addEventListener("click", function (e) {
+            /* show overlay so user knows next step */ showOverlay();
+          });
+
+        if (!params.get("orderId") && sessionStorage.getItem("lastOrderId")) {
+          setTimeout(function () {
+            var hint = document.createElement("div");
+            hint.style.cssText =
+              "position:fixed;left:12px;top:12px;background:#fff;padding:8px;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,0.08);z-index:9998";
+            hint.textContent = "Order info restored from session.";
+            document.body.appendChild(hint);
+            setTimeout(() => hint.remove(), 2400);
+          }, 400);
+        }
+      })();
     </script>
   </body>
 </html>

@@ -1477,42 +1477,6 @@
                             Home page
                           </a>
                         </li>
-                        <li>
-                          <a
-                            id="HeaderDrawer-new-launched"
-                            href="#"
-                            class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
-                          >
-                            New launched
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            id="HeaderDrawer-our-best-seller"
-                            href="#"
-                            class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
-                          >
-                            Our best seller
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            id="HeaderDrawer-all-products"
-                            href="#"
-                            class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
-                          >
-                            All products
-                          </a>
-                        </li>
-                        <li>
-                          <a
-                            id="HeaderDrawer-hot-deals"
-                            href="#"
-                            class="menu-drawer__menu-item list-menu__item link link--text focus-inset"
-                          >
-                            Hot deals
-                          </a>
-                        </li>
                       </ul>
                     </nav>
                     <div class="menu-drawer__utility-links">
@@ -1552,7 +1516,10 @@
               </div>
             </details>
           </header-drawer>
-          <a href="#" class="header__heading-link link link--text focus-inset">
+          <a
+            href="index.html"
+            class="header__heading-link link link--text focus-inset"
+          >
             <div class="header__heading-logo-wrapper">
               <img
                 src="toffee.png"
@@ -1569,46 +1536,10 @@
               <li>
                 <a
                   id="HeaderMenu-home-page"
-                  href="#"
+                  href="index.html"
                   class="header__menu-item list-menu__item link link--text focus-inset"
                 >
                   <span>Home page</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  id="HeaderMenu-new-launched"
-                  href="#"
-                  class="header__menu-item list-menu__item link link--text focus-inset"
-                >
-                  <span>New launched </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  id="HeaderMenu-our-best-seller"
-                  href="#"
-                  class="header__menu-item list-menu__item link link--text focus-inset"
-                >
-                  <span>Our best seller </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  id="HeaderMenu-all-products"
-                  href="#"
-                  class="header__menu-item list-menu__item link link--text focus-inset"
-                >
-                  <span>All products </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  id="HeaderMenu-hot-deals"
-                  href="#"
-                  class="header__menu-item list-menu__item link link--text focus-inset"
-                >
-                  <span>Hot deals</span>
                 </a>
               </li>
             </ul>
@@ -2002,6 +1933,165 @@
               padding-top: 36px;
               padding-bottom: 36px;
             }
+          }
+          /* Custom: horizontal cart item layout and beautification */
+          .cart__items .js-contents > div:not(.totals) {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+            margin-bottom: 12px;
+            overflow: hidden;
+          }
+          .cart__items .js-contents img,
+          .cart__items .js-contents .cart__image,
+          .cart__items .js-contents .cart-item__image {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+            background: #f3f3f3;
+          }
+          .cart__items .js-contents .item-info,
+          .cart__items .js-contents .cart-item__meta,
+          .cart__items .js-contents .cart__details {
+            flex: 1;
+            text-align: left;
+            min-width: 0;
+          }
+          .cart__items .js-contents .cart-item__title,
+          .cart__items .js-contents .cart-item__name,
+          .cart__items .js-contents .product-name {
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 6px;
+            font-size: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .cart__items .js-contents .qty-badge,
+          .cart__items .js-contents .cart-item__qty {
+            background: #f0f6f2;
+            color: #177a3b;
+            padding: 6px 8px;
+            border-radius: 8px;
+            font-weight: 700;
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 13px;
+          }
+          .cart__items .js-contents .line-price,
+          .cart__items .js-contents .cart-item__price,
+          .cart__items .js-contents .cart-item__total {
+            font-weight: 800;
+            color: #0a74da;
+            text-align: right;
+            min-width: 110px;
+          }
+          @media (max-width: 720px) {
+            .cart__items .js-contents img {
+              width: 56px;
+              height: 56px;
+            }
+            .cart__items .js-contents .line-price {
+              min-width: 70px;
+            }
+          }
+          /* Mobile-first: vertical stacked items; switch to horizontal on desktop */
+          .cart__items .js-contents .cart-item,
+          .cart__items .js-contents .cart__item,
+          .cart__items .js-contents .cart-row,
+          .cart__items .js-contents .cart__row,
+          .cart__items .js-contents > * {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+          }
+          .cart__items .js-contents .cart-item > *,
+          .cart__items .js-contents .cart__item > *,
+          .cart__items .js-contents .cart-row > *,
+          .cart__items .js-contents .cart__row > * {
+            margin: 0 !important;
+          }
+          .cart__items .js-contents .cart-item__meta,
+          .cart__items .js-contents .cart__details,
+          .cart__items .js-contents .item-info {
+            flex: 1 !important;
+            min-width: 0;
+          }
+          .cart__items .js-contents .cart-item__price,
+          .cart__items .js-contents .cart-item__total,
+          .cart__items .js-contents .line-price {
+            min-width: auto;
+            text-align: right;
+          }
+
+          @media (min-width: 721px) {
+            /* Desktop: horizontal rows */
+            .cart__items .js-contents .cart-item,
+            .cart__items .js-contents .cart__item,
+            .cart__items .js-contents .cart-row,
+            .cart__items .js-contents .cart__row,
+            .cart__items .js-contents > * {
+              flex-direction: row !important;
+              align-items: center !important;
+              gap: 12px !important;
+            }
+            .cart__items .js-contents img,
+            .cart__items .js-contents .cart__image,
+            .cart__items .js-contents .cart-item__image {
+              width: 72px;
+              height: 72px;
+            }
+            .cart__items .js-contents .line-price,
+            .cart__items .js-contents .cart-item__price,
+            .cart__items .js-contents .cart-item__total {
+              min-width: 110px;
+            }
+          }
+          /* Handle list or table-based renderings */
+          .cart__items .js-contents ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+          }
+          .cart__items .js-contents ul li {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 10px;
+          }
+          .cart__items .js-contents table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .cart__items .js-contents table tr {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 10px;
+          }
+          .cart__items .js-contents table td {
+            display: block;
+            flex: 1;
+            min-width: 0;
+          }
+          /* avoid applying to totals block */
+          .cart__items .js-contents .totals,
+          .cart__items .js-contents .totals * {
+            display: block;
           }
         </style>
         <script

@@ -1,37 +1,6 @@
 <!doctype html>
 <html class="js" lang="en" style="--header-height: 169px;">
   
-  <script>
-    // Defensive shims to avoid runtime errors when previewing locally.
-    (function(){
-      // Basic Shopify/theme shims
-      window.Shopify = window.Shopify || {};
-      window.Shopify.currency = window.Shopify.currency || 'INR';
-      window.Shopify.locale = window.Shopify.locale || 'en';
-      window.theme = window.theme || { name: 'Dawn', theme_id: 135387611238, settings: {} };
-      window.ShopifyAnalytics = window.ShopifyAnalytics || { lib: {} };
-
-      // Utility shims used by various plugins
-      window.debounce = window.debounce || function(fn, wait){ var t; return function(){ var args=arguments; clearTimeout(t); t=setTimeout(function(){ fn.apply(null,args); }, wait||100); }; };
-      window.subscribe = window.subscribe || function(){ console.debug('subscribe shim called'); };
-      window.ModalDialog = window.ModalDialog || function(){ this.open = function(){}; this.close = function(){}; };
-      window.BulkAdd = window.BulkAdd || function(){ return { init: function(){} }; };
-      window.o$ = window.o$ || window.$ || function(){ return null; };
-
-      // Guard IntersectionObserver.observe to avoid errors when passed null/non-Element
-      try{
-        if(window.IntersectionObserver && window.IntersectionObserver.prototype){
-          const _origObserve = window.IntersectionObserver.prototype.observe;
-          window.IntersectionObserver.prototype.observe = function(target){
-            try{
-              if(!target || target.nodeType !== 1) return; // ignore invalid targets
-              return _origObserve.call(this, target);
-            }catch(e){ console.warn('IntersectionObserver.observe guarded', e); }
-          };
-        }
-      }catch(e){/* ignore */}
-    })();
-  </script>
   <script type="text/javascript" async="" src="https://cdn-odl.avada.io/scripttag/avada-order-limit.min.js?v=1763730687398"></script>
   <script type="text/javascript" async="" src="//thesnacksmackindia.com/cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js"></script>
   
@@ -1084,15 +1053,15 @@
               <div class="slideshow__text-wrapper banner__content banner__content--middle-center page-width scroll-trigger animate--slide-in" bis_skin_checked="1">
                 <div class="slideshow__text banner__box content-container content-container--full-width-mobile color-scheme-1 gradient slideshow__text--center slideshow__text-mobile--center" bis_skin_checked="1">
                   <h2 class="banner__heading inline-richtext h1">
-                    <strong> Tasty sweet delicious chocolate and candy store</strong>
+                    <strong>Various kinds items available with Proffesional as well as customised services</strong>
                   </h2>
                   <div class="banner__text rte" bis_skin_checked="1">
                     <p>
-                      <strong>We sell The most tasty candies on the planet!</strong>
+                      <strong>We sell both IT services and kids items!</strong>
                     </p>
                   </div>
                   <div class="banner__buttons" bis_skin_checked="1">
-                    <a href="#" class="button button--secondary" tabindex="-1">Shop All Sweets</a>
+                    <a href="/collections/all-products" class="button button--secondary" tabindex="-1">Shop All Sweets</a>
                   </div>
                 </div>
               </div>
@@ -1117,7 +1086,7 @@
                     </p>
                   </div>
                   <div class="banner__buttons" bis_skin_checked="1">
-                    <a href="#" class="button button--secondary">Browse All</a>
+                    <a href="/collections/all-products" class="button button--secondary">Browse All</a>
                   </div>
                 </div>
               </div>
@@ -5016,32 +4985,20 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
       .wa-header{background:var(--wa-header-bg);color:var(--wa-header-text);padding:12px 12px;display:flex;align-items:center;justify-content:space-between}
       .wa-header .wa-title{font-weight:600}
       .wa-header button{background:transparent;border:0;color:rgba(255,255,255,0.9);font-size:16px;cursor:pointer}
-      /* Messages container and message defaults */
       .wa-messages{padding:12px;flex:1;overflow:auto;background:transparent}
-      .wa-msg{display:inline-block;clear:both;padding:8px 10px;border-radius:8px;margin:6px 0;max-width:78%;font-size:14px;color:inherit}
-      /* Force readable bot/user colors even if theme variables change */
-      .wa-bot{background:#ffffff;color:#111111;border:1px solid rgba(0,0,0,0.06);float:left}
-      .wa-user{background:#25D366;color:#ffffff;float:right}
+      .wa-msg{display:inline-block;clear:both;padding:8px 10px;border-radius:8px;margin:6px 0;max-width:78%;font-size:14px}
+      .wa-bot{background:var(--wa-bot-bg);color:var(--wa-bot-text);border:1px solid rgba(var(--color-background-contrast,191,191,191),0.06);float:left}
+      .wa-user{background:var(--wa-user-bg);color:var(--wa-user-text);float:right}
       .wa-actions{display:flex;gap:8px;margin-top:8px}
       .wa-actions button{flex:1;padding:8px;border-radius:6px;border:0;cursor:pointer;font-size:13px}
       .wa-yes{background:#25D366;color:#fff}
       .wa-no{background:transparent;border:1px solid rgba(0,0,0,0.08);color:#222}
-      /* Enhanced quick-actions list styling */
-      .wa-actions-list{display:flex;flex-direction:column;gap:8px}
-      .wa-action{padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:linear-gradient(180deg,#ffffff,#fafafa);text-align:left;font-size:14px;cursor:pointer;color:#111}
-      .wa-action:hover{box-shadow:0 6px 18px rgba(0,0,0,0.08);transform:translateY(-2px)}
-      .wa-bot .wa-link-btn{display:inline-block;padding:8px 10px;border-radius:6px;background:var(--wa-btn-bg);color:var(--wa-btn-text);text-decoration:none;margin-top:8px}
-      .wa-response-card{border:1px solid rgba(0,0,0,0.06);padding:10px;border-radius:8px;background:#ffffff;color:#111}
       .wa-input{display:flex;padding:8px;border-top:1px solid rgba(0,0,0,0.06);align-items:center;gap:8px}
       .wa-input input{flex:1;padding:8px 10px;border-radius:20px;border:1px solid rgba(0,0,0,0.06);outline:none;font-size:14px}
       .wa-input button{background:var(--wa-send-bg);color:var(--wa-send-text);border:0;padding:8px 11px;border-radius:50%;cursor:pointer}
       .wa-msg.small{font-size:13px;opacity:0.95}
-      /* phone input inside chat bubble */
-      .wa-phone-row{display:flex;gap:8px;margin-top:8px}
-      .wa-phone-row input{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)}
-      .wa-phone-row button{padding:8px 10px;border-radius:8px;border:0;background:#111;color:#fff;cursor:pointer}
       /* Typing indicator (three animated dots) */
-      .wa-typing{display:inline-block;clear:both;padding:8px 10px;border-radius:8px;margin:6px 0;max-width:78%;font-size:14px;background:#ffffff;color:#111;border:1px solid rgba(0,0,0,0.04)}
+      .wa-typing{display:inline-block;clear:both;padding:8px 10px;border-radius:8px;margin:6px 0;max-width:78%;font-size:14px}
       .wa-typing .wa-dots{display:inline-block;height:14px;vertical-align:middle}
       .wa-dots span{display:inline-block;width:6px;height:6px;margin:0 4px;background:#cfcfcf;border-radius:50%;opacity:0;transform:translateY(0);animation:wa-dot 900ms infinite ease-in-out}
       .wa-dots span:nth-child(1){animation-delay:0ms}
@@ -5053,16 +5010,6 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
         80%{opacity:0.6;transform:translateY(0)}
         100%{opacity:0;transform:translateY(0)}
       }
-      /* Ensure chat UI remains light/readable even if other scripts or extensions toggle theme */
-      .wa-chat, .wa-messages, .wa-msg, .wa-typing, .wa-response-card, .wa-action, .wa-input, .wa-header {
-        background-color: #ffffff !important;
-        color: #111111 !important;
-      }
-      .wa-user{ background-color:#25D366 !important; color:#ffffff !important; }
-      /* WhatsApp-specific button appearance */
-      .wa-wa-btn{background:#25D366;color:#ffffff;padding:8px 10px;border-radius:6px;text-decoration:none;border:0;display:inline-block;margin-top:8px}
-      /* small back button shown in the chat header after opening WhatsApp */
-      .wa-back-btn{margin-left:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px}
     </style>
 
     <div id="waChatBtn" class="wa-chat-btn" aria-label="Open chat">💬</div>
@@ -5088,62 +5035,6 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
         const send = document.getElementById('waSend');
         const input = document.getElementById('waInput');
         const messages = document.getElementById('waMessages');
-
-        // Global WhatsApp opener with anchor fallback and 'Back to chat' helper
-        function openWA_global(msg){
-          const WA_BASE = 'https://wa.me/918959285336';
-          const u = msg ? WA_BASE + '?text=' + encodeURIComponent(msg) : WA_BASE;
-          try{
-            // show a lightweight bot info message so the chat session remains visible
-            if(typeof messages !== 'undefined' && messages){
-              try{
-                const info = document.createElement('div');
-                info.className = 'wa-msg wa-bot small';
-                info.textContent = 'Opening WhatsApp in a new tab — return here to continue the chat.';
-                messages.appendChild(info);
-                messages.scrollTop = messages.scrollHeight;
-              }catch(e){/* ignore */}
-            }
-            // ensure chat remains visible
-            try{ if(win) win.style.display = 'flex'; }catch(e){}
-            try{ if(document.getElementById('waInput')) document.getElementById('waInput').focus(); }catch(e){}
-          }catch(e){}
-          try{
-            const a = document.createElement('a');
-            a.href = u;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          }catch(e){
-            try{ window.open(u, '_blank', 'noopener,noreferrer'); }catch(_){ console.warn('openWA failed', _); }
-          }
-          // show a small back-to-chat button in the header so user can return
-          try{ showBackToChat(); }catch(e){}
-        }
-
-        function showBackToChat(){
-          try{
-            let btn = document.getElementById('waBackBtn');
-            const header = document.querySelector('#waChat .wa-header');
-            if(!header) return;
-            if(!btn){
-              btn = document.createElement('button');
-              btn.id = 'waBackBtn';
-              btn.className = 'wa-back-btn';
-              btn.type = 'button';
-              btn.textContent = 'Back to chat';
-              header.appendChild(btn);
-              btn.addEventListener('click', function(){
-                try{ document.getElementById('waChat').style.display = 'flex'; document.getElementById('waInput').focus(); }catch(e){}
-                btn.remove();
-              });
-            } else {
-              btn.style.display = 'inline-block';
-            }
-          }catch(e){ console.warn('showBackToChat failed', e); }
-        }
 
         function open(){ win.style.display='flex'; scrollToBottom(); startConversationIfNeeded(); }
         function close(){ win.style.display='none'; }
@@ -5182,127 +5073,25 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
         function startConversationIfNeeded(){ if(win.dataset.started) return; win.dataset.started = '1';
           appendBot('Hi!');
           setTimeout(()=>{
-            // After greeting, ask for phone (if not already provided), then continue
             showTyping(900, ()=>{
-              // helper to continue the normal conversation after phone step
-              function continueConversation(){
-                appendBot('Would you like to buy or purchase our products?');
-                // after 2s show the left-side button bubble with a brief typing indicator
-                setTimeout(()=>{
-                  showTyping(900, ()=>{
-                    const bubble = document.createElement('div');
-                    bubble.className = 'wa-msg wa-bot';
-                    bubble.innerHTML = '<div style="margin-bottom:6px;font-size:14px">Choose an option:</div>' +
-                      '<div style="display:flex;gap:8px"><button id="waYes" class="wa-yes" style="flex:0 0 auto;padding:6px 10px;border-radius:6px">Yes</button><button id="waNo" class="wa-no" style="flex:0 0 auto;padding:6px 10px;border-radius:6px">No</button></div>';
-                    messages.appendChild(bubble);
-                    scrollToBottom();
+              appendBot('Would you like to buy or purchase our products?');
+              // after 2s show the left-side button bubble with a brief typing indicator
+              setTimeout(()=>{
+                showTyping(900, ()=>{
+                  const bubble = document.createElement('div');
+                  bubble.className = 'wa-msg wa-bot';
+                  bubble.innerHTML = '<div style="margin-bottom:6px;color:#fff;font-size:14px">Choose an option:</div>' +
+                    '<div style="display:flex;gap:8px"><button id="waYes" class="wa-yes" style="flex:0 0 auto;padding:6px 10px;border-radius:6px">Yes</button><button id="waNo" class="wa-no" style="flex:0 0 auto;padding:6px 10px;border-radius:6px">No</button></div>';
+                  messages.appendChild(bubble);
+                  scrollToBottom();
 
-                    // attach handlers to dynamic buttons
-                    const dynYes = document.getElementById('waYes');
-                    const dynNo = document.getElementById('waNo');
-                    if(dynYes) dynYes.addEventListener('click', ()=>{ openWA_global("Hi, I'm interested in purchasing your products."); });
-                    if(dynNo) dynNo.addEventListener('click', ()=>{ showTyping(700, ()=>{ appendBot('Okay — thanks for visiting!'); setTimeout(()=>{ close(); openBtn.style.display='flex'; },1200); }); });
-                    // Insert enhanced quick-options bubble with chat-like replies
-                    setTimeout(()=>{
-                      const opts = document.createElement('div');
-                      opts.className = 'wa-msg wa-bot';
-                      opts.innerHTML = '<div style="margin-bottom:6px;font-size:14px">Quick actions — pick one:</div>' +
-                        '<div class="wa-actions-list">' +
-                        '<button class="wa-action" data-action="orders">Track Order 📦</button>' +
-                        '<button class="wa-action" data-action="cod">Is COD available in India ?</button>' +
-                        '<button class="wa-action" data-action="delivery">What\'s your delivery time ?</button>' +
-                        '<button class="wa-action" data-action="change-order">How to make changes to my order ?</button>' +
-                        '<button class="wa-action" data-action="discount">I have a Discount Code. Where to use it ?</button>' +
-                        '<button class="wa-action" data-action="cancel">How to Cancel My Order ?</button>' +
-                        '<button class="wa-action" data-action="recommend">Recommend us New Snacks 🍭</button>' +
-                        '<button class="wa-action" data-action="report">Report a problem on the website ⚠️</button>' +
-                        '</div>';
-                      messages.appendChild(opts);
-                      scrollToBottom();
-
-                      // helper to append bot message with HTML
-                      function appendBotHTML(html){ const d=document.createElement('div'); d.className='wa-msg wa-bot'; d.innerHTML = html; messages.appendChild(d); scrollToBottom(); }
-
-                      // attach handlers for these actions — bot will "think" then reply
-                      const WA_BASE = 'https://wa.me/918959285336';
-                      function openWA(msg){
-                        // delegate to global opener which also shows back-to-chat
-                        try{ openWA_global(msg); }catch(e){ console.warn('openWA delegate failed', e); }
-                      }
-
-                      opts.querySelectorAll('.wa-action').forEach(function(b){ b.addEventListener('click', function(){ const act = b.getAttribute('data-action'); const label = b.textContent || act;
-                        // show user's choice
-                        appendUser(label);
-                        // bot typing
-                        showTyping(800, ()=>{
-                          if(act === 'orders'){
-                            appendBotHTML('<div class="wa-response-card">You can track your recent orders here:<br><a class="wa-link-btn" href="/my-orders.html">View My Orders</a></div>');
-                          } else if(act === 'cod'){
-                            appendBotHTML('<div class="wa-response-card">Yes — COD is available in selected pin codes across India. <a class="wa-link-btn" href="/faq.html#cod">Read more</a></div>');
-                          } else if(act === 'delivery'){
-                            appendBotHTML('<div class="wa-response-card">Typical delivery: 3–7 business days (varies by location). <a class="wa-link-btn" href="/faq.html#delivery">Delivery details</a></div>');
-                          } else if(act === 'discount'){
-                            appendBotHTML('<div class="wa-response-card">Apply discount codes at checkout in the "Discount code" field. <a class="wa-link-btn" href="/faq.html#discount">How to use</a></div>');
-                          } else if(act === 'cancel'){
-                            appendBotHTML('<div class="wa-response-card">To cancel, contact us ASAP via WhatsApp. <a class="wa-link-btn" href="/faq.html#cancel">Read more</a> <a class="wa-link-btn wa-chat wa-wa-btn" href="#" data-wa-msg="I want to cancel my order. Please provide needed support.">Chat on WhatsApp</a></div>');
-                          } else if(act === 'change-order'){
-                            appendBotHTML('<div class="wa-response-card">To change an order, message us with your order number.<br><a class="wa-link-btn" href="/faq.html#change-order">Read more</a> <a class="wa-link-btn wa-chat wa-wa-btn" href="#" data-wa-msg="I would like to change my order. Please provide needed support.">Chat on WhatsApp</a></div>');
-                          } else if(act === 'recommend'){
-                            appendBotHTML('<div class="wa-response-card">We love recommendations! Share your snack idea:<br><a class="wa-link-btn" href="/about-us.html#contact">Contact us</a> <a class="wa-link-btn wa-chat wa-wa-btn" href="#" data-wa-msg="I would like to recommend a new snack:">Recommend on WhatsApp</a></div>');
-                          } else if(act === 'report'){
-                            appendBotHTML('<div class="wa-response-card">Sorry about that — please describe the issue.<br><a class="wa-link-btn" href="/about-us.html#contact">Report on our contact section</a> <a class="wa-link-btn wa-chat wa-wa-btn" href="#" data-wa-msg="I want to report a problem on the website:">Report on WhatsApp</a></div>');
-                          } else {
-                            appendBot('Sorry, I didn\'t get that.');
-                          }
-                          // attach handlers to any wa-chat links in the last message
-                          const last = messages.lastElementChild;
-                          if(last){ last.querySelectorAll('.wa-chat').forEach(function(el){ el.addEventListener('click', function(e){ e.preventDefault();
-                            // prefer explicit data attribute message if provided
-                            var pre = el.getAttribute('data-wa-msg') || '';
-                            if(!pre){
-                              if(act === 'change-order') pre = 'I would like to change my order. Order number:';
-                              else if(act === 'recommend') pre = 'I would like to recommend a new snack:';
-                              else if(act === 'report') pre = 'I want to report a problem on the website:';
-                              else if(act === 'cancel') pre = 'I want to cancel my order. Order number:';
-                            }
-                            try{ openWA_global(pre); }catch(e){ console.warn('wa-chat click failed', e); }
-                          }); }); }
-                        });
-                      }); });
-                    }, 600);
-                  });
-                },2000);
-              }
-
-              // ask for phone if not present in sessionStorage, then continue
-              function askForPhone(cb){
-                try{
-                  const existing = sessionStorage.getItem('wa_user_phone');
-                  if(existing){ if(cb) cb(existing); return; }
-                  const p = document.createElement('div');
-                  p.className = 'wa-msg wa-bot';
-                  p.innerHTML = '<div style="margin-bottom:6px;font-size:14px">Before we continue, may I have your phone number so we can assist you better?</div>' +
-                    '<div class="wa-phone-row"><input id="waPhoneInput" type="tel" placeholder="Enter phone number" aria-label="Phone number" /><button id="waPhoneSend">Send</button><button id="waPhoneSkip" style="background:transparent;color:#111;border:1px solid rgba(0,0,0,0.06);">Skip</button></div>';
-                  messages.appendChild(p); scrollToBottom();
-                  const inpt = document.getElementById('waPhoneInput');
-                  const sendBtn = document.getElementById('waPhoneSend');
-                  const skipBtn = document.getElementById('waPhoneSkip');
-                  function finish(phone){
-                    try{ p.remove(); }catch(e){}
-                    if(phone){ sessionStorage.setItem('wa_user_phone', phone); appendUser(phone); appendBot('Thanks — we\'ll use this to assist you.'); }
-                    else { appendBot('No problem — you can share it later if you like.'); }
-                    if(cb) setTimeout(cb, 600);
-                  }
-                  sendBtn.addEventListener('click', function(){ var v = inpt.value && inpt.value.trim(); if(!v) return; // minimal validation (digits)
-                    var digits = v.replace(/[^0-9+]/g,''); if(digits.length < 6){ inpt.classList.add('wa-input-error'); inpt.focus(); return; }
-                    finish(digits);
-                  });
-                  inpt.addEventListener('keydown', function(e){ if(e.key==='Enter'){ sendBtn.click(); } });
-                  skipBtn.addEventListener('click', function(){ finish(null); });
-                }catch(e){ if(cb) cb(); }
-              }
-
-              askForPhone(function(){ continueConversation(); });
+                  // attach handlers to dynamic buttons
+                  const dynYes = document.getElementById('waYes');
+                  const dynNo = document.getElementById('waNo');
+                  if(dynYes) dynYes.addEventListener('click', ()=>{ const text=encodeURIComponent("Hi, I'm interested in purchasing your products."); window.open('https://wa.me/918959285336?text='+text,'_blank'); });
+                  if(dynNo) dynNo.addEventListener('click', ()=>{ showTyping(700, ()=>{ appendBot('Okay — thanks for visiting!'); setTimeout(()=>{ close(); openBtn.style.display='flex'; },1200); }); });
+                });
+              },2000);
             });
           },400);
         }
@@ -5379,61 +5168,3 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
     </body>
 
   </html>
-
-<!-- Checkout redirect helper: generate orderId and open pay.html with amount params -->
-<script>
-  (function(){
-    function getCart(){
-      try{ var raw = localStorage.getItem('spicykik_cart_v1'); return raw? JSON.parse(raw): {items:[]}; }catch(e){ return {items:[]}; }
-    }
-    function computeSubtotalCents(cart){
-      var s=0; (cart.items||[]).forEach(function(i){ s += (i.price_cents||0) * (i.quantity||1); }); return s;
-    }
-    function makeOrderId(){
-      // generate a numeric 9-digit order id (e.g. 123456789)
-      return String(Math.floor(100000000 + Math.random() * 900000000));
-    }
-
-    function goToPay(){
-      var cart = getCart();
-      var cents = computeSubtotalCents(cart) || 0;
-      var rupees = (cents/100).toFixed(2);
-      var orderId = makeOrderId();
-      // Build an absolute URL to avoid relative-path confusion
-      try{
-        var payUrl = new URL('pay.html', window.location.href);
-        payUrl.searchParams.set('amount', rupees);
-        payUrl.searchParams.set('amount_cents', cents);
-        payUrl.searchParams.set('orderId', orderId);
-        var url = payUrl.href;
-      }catch(e){
-        var url = 'pay.html?amount=' + encodeURIComponent(rupees) + '&amount_cents=' + encodeURIComponent(cents) + '&orderId=' + encodeURIComponent(orderId);
-      }
-      // Save a session fallback in case query params get lost (some redirect contexts strip them)
-      try{
-        sessionStorage.setItem('lastOrderId', orderId);
-        sessionStorage.setItem('lastOrderAmount', rupees);
-        sessionStorage.setItem('lastOrderAmountCents', String(cents));
-      }catch(e){}
-      // navigate
-      window.location.href = url;
-    }
-
-    // Intercept clicks on any checkout buttons (forms may still submit via other handlers).
-    // Use `closest` to ensure clicks on child elements inside the button are detected.
-    document.addEventListener('click', function(e){
-      if(!e || !e.target) return;
-      var trigger = e.target.closest('button[name="checkout"], [data-checkout]');
-      if(trigger){
-        e.preventDefault(); e.stopPropagation();
-        try{ goToPay(); }catch(err){ console.warn('checkout redirect failed', err); }
-      }
-    }, true);
-
-    // Also intercept the cart-notification form submission if present
-    try{
-      var frm = document.getElementById('cart-notification-form');
-      if(frm){ frm.addEventListener('submit', function(e){ e.preventDefault(); goToPay(); }); }
-    }catch(e){}
-  })();
-</script>

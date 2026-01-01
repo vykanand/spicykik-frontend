@@ -208,19 +208,46 @@
 
       const ul = document.createElement('ul');
       ul.className = 'cart-items-list';
+      // Inject minimal responsive styles once
+      if(!document.getElementById('cart-items-enhanced-styles')){
+        const style = document.createElement('style');
+        style.id = 'cart-items-enhanced-styles';
+        style.textContent = `
+          .cart-items-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+          .cart-item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(0,0,0,.08);border-radius:10px;background:#fff}
+          .cart-item__media{flex:0 0 72px;width:72px;height:72px;border-radius:8px;overflow:hidden;background:#f7f7f7;display:flex;align-items:center;justify-content:center}
+          .cart-item__media img{width:100%;height:100%;object-fit:cover}
+          .cart-item__details{display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-width:0}
+          .cart-item__name{font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .cart-item__meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#444}
+          .cart-item__price{font-weight:600;color:#111}
+          .cart-item__qty{display:flex;align-items:center;gap:8px;margin-left:auto}
+          .cart-item__qty .qty-dec,.cart-item__qty .qty-inc{width:32px;height:32px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer}
+          .cart-item__qty .qty-input{width:56px;height:32px;padding:0 6px;border:1px solid #ddd;border-radius:6px;text-align:center}
+          .cart-item__remove{margin-left:8px;background:transparent;border:0;color:#c0392b;cursor:pointer}
+          @media (max-width: 599px){
+            .cart-item{flex-wrap:wrap}
+            .cart-item__qty{width:100%;justify-content:flex-end;margin-left:0}
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
       items.forEach(item => {
         const li = document.createElement('li');
         li.className = 'cart-item';
         li.innerHTML = `
-          <div class="cart-item__media" style="width:80px;height:80px;overflow:hidden">${item.image?`<img src="${item.image}" style="max-width:100%;max-height:100%"/>`:''}</div>
+          <div class="cart-item__media">${item.image?`<img src="${item.image}" alt="${(item.title||'Item').replace(/"/g,'')}">`:''}</div>
           <div class="cart-item__details">
             <div class="cart-item__name">${item.title}</div>
-            <div class="cart-item__price">${formatCurrency(item.price)}</div>
+            <div class="cart-item__meta">
+              <span class="cart-item__price">${formatCurrency(item.price)}</span>
+            </div>
             <div class="cart-item__qty">
-              <button type="button" class="qty-dec" data-id="${item.id}">-</button>
-              <input type="number" min="1" value="${item.qty}" data-id="${item.id}" class="qty-input" style="width:48px"/>
-              <button type="button" class="qty-inc" data-id="${item.id}">+</button>
-              <button type="button" class="remove" data-id="${item.id}">Remove</button>
+              <button type="button" class="qty-dec" data-id="${item.id}" aria-label="Decrease quantity">-</button>
+              <input type="number" min="1" value="${item.qty}" data-id="${item.id}" class="qty-input" aria-label="Quantity"/>
+              <button type="button" class="qty-inc" data-id="${item.id}" aria-label="Increase quantity">+</button>
+              <button type="button" class="cart-item__remove remove" data-id="${item.id}" aria-label="Remove item">Remove</button>
             </div>
           </div>`;
         ul.appendChild(li);

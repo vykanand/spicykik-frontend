@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FAQ — The Snack Smack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --muted: #6b7280;
+        --text: #111827;
+        --card-bg: #ffffff;
+        --card-border: rgba(17, 24, 39, 0.06);
+        --accent: #121212;
+        --btn-bg: #121212;
+        --btn-text: #ffffff;
+        --page-padding: 24px;
+        --container-width: 1100px;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family:
+          Assistant,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          "Helvetica Neue",
+          Arial;
+        background: linear-gradient(180deg, #f7fafc, #ffffff);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: var(--container-width);
+        margin: 0 auto;
+        padding: 36px var(--page-padding);
+      }
+      .page-hero {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+      .page-hero h1 {
+        margin: 0;
+        font-size: 28px;
+      }
+      .lead {
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(2, 6, 23, 0.04);
+      }
+      .faq-item {
+        margin-bottom: 16px;
+      }
+      .faq-item h3 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+      }
+      .faq-item p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .link {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      @media (max-width: 800px) {
+        .container {
+          padding: 20px;
+        }
+        .page-hero {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="site-header-placeholder"></div>
+    <main class="container">
+      <div class="page-hero">
+        <div>
+          <h1>Frequently Asked Questions</h1>
+          <div class="lead">
+            Quick answers to common questions — same info as our chat assistant.
+          </div>
+        </div>
+      </div>
+
+      <section class="card" aria-labelledby="faq-heading">
+        <div id="faq-heading" style="display: none">FAQ</div>
+
+        <div class="faq-item" id="orders">
+          <h3>How can I track my orders?</h3>
+          <p>
+            Track recent orders and their statuses on the
+            <a class="link" href="/my-orders.html">My Orders</a> page. For live
+            support, use the chat widget or message us on WhatsApp.
+          </p>
+        </div>
+
+        <div class="faq-item" id="cod">
+          <h3>Is Cash on Delivery (COD) available?</h3>
+          <p>
+            COD is available in selected pin codes across India. Enter your
+            pincode at checkout to confirm payment options for your address. If
+            unsure, ask via the chat widget.
+          </p>
+        </div>
+
+        <div class="faq-item" id="delivery">
+          <h3>What are the delivery timelines?</h3>
+          <p>
+            Orders typically ship within 1–3 business days. Delivery usually
+            takes 3–7 business days depending on location and courier
+            availability. Estimated delivery is shown at checkout.
+          </p>
+        </div>
+
+        <div class="faq-item" id="change-order">
+          <h3>How do I change an order?</h3>
+          <p>
+            If you need to change your order (items, address or quantity),
+            contact us immediately via WhatsApp with your order number and
+            requested changes. We'll try to update the order before it ships.
+          </p>
+        </div>
+
+        <div class="faq-item" id="cancel">
+          <h3>How do I cancel an order?</h3>
+          <p>
+            To cancel an order, contact us as soon as possible via WhatsApp with
+            your order number. If the order has not yet shipped we can cancel
+            and refund. If it's already shipped, follow the returns
+            instructions.
+          </p>
+        </div>
+
+        <div class="faq-item" id="discount">
+          <h3>Where do I apply discount codes?</h3>
+          <p>
+            Apply discount codes in the <strong>Discount code</strong> field at
+            checkout and click <strong>Apply</strong>. Only one discount code is
+            allowed per order and some promotions may have conditions.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Need more help?</h3>
+          <p class="muted">
+            Use the chat widget at the bottom-right or message us on WhatsApp
+            for immediate assistance.
+          </p>
+          <div class="actions">
+            <a class="btn" href="/">Return to Store</a>
+            <a class="link" href="/my-orders.html">View My Orders</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="site-footer-placeholder"></div>
+    <script>
+      (function () {
+        function insertHtml(id, candidates) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          (function tryFetch(i) {
+            if (i >= candidates.length) return;
+            fetch(candidates[i], { cache: "no-cache" })
+              .then(function (r) {
+                if (!r.ok) throw 0;
+                return r.text();
+              })
+              .then(function (html) {
+                el.innerHTML = html;
+              })
+              .catch(function () {
+                tryFetch(i + 1);
+              });
+          })(0);
+        }
+        insertHtml("site-header-placeholder", [
+          "./includes/header.html",
+          "/includes/header.html",
+          "../includes/header.html",
+          "../../includes/header.html",
+        ]);
+        insertHtml("site-footer-placeholder", [
+          "./includes/footer.html",
+          "/includes/footer.html",
+          "../includes/footer.html",
+          "../../includes/footer.html",
+        ]);
+      })();
+    </script>
+  </body>
+</html>

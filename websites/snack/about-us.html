@@ -6,20 +6,30 @@
     <title>About Us — The Snack Smack</title>
     <link rel="stylesheet" href="/admin-static/style.css" />
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap");
+      :root {
+        --page-bg: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --card-border: rgba(18, 18, 18, 0.06);
+        --card-shadow: rgba(2, 6, 23, 0.04);
+        --accent: #121212;
+        --container-width: 1100px;
+      }
       body {
         font-family: Assistant, sans-serif;
-        background: #ffffff;
-        color: #121212;
+        background: linear-gradient(180deg, #f7fafc, #ffffff);
+        color: var(--text);
         -webkit-font-smoothing: antialiased;
+        margin: 0;
       }
       .container {
-        max-width: 1100px;
+        max-width: var(--container-width);
         margin: 0 auto;
-        padding: 28px;
+        padding: 36px 24px;
       }
       .hero {
-        padding: 26px;
+        padding: 18px 0;
         display: flex;
         gap: 20px;
         align-items: center;
@@ -39,10 +49,9 @@
       }
       .hero h1 {
         margin: 0;
-        color: #121212;
       }
       .lead {
-        color: #5b6470;
+        color: var(--muted);
         margin-top: 6px;
       }
       .grid {
@@ -53,10 +62,10 @@
       }
       .card {
         background: #ffffff;
-        border: 1px solid rgba(18, 18, 18, 0.06);
+        border: 1px solid var(--card-border);
         padding: 18px;
         border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(18, 18, 18, 0.06);
+        box-shadow: 0 8px 30px var(--card-shadow);
       }
       .stats {
         display: flex;
@@ -69,18 +78,23 @@
         border-radius: 8px;
         text-align: center;
       }
-      a.cta,
+      .cta,
       .btn-primary {
         display: inline-block;
         padding: 10px 14px;
         border-radius: 8px;
-        background: #121212;
-        color: #ffffff;
+        background: var(--accent);
+        color: #fff;
         font-weight: 700;
         text-decoration: none;
       }
       .muted {
-        color: #5b6470;
+        color: var(--muted);
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -131,7 +145,7 @@
 
       <div class="grid">
         <div>
-          <div class="card">
+          <div class="card" id="our-story">
             <h2 style="margin-top: 0; color: #d8f0ff">Our Story</h2>
             <p class="muted">
               Founded with a love for nostalgic treats and a passion for
@@ -144,7 +158,7 @@
             </p>
           </div>
 
-          <div class="card" style="margin-top: 12px">
+          <div class="card" style="margin-top: 12px" id="what-we-promise">
             <h3 style="margin-top: 0; color: #d8f0ff">What we promise</h3>
             <ul class="muted">
               <li>Freshness and quality</li>
@@ -155,7 +169,7 @@
         </div>
 
         <aside>
-          <div class="card">
+          <div class="card" id="contact">
             <h3 style="margin-top: 0; color: #d8f0ff">Quick facts</h3>
             <div class="stats">
               <div class="stat">
