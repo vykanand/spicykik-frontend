@@ -2326,7 +2326,7 @@ document.addEventListener('DOMContentLoaded', () => {
               } catch(e) { console.warn('Explorer row click failed', e); }
             });
             const left = document.createElement('div'); left.style.display='flex'; left.style.flexDirection='column'; left.style.gap='4px'; left.style.flex='1';
-            const title = document.createElement('div'); title.textContent = it.selector; title.style.fontWeight = '700'; title.style.color = '#d8f0ff'; title.style.fontSize = '13px';
+            const title = document.createElement('div'); title.textContent = it.selector; title.style.fontWeight = '700'; title.style.color = '#003366'; title.style.fontSize = '13px';
             const snippet = document.createElement('div'); snippet.textContent = it.snippet; snippet.style.fontSize='12px'; snippet.style.color='#9fb6d6'; snippet.style.overflow='hidden'; snippet.style.textOverflow='ellipsis'; snippet.style.whiteSpace='nowrap';
             // color swatch & left border
             try {

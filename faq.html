@@ -10,6 +10,100 @@
       href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Local vendor CSS for header/footer parity -->
+    <link rel="stylesheet" href="/websites/snack/css/vendor-base.css" />
+    <link
+      rel="stylesheet"
+      href="/websites/snack/css/vendor-component-card.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/websites/snack/css/vendor-component-menu-drawer.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/websites/snack/css/vendor-component-cart-notification.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/websites/snack/css/vendor-component-cart-items.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/websites/snack/css/vendor-component-list-menu.css"
+    />
+    <link rel="stylesheet" href="/websites/snack/css/header-footer.css" />
+    <!-- Core header/footer styles (copied from index) -->
+    <link
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/base.css?v=159841507637079171801744280570"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+    <link
+      rel="stylesheet"
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-cart-items.css?v=123238115697927560811744280570"
+      media="all"
+      onload="this.media='all'"
+    />
+    <link
+      rel="preload"
+      as="font"
+      href="https://thesnacksmackindia.com/cdn/fonts/assistant/assistant_n4.9120912a469cad1cc292572851508ca49d12e768.woff2"
+      type="font/woff2"
+      crossorigin=""
+    />
+    <link
+      rel="stylesheet"
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-predictive-search.css?v=118923337488134913561744280570"
+      media="all"
+      onload="this.media='all'"
+    />
+    <link
+      rel="stylesheet"
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-list-menu.css?v=151968516119678728991744280570"
+      media="all"
+    />
+    <link
+      rel="stylesheet"
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-search.css?v=165164710990765432851744280571"
+      media="all"
+    />
+    <link
+      rel="stylesheet"
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-menu-drawer.css?v=147478906057189667651744280570"
+      media="all"
+    />
+    <link
+      rel="stylesheet"
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-cart-notification.css?v=54116361853792938221744280570"
+      media="all"
+    />
+    <link
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-card.css?v=120341546515895839841744280570"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+    <link
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-slider.css?v=14039311878856620671744280571"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+    <link
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-slideshow.css?v=17933591812325749411744280571"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+    <link
+      href="https://thesnacksmackindia.com/cdn/shop/t/1/assets/component-price.css?v=70172745017360139101744280570"
+      rel="stylesheet"
+      type="text/css"
+      media="all"
+    />
+    <link rel="stylesheet" href="/websites/snack/css/header-footer.css" />
     <style>
       :root {
         --bg: #ffffff;
@@ -195,39 +289,19 @@
     </main>
 
     <div id="site-footer-placeholder"></div>
+    <script src="/websites/snack/includes/load-include.js"></script>
     <script>
-      (function () {
-        function insertHtml(id, candidates) {
-          var el = document.getElementById(id);
-          if (!el) return;
-          (function tryFetch(i) {
-            if (i >= candidates.length) return;
-            fetch(candidates[i], { cache: "no-cache" })
-              .then(function (r) {
-                if (!r.ok) throw 0;
-                return r.text();
-              })
-              .then(function (html) {
-                el.innerHTML = html;
-              })
-              .catch(function () {
-                tryFetch(i + 1);
-              });
-          })(0);
-        }
-        insertHtml("site-header-placeholder", [
-          "./includes/header.html",
-          "/includes/header.html",
-          "../includes/header.html",
-          "../../includes/header.html",
-        ]);
-        insertHtml("site-footer-placeholder", [
-          "./includes/footer.html",
-          "/includes/footer.html",
-          "../includes/footer.html",
-          "../../includes/footer.html",
-        ]);
-      })();
+      // load header/footer from the snack includes (loader moves styles into <head>)
+      loadInclude("site-header-placeholder", [
+        "/websites/snack/includes/header.html",
+        "/includes/header.html",
+        "./websites/snack/includes/header.html",
+      ]);
+      loadInclude("site-footer-placeholder", [
+        "/websites/snack/includes/footer.html",
+        "/includes/footer.html",
+        "./websites/snack/includes/footer.html",
+      ]);
     </script>
   </body>
 </html>

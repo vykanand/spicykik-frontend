@@ -128,7 +128,7 @@
           ><strong>The Snack Smack</strong></a
         >
         <div>
-          <a href="/snack/login.html" class="btn-ghost">Sign out</a>
+          <a href="login.html" class="btn-ghost">Sign out</a>
         </div>
       </div>
 
@@ -139,6 +139,7 @@
             <div>
               <h2 id="userName">Hello, User</h2>
               <div class="meta" id="userEmail">user@example.com</div>
+              <!-- Edit profile button commented out
               <div>
                 <a
                   href="#"
@@ -147,6 +148,7 @@
                   >Edit profile</a
                 >
               </div>
+              -->
             </div>
           </div>
 
@@ -154,35 +156,23 @@
 
           <div class="list">
             <a href="#orders">My Orders</a>
-            <a href="#addresses">Addresses</a>
+            <!-- <a href="#addresses">Addresses</a>
             <a href="#cards">Saved cards</a>
-            <a href="#newsletter">Newsletter</a>
+            <a href="#newsletter">Newsletter</a> -->
           </div>
         </div>
 
         <div>
           <div class="card" style="margin-bottom: 12px">
-            <h3 style="margin-top: 0; color: #d8f0ff">Recent Orders</h3>
+            <h3 style="margin-top: 0; color: #003366">Recent Orders</h3>
             <div class="orders" id="ordersList">
-              <div class="order-card">
-                <div style="font-weight: 700">Order #9281</div>
-                <div class="meta">Placed 3 days ago — ₹299</div>
-                <div style="margin-top: 8px">
-                  <a href="#" class="btn-ghost">View</a>
-                </div>
-              </div>
-              <div class="order-card">
-                <div style="font-weight: 700">Order #9120</div>
-                <div class="meta">Placed 2 months ago — ₹499</div>
-                <div style="margin-top: 8px">
-                  <a href="#" class="btn-ghost">View</a>
-                </div>
-              </div>
+              <div class="order-card">Loading orders...</div>
             </div>
           </div>
 
+          <!-- Account Actions section hidden
           <div class="card">
-            <h3 style="margin-top: 0; color: #d8f0ff">Account Actions</h3>
+            <h3 style="margin-top: 0; color: #003366">Account Actions</h3>
             <div style="display: flex; gap: 8px; margin-top: 12px">
               <button
                 class="btn-ghost"
@@ -190,28 +180,117 @@
               >
                 Export Orders
               </button>
-              <button
-                class="btn-ghost"
-                onclick="localStorage.removeItem('fakeUser'); window.location.href='/snack/login.html'"
-              >
-                Sign out
-              </button>
+              <button class="btn-ghost" onclick="signOut()">Sign out</button>
             </div>
           </div>
+          -->
         </div>
       </div>
     </div>
 
     <script>
-      // populate from localStorage fakeUser for demo
+      const ORDERS_API =
+        "https://spicykik-backend-production.up.railway.app/orders/api.php";
+
+      // Get user from localStorage and populate profile
+      let currentUser = null;
       try {
-        const u = JSON.parse(localStorage.getItem("fakeUser") || "null");
-        if (u && u.email) {
-          document.getElementById("userEmail").textContent = u.email;
+        currentUser = JSON.parse(localStorage.getItem("user") || "null");
+        if (currentUser) {
+          document.getElementById("userEmail").textContent =
+            currentUser.email || "";
           document.getElementById("userName").textContent =
-            "Hello, " + (u.email.split("@")[0] || "User");
+            "Hello, " + (currentUser.name || "User");
+
+          // Update avatar with first letter of name
+          const avatarEl = document.querySelector(".avatar");
+          if (avatarEl && currentUser.name) {
+            avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+          }
+
+          // Fetch user's orders
+          fetchUserOrders(currentUser.id);
+        } else {
+          // No user logged in, redirect to login
+          window.location.href = "login.html";
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("Error loading user:", e);
+        window.location.href = "login.html";
+      }
+
+      async function fetchUserOrders(customerId) {
+        try {
+          console.log("Fetching orders for customer ID:", customerId);
+
+          // Use filters API to get orders for this customer
+          const response = await fetch(
+            `${ORDERS_API}?filters=1&cutomerID=${customerId}`
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch orders");
+          }
+
+          const orders = await response.json();
+          console.log("Orders fetched:", orders);
+
+          displayOrders(orders);
+        } catch (error) {
+          console.error("Error fetching orders:", error);
+          document.getElementById("ordersList").innerHTML =
+            '<div class="order-card">No orders found</div>';
+        }
+      }
+
+      function displayOrders(orders) {
+        const ordersListEl = document.getElementById("ordersList");
+
+        if (!orders || orders.length === 0) {
+          ordersListEl.innerHTML =
+            '<div class="order-card">No orders yet. Start shopping!</div>';
+          return;
+        }
+
+        // Display orders (most recent first)
+        ordersListEl.innerHTML = orders
+          .map((order) => {
+            const orderDate = order.created_at
+              ? new Date(order.created_at).toLocaleDateString()
+              : "Unknown date";
+            const orderStatus = order.order_status || "Pending";
+            const orderAmount = order.order_amount || "0";
+            const orderId = order.orderid || order.id;
+
+            return `
+            <div class="order-card">
+              <div style="font-weight: 700">Order #${orderId}</div>
+              <div class="meta">${orderDate} — ₹${orderAmount}</div>
+              <div class="meta">Status: ${orderStatus}</div>
+              <!-- View button commented out
+              <div style="margin-top: 8px">
+                <a href="#" class="btn-ghost" onclick="viewOrder('${orderId}'); return false;">View</a>
+              </div>
+              -->
+            </div>
+          `;
+          })
+          .join("");
+      }
+
+      function viewOrder(orderId) {
+        alert(
+          "View order details for: " +
+            orderId +
+            "\n(Full order view not yet implemented)"
+        );
+      }
+
+      // Update sign out to clear correct localStorage key
+      function signOut() {
+        localStorage.removeItem("user");
+        window.location.href = "login.html";
+      }
     </script>
   </body>
 </html>

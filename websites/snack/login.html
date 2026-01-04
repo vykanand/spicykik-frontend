@@ -90,6 +90,61 @@
       .brand img {
         height: 44px;
       }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 28px;
+        width: 90%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(18, 18, 18, 0.2);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #5b6470;
+      }
+      .error-msg {
+        color: #d32f2f;
+        font-size: 14px;
+        margin-top: 8px;
+        display: none;
+      }
+      .success-msg {
+        color: #2e7d32;
+        font-size: 14px;
+        margin-top: 8px;
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -144,11 +199,11 @@
           onsubmit="event.preventDefault(); handleLogin();"
         >
           <div class="form-row">
-            <label class="muted">Email</label>
+            <label class="muted">Phone Number</label>
             <input
-              id="email"
-              type="email"
-              placeholder="you@domain.com"
+              id="phone"
+              type="tel"
+              placeholder="Enter your phone number"
               required
             />
           </div>
@@ -161,23 +216,29 @@
               required
             />
           </div>
+          <div id="loginError" class="error-msg"></div>
           <div
             style="
               display: flex;
               align-items: center;
               justify-content: space-between;
               gap: 12px;
+              margin-top: 12px;
             "
           >
             <button class="btn-primary" type="submit">Sign in</button>
-            <a href="/collections/all-products" class="muted"
-              >Continue shopping</a
-            >
+            <a href="index.html" class="muted">Continue shopping</a>
           </div>
           <div class="alt-links">
-            <a href="/account/register" class="muted">Create account</a>
-            <a href="/account/recover" class="muted">Forgot password?</a>
+            <a
+              href="#"
+              class="muted"
+              onclick="event.preventDefault(); openRegisterModal();"
+              >Create account</a
+            >
+            <!-- <a href="/account/recover" class="muted">Forgot password?</a> -->
           </div>
+          <!-- Social login buttons commented out
           <div class="social-row">
             <button
               type="button"
@@ -194,22 +255,321 @@
               Continue with Facebook
             </button>
           </div>
+          -->
         </form>
         <script>
-          function handleLogin() {
-            const email = document.getElementById("email").value;
-            const pw = document.getElementById("password").value;
-            // Placeholder: simulate successful login and redirect to dashboard
-            if (email && pw) {
-              localStorage.setItem("fakeUser", JSON.stringify({ email }));
-              window.location.href = "/snack/dashboard.html";
-            } else {
-              alert("Enter credentials");
+          const API_BASE =
+            "https://spicykik-backend-production.up.railway.app/customer_management/api.php";
+
+          async function handleLogin() {
+            const phone = document.getElementById("phone").value;
+            const password = document.getElementById("password").value;
+            const errorEl = document.getElementById("loginError");
+
+            errorEl.style.display = "none";
+            errorEl.textContent = "";
+
+            if (!phone || !password) {
+              errorEl.textContent = "Please enter phone number and password";
+              errorEl.style.display = "block";
+              return;
+            }
+
+            try {
+              console.log("=== LOGIN REQUEST ===");
+              console.log("Phone:", phone);
+
+              // Fetch user by phone number using filters endpoint
+              const loginUrl = `${API_BASE}?filters=1&phone=${encodeURIComponent(phone)}`;
+              console.log("Login URL:", loginUrl);
+
+              const response = await fetch(loginUrl);
+
+              console.log("=== LOGIN RESPONSE ===");
+              console.log("Status:", response.status);
+              console.log("OK:", response.ok);
+
+              if (!response.ok) {
+                throw new Error("Failed to fetch user data");
+              }
+
+              const data = await response.json();
+              console.log("Login data:", data);
+
+              // Check if user exists
+              if (!data || data.length === 0) {
+                errorEl.textContent = "Invalid phone number or password";
+                errorEl.style.display = "block";
+                return;
+              }
+
+              const user = data[0];
+
+              // Decode password from base64
+              const storedPassword = atob(user.password);
+              console.log("Password match:", password === storedPassword);
+
+              // Verify password
+              if (password !== storedPassword) {
+                errorEl.textContent = "Invalid phone number or password";
+                errorEl.style.display = "block";
+                return;
+              }
+
+              // Login successful
+              localStorage.setItem(
+                "user",
+                JSON.stringify({
+                  id: user.id,
+                  name: user.Customer_name,
+                  phone: user.phone,
+                  email: user.email,
+                  role: user.role,
+                })
+              );
+
+              window.location.href = "dashboard.html";
+            } catch (error) {
+              console.error("Login error:", error);
+              errorEl.textContent = "An error occurred. Please try again.";
+              errorEl.style.display = "block";
+            }
+          }
+
+          function openRegisterModal() {
+            document.getElementById("registerModal").classList.add("active");
+          }
+
+          function closeRegisterModal() {
+            document.getElementById("registerModal").classList.remove("active");
+            document.getElementById("registerForm").reset();
+            document.getElementById("registerError").style.display = "none";
+            document.getElementById("registerSuccess").style.display = "none";
+          }
+
+          async function handleRegister() {
+            const name = document.getElementById("regName").value;
+            const phone = document.getElementById("regPhone").value;
+            const email = document.getElementById("regEmail").value;
+            const address = document.getElementById("regAddress").value;
+            const password = document.getElementById("regPassword").value;
+            const confirmPassword =
+              document.getElementById("regConfirmPassword").value;
+            const errorEl = document.getElementById("registerError");
+            const successEl = document.getElementById("registerSuccess");
+
+            errorEl.style.display = "none";
+            successEl.style.display = "none";
+            errorEl.textContent = "";
+
+            // Validation
+            if (
+              !name ||
+              !phone ||
+              !email ||
+              !address ||
+              !password ||
+              !confirmPassword
+            ) {
+              errorEl.textContent = "All fields are required";
+              errorEl.style.display = "block";
+              return;
+            }
+
+            if (password !== confirmPassword) {
+              errorEl.textContent = "Passwords do not match";
+              errorEl.style.display = "block";
+              return;
+            }
+
+            if (password.length < 4) {
+              errorEl.textContent = "Password must be at least 4 characters";
+              errorEl.style.display = "block";
+              return;
+            }
+
+            try {
+              // Encode password to base64
+              const encodedPassword = btoa(password);
+
+              const formData = new URLSearchParams();
+              formData.append("Customer_name", name);
+              formData.append("phone", phone);
+              formData.append("email", email);
+              formData.append("address", address);
+              formData.append("password", encodedPassword);
+              formData.append("role", "admin");
+
+              const encodedBody = formData.toString();
+
+              // setcontent must be in URL, not POST body
+              const registrationUrl = `${API_BASE}?setcontent=true`;
+
+              console.log("=== REGISTRATION REQUEST ===");
+              console.log("URL:", registrationUrl);
+              console.log("Method: POST");
+              console.log("Content-Type: application/x-www-form-urlencoded");
+              console.log("Encoded Body String:", encodedBody);
+              console.log("Form Data Object:", {
+                Customer_name: name,
+                phone: phone,
+                email: email,
+                address: address,
+                password: encodedPassword,
+                role: "admin",
+              });
+              console.log("URLSearchParams entries:", [...formData.entries()]);
+
+              const response = await fetch(registrationUrl, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: encodedBody,
+              });
+
+              console.log("=== REGISTRATION RESPONSE ===");
+              console.log("Status:", response.status);
+              console.log("Status Text:", response.statusText);
+              console.log("OK:", response.ok);
+              console.log("Headers:", [...response.headers.entries()]);
+
+              // Get response text first
+              const responseText = await response.text();
+              console.log("Response Text:", responseText);
+              console.log("Response Text Length:", responseText.length);
+              console.log("Response Text Type:", typeof responseText);
+
+              if (!response.ok) {
+                errorEl.textContent = "Server error: " + response.status;
+                errorEl.style.display = "block";
+                return;
+              }
+
+              // Check for empty response
+              if (!responseText || responseText.trim() === "") {
+                console.error("Empty response from server");
+                errorEl.textContent =
+                  "Server returned empty response. Registration may have failed.";
+                errorEl.style.display = "block";
+                return;
+              }
+
+              // Try to parse as JSON
+              let result;
+              try {
+                result = JSON.parse(responseText);
+                console.log("Parsed JSON:", result);
+              } catch (parseError) {
+                console.error("JSON Parse Error:", parseError);
+                errorEl.textContent =
+                  "Invalid response from server: " + responseText;
+                errorEl.style.display = "block";
+                return;
+              }
+
+              // Check if registration was actually successful
+              if (result.response === "success") {
+                successEl.textContent =
+                  "Registration successful! You can now login.";
+                successEl.style.display = "block";
+
+                setTimeout(() => {
+                  closeRegisterModal();
+                }, 2000);
+              } else {
+                errorEl.textContent =
+                  "Registration failed: " + (result.message || "Unknown error");
+                errorEl.style.display = "block";
+              }
+            } catch (error) {
+              console.error("Registration error:", error);
+              errorEl.textContent = "Registration failed: " + error.message;
+              errorEl.style.display = "block";
             }
           }
         </script>
       </div>
     </div>
+
+    <!-- Registration Modal -->
+    <div id="registerModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create Account</h2>
+          <button class="close-btn" onclick="closeRegisterModal()">
+            &times;
+          </button>
+        </div>
+        <form
+          id="registerForm"
+          onsubmit="event.preventDefault(); handleRegister();"
+        >
+          <div class="form-row">
+            <label class="muted">Full Name</label>
+            <input
+              id="regName"
+              type="text"
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label class="muted">Phone Number</label>
+            <input
+              id="regPhone"
+              type="tel"
+              placeholder="Enter your phone number"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label class="muted">Email</label>
+            <input
+              id="regEmail"
+              type="email"
+              placeholder="you@domain.com"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label class="muted">Address</label>
+            <input
+              id="regAddress"
+              type="text"
+              placeholder="Enter your address"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label class="muted">Password</label>
+            <input
+              id="regPassword"
+              type="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div class="form-row">
+            <label class="muted">Confirm Password</label>
+            <input
+              id="regConfirmPassword"
+              type="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div id="registerError" class="error-msg"></div>
+          <div id="registerSuccess" class="success-msg"></div>
+          <div style="margin-top: 16px">
+            <button class="btn-primary" type="submit" style="width: 100%">
+              Register
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div id="site-footer-placeholder"></div>
     <script>
       (function () {

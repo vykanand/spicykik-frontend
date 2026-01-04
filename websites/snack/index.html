@@ -33,7 +33,6 @@
     })();
   </script>
   <script type="text/javascript" async="" src="https://cdn-odl.avada.io/scripttag/avada-order-limit.min.js?v=1763730687398"></script>
-  <script type="text/javascript" async="" src="//thesnacksmackindia.com/cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js"></script>
   
   <head>
     <meta charset="utf-8">
@@ -440,135 +439,9 @@
                 }
             }
 
-            var trekkie = window.ShopifyAnalytics.lib = window.trekkie = window.trekkie || [];
-            if (trekkie.integrations) {
-                return;
-            }
-            trekkie.methods = [
-                'identify',
-                'page',
-                'ready',
-                'track',
-                'trackForm',
-                'trackLink'
-            ];
-            trekkie.factory = function (method) {
-                return function () {
-                    var args = Array.prototype.slice.call(arguments);
-                    args.unshift(method);
-                    trekkie.push(args);
-                    return trekkie;
-                };
-            };
-            for (var i = 0; i < trekkie.methods.length; i++) {
-                var key = trekkie.methods[i];
-                trekkie[key] = trekkie.factory(key);
-            }
-            trekkie.load = function (config) {
-                trekkie.config = config || {};
-                trekkie.config.initialDocumentCookie = document.cookie;
-                var first = document.getElementsByTagName('script')[0];
-                var script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.onerror = function (e) {
-                    var scriptFallback = document.createElement('script');
-                    scriptFallback.type = 'text/javascript';
-                    scriptFallback.onerror = function (error) {
-                        var Monorail = {
-                            produce: function produce(monorailDomain, schemaId, payload) {
-                                var currentMs = new Date().getTime();
-                                var event = {
-                                    schema_id: schemaId,
-                                    payload: payload,
-                                    metadata: {
-                                        event_created_at_ms: currentMs,
-                                        event_sent_at_ms: currentMs
-                                    }
-                                };
-                                return Monorail.sendRequest("https://" + monorailDomain + "/v1/produce", JSON.stringify(event));
-                            },
-                            sendRequest: function sendRequest(endpointUrl, payload) {
-                                // Try the sendBeacon API
-                                if (window && window.navigator && typeof window.navigator.sendBeacon === 'function' && typeof window.Blob === 'function' && !Monorail.isIos12()) {
-                                    var blobData = new window.Blob([payload], {
-                                        type: 'text/plain'
-                                    });
-
-                                    if (window.navigator.sendBeacon(endpointUrl, blobData)) {
-                                        return true;
-                                    } // sendBeacon was not successful
-
-                                } // XHR beacon
-
-                                var xhr = new XMLHttpRequest();
-
-                                try {
-                                    xhr.open('POST', endpointUrl);
-                                    xhr.setRequestHeader('Content-Type', 'text/plain');
-                                    xhr.send(payload);
-                                } catch (e) {
-                                    console.log(e);
-                                }
-
-                                return false;
-                            },
-                            isIos12: function isIos12() {
-                                return window.navigator.userAgent.lastIndexOf('iPhone; CPU iPhone OS 12_') !== -1 || window.navigator.userAgent.lastIndexOf('iPad; CPU OS 12_') !== -1;
-                            }
-                        };
-                        Monorail.produce('monorail-edge.shopifysvc.com',
-                            'trekkie_storefront_load_errors/1.1',
-                            {
-                                shop_id: 63979683942,
-                                theme_id: 135387611238,
-                                app_name: "storefront",
-                                context_url: window.location.href,
-                                source_url: "//thesnacksmackindia.com/cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js"
-                            });
-
-                    };
-                    scriptFallback.async = true;
-                    scriptFallback.src = '//thesnacksmackindia.com/cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js';
-                    first.parentNode.insertBefore(scriptFallback, first);
-                };
-                script.async = true;
-                script.src = '//thesnacksmackindia.com/cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js';
-                first.parentNode.insertBefore(script, first);
-            };
-            trekkie.load(
-                { "Trekkie": { "appName": "storefront", "development": false, "defaultAttributes": { "shopId": 63979683942, "isMerchantRequest": null, "themeId": 135387611238, "themeCityHash": "6103036375783769923", "contentLanguage": "en", "currency": "INR", "eventMetadataId": "0c3dea84-9920-448e-bb30-fa6c25742c3d" }, "isServerSideCookieWritingEnabled": true, "monorailRegion": "shop_domain", "enabledBetaFlags": ["f0df213a"] }, "Session Attribution": {}, "S2S": { "facebookCapiEnabled": false, "source": "trekkie-storefront-renderer", "apiClientId": 580111 } }
-            );
-
-            var loaded = false;
-            trekkie.ready(function () {
-                if (loaded) return;
-                loaded = true;
-
-                window.ShopifyAnalytics.lib = window.trekkie;
-
-                var originalDocumentWrite = document.write;
-                document.write = customDocumentWrite;
-                try { window.ShopifyAnalytics.merchantGoogleAnalytics.call(this); } catch (error) { };
-                document.write = originalDocumentWrite;
-
-                window.ShopifyAnalytics.lib.page(null, { "pageType": "collection", "resourceType": "collection", "resourceId": 294467403878, "shopifyEmitted": true });
-
-                var match = window.location.pathname.match(/checkouts\/(.+)\/(thank_you|post_purchase)/)
-                var token = match ? match[1] : undefined;
-                if (!hasLoggedConversion(token)) {
-                    setCookieIfConversion(token);
-                    window.ShopifyAnalytics.lib.track("Viewed Product Category", { "currency": "INR", "category": "Collection: all-products", "collectionName": "all-products", "collectionId": 294467403878, "nonInteraction": true }, undefined, undefined, { "shopifyEmitted": true });
-                }
-            });
-
-            var eventsListenerScript = document.createElement('script');
-            eventsListenerScript.async = true;
-            eventsListenerScript.src = "//thesnacksmackindia.com/cdn/shopifycloud/storefront/assets/shop_events_listener-3da45d37.js";
-            document.getElementsByTagName('head')[0].appendChild(eventsListenerScript);
+            // Trekkie analytics disabled to prevent /api/collect 404 errors
 
         })();</script>
-    <script async="" src="//thesnacksmackindia.com/cdn/shopifycloud/storefront/assets/shop_events_listener-3da45d37.js"></script>
-    <script defer="" src="https://thesnacksmackindia.com/cdn/shopifycloud/perf-kit/shopify-perf-kit-2.1.2.min.js" data-application="storefront-renderer" data-shop-id="63979683942" data-render-region="gcp-us-east1" data-page-type="collection" data-theme-instance-id="135387611238" data-theme-name="Dawn" data-theme-version="15.3.0" data-monorail-region="shop_domain" data-resource-timing-sampling-rate="10" data-shs="true" data-shs-beacon="true" data-shs-export-with-fetch="true" data-shs-logs-sample-rate="1"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js?v=orichi"></script>
     <style data-description="gravity-font-faces">
         @font-face {
@@ -1002,6 +875,7 @@
           <div class="header__icons header__icons--localization header-localization" bis_skin_checked="1">
             <div class="desktop-localization-wrapper" bis_skin_checked="1">
             </div>
+            <a href="login.html" style="text-decoration: none; color: inherit;">
             <span class="header__icon header__icon--account link focus-inset small-hide" aria-hidden="true"><account-icon>
                 <span class="svg-wrapper">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="icon icon-account" viewBox="0 0 18 19">
@@ -1012,6 +886,7 @@
               </account-icon>
               <span class="visually-hidden">Log in</span>
             </span>
+            </a>
             <span class="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble" aria-hidden="true">
               <span class="svg-wrapper">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="icon icon-cart" viewBox="0 0 40 40">
@@ -5001,8 +4876,8 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
         --wa-btn-text: rgb(var(--color-button-text, 255,255,255));
         --wa-chat-bg: rgb(var(--color-background, 255,255,255));
         --wa-chat-border: rgba(var(--color-foreground, 18,18,18), 0.06);
-        --wa-header-bg: rgb(var(--color-link, 18,18,18));
-        --wa-header-text: rgb(var(--color-button-text, 255,255,255));
+        --wa-header-bg: #000000;
+        --wa-header-text: #ffffff;
         --wa-bot-bg: rgb(var(--color-badge-background, 255,255,255));
         --wa-bot-text: rgb(var(--color-foreground, 18,18,18));
         --wa-user-bg: rgb(var(--color-button, 37,211,102));
@@ -5013,9 +4888,9 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
 
       .wa-chat-btn{position:fixed;right:18px;bottom:18px;z-index:9999;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--wa-btn-bg);color:var(--wa-btn-text);box-shadow:0 6px 18px rgba(var(--color-shadow,18,18,18),0.18);font-family:Assistant, sans-serif;font-size:20px}
       .wa-chat{position:fixed;right:18px;bottom:86px;z-index:9999;width:320px;max-width:92%;height:420px;background:var(--wa-chat-bg);border-radius:12px;display:none;flex-direction:column;overflow:hidden;border:1px solid var(--wa-chat-border);box-shadow:0 12px 36px rgba(var(--color-shadow,18,18,18),0.18);font-family:Assistant, sans-serif}
-      .wa-header{background:var(--wa-header-bg);color:var(--wa-header-text);padding:12px 12px;display:flex;align-items:center;justify-content:space-between}
+      .wa-header{background:#000000 !important;color:#ffffff !important;padding:12px 12px;display:flex;align-items:center;justify-content:space-between}
       .wa-header .wa-title{font-weight:600}
-      .wa-header button{background:transparent;border:0;color:rgba(255,255,255,0.9);font-size:16px;cursor:pointer}
+      .wa-header button{background:transparent;border:0;color:#ffffff !important;font-size:16px;cursor:pointer}
       /* Messages container and message defaults */
       .wa-messages{padding:12px;flex:1;overflow:auto;background:transparent}
       .wa-msg{display:inline-block;clear:both;padding:8px 10px;border-radius:8px;margin:6px 0;max-width:78%;font-size:14px;color:inherit}
@@ -5054,7 +4929,7 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
         100%{opacity:0;transform:translateY(0)}
       }
       /* Ensure chat UI remains light/readable even if other scripts or extensions toggle theme */
-      .wa-chat, .wa-messages, .wa-msg, .wa-typing, .wa-response-card, .wa-action, .wa-input, .wa-header {
+      .wa-chat, .wa-messages, .wa-msg, .wa-typing, .wa-response-card, .wa-action, .wa-input {
         background-color: #ffffff !important;
         color: #111111 !important;
       }
@@ -5236,7 +5111,7 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
                         // bot typing
                         showTyping(800, ()=>{
                           if(act === 'orders'){
-                            appendBotHTML('<div class="wa-response-card">You can track your recent orders here:<br><a class="wa-link-btn" href="/my-orders.html">View My Orders</a></div>');
+                            appendBotHTML('<div class="wa-response-card">You can track your recent orders here:<br><a class="wa-link-btn" href="login.html">View My Orders</a></div>');
                           } else if(act === 'cod'){
                             appendBotHTML('<div class="wa-response-card">Yes — COD is available in selected pin codes across India. <a class="wa-link-btn" href="/faq.html#cod">Read more</a></div>');
                           } else if(act === 'delivery'){
