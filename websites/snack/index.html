@@ -703,8 +703,20 @@
             pointer-events: none;
         }
     </style>
+    <style>
+      /* Ensure account/profile icon is visible on small screens */
+      @media screen and (max-width: 749px) {
+        .header__icon.header__icon--account.small-hide {
+          display: inline-flex !important;
+          align-items: center !important;
+        }
+        .header__icons .header__icon--account {
+          display: inline-flex !important;
+        }
+      }
+    </style>
     <style class="darkreader darkreader--override" media="screen"></style>
-  </head>
+    </head>
 
   <body class="gradient" __processed_55ea847e-d5c6-4e42-9167-90ebe94303a5__="true" bis_register="W3sibWFzdGVyIjp0cnVlLCJleHRlbnNpb25JZCI6ImVwcGlvY2VtaG1ubGJoanBsY2drb2ZjaWllZ29tY29uIiwiYWRibG9ja2VyU3RhdHVzIjp7IkRJU1BMQVkiOiJkaXNhYmxlZCIsIkZBQ0VCT09LIjoiZGlzYWJsZWQiLCJUV0lUVEVSIjoiZGlzYWJsZWQiLCJSRURESVQiOiJkaXNhYmxlZCIsIlBJTlRFUkVTVCI6ImRpc2FibGVkIiwiSU5TVEFHUkFNIjoiZGlzYWJsZWQiLCJUSUtUT0siOiJkaXNhYmxlZCIsIkxJTktFRElOIjoiZGlzYWJsZWQiLCJDT05GSUciOiJkaXNhYmxlZCJ9LCJ2ZXJzaW9uIjoiMi4wLjMzIiwic2NvcmUiOjIwMDMzfV0=">
     <a class="skip-to-content-link button visually-hidden" href="#MainContent"> Skip to content </a>
