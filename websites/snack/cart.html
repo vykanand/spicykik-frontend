@@ -1523,7 +1523,7 @@
           >
             <div class="header__heading-logo-wrapper">
               <img
-                src="toffee.png"
+                src="toffee2.png"
                 width="90"
                 height="100.48475371383893"
                 loading="eager"
@@ -2350,30 +2350,55 @@
             });
 
             const text = await resp.text();
+
+            // Variable to store the actual order ID (from API or generated)
+            var finalOrderId = orderid;
+
             try {
               const json = JSON.parse(text);
               if (json.response === "success" || resp.ok) {
-                alert("Order placed successfully. Order ID: " + orderid);
-                // optional: clear cart local storage if present
+                // Extract order ID from API response if available
+                if (json.orderid) {
+                  finalOrderId = json.orderid;
+                } else if (json.order_id) {
+                  finalOrderId = json.order_id;
+                } else if (json.data && json.data.orderid) {
+                  finalOrderId = json.data.orderid;
+                }
+
+                // Clear cart storage
                 try {
                   localStorage.removeItem("cart");
                 } catch (e) {}
-                window.location.href = "thank-you.html";
+
+                // Build payment URL with final order ID
+                const paymentUrl = `pay.html?orderId=${encodeURIComponent(finalOrderId)}&amount=${encodeURIComponent(order_amount)}&customerName=${encodeURIComponent(customer_name)}&phone=${encodeURIComponent(phone)}`;
+
+                // Show success alert - this will block until user clicks OK
+                alert("Order placed successfully! Order ID: " + finalOrderId);
+
+                // Redirect after user dismisses alert
+                window.location.href = paymentUrl;
                 return;
               } else {
                 alert("Order failed: " + (json.message || text));
               }
             } catch (err) {
-              // non-json response
+              // non-json response - proceed if HTTP status is ok
               if (resp.ok) {
-                alert(
-                  "Order placed (server returned non-JSON response). Order ID: " +
-                    orderid
-                );
+                // Clear cart storage
                 try {
                   localStorage.removeItem("cart");
                 } catch (e) {}
-                window.location.href = "thank-you.html";
+
+                // Build payment URL with final order ID
+                const paymentUrl = `pay.html?orderId=${encodeURIComponent(finalOrderId)}&amount=${encodeURIComponent(order_amount)}&customerName=${encodeURIComponent(customer_name)}&phone=${encodeURIComponent(phone)}`;
+
+                // Show success alert - this will block until user clicks OK
+                alert("Order placed successfully! Order ID: " + finalOrderId);
+
+                // Redirect after user dismisses alert
+                window.location.href = paymentUrl;
                 return;
               } else {
                 alert("Order failed: " + text);
