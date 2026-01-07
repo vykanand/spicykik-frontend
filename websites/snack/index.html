@@ -867,7 +867,7 @@
           </header-drawer>
           <a href="/" class="header__heading-link link link--text focus-inset">
             <div class="header__heading-logo-wrapper" bis_skin_checked="1">
-              <img src="https://i.ibb.co/CpPJQVsZ/543b8a16-850c-4d82-91e6-3f1f06ed86c8.jpg" alt="My Store" width="90" height="100.48475371383893" loading="eager" class="header__heading-logo motion-reduce" sizes="(max-width: 180px) 50vw, 90px">
+              <img src="toffee2.png" alt="My Store" width="108" height="120.58" loading="eager" class="header__heading-logo motion-reduce" sizes="(max-width: 216px) 50vw, 108px">
             </div>
           </a>
           <nav class="header__inline-menu">
@@ -887,7 +887,7 @@
           <div class="header__icons header__icons--localization header-localization" bis_skin_checked="1">
             <div class="desktop-localization-wrapper" bis_skin_checked="1">
             </div>
-            <a href="login.html" style="text-decoration: none; color: inherit;">
+            <a id="account-link" href="login.html" style="text-decoration: none; color: inherit;">
             <span class="header__icon header__icon--account link focus-inset small-hide" aria-hidden="true"><account-icon>
                 <span class="svg-wrapper">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="icon icon-account" viewBox="0 0 18 19">
@@ -899,6 +899,33 @@
               <span class="visually-hidden">Log in</span>
             </span>
             </a>
+            <script>
+              (function(){
+                function getUser(){ try{ const raw = localStorage.getItem('user'); return raw ? JSON.parse(raw) : null; }catch(e){ return null; } }
+                function clearSession(){
+                  try{ 
+                    // remove user from both storage areas
+                    const old = localStorage.getItem('user');
+                    localStorage.removeItem('user');
+                    try{ sessionStorage.removeItem('user'); }catch(e){}
+                    // notify other windows/tabs
+                    try{ window.dispatchEvent(new StorageEvent('storage', { key: 'user', oldValue: old, newValue: null })); }catch(e){}
+                  }catch(e){}
+                  // navigate to login to make intent explicit
+                  window.location.href = 'login.html';
+                }
+                document.addEventListener('DOMContentLoaded', function(){
+                  var a = document.getElementById('account-link'); if(!a) return;
+                  var user = getUser(); if(!user) return;
+                  a.href = 'dashboard.html';
+                  var vis = a.querySelector('.visually-hidden'); if(vis) vis.textContent = 'Account: ' + (user.name || user.phone || 'Account');
+                  var span = document.createElement('span'); span.textContent = 'Logout'; span.style.cursor = 'pointer'; span.style.marginLeft = '8px'; span.className = 'header-logout-link';
+                  span.addEventListener('click', function(e){ e.preventDefault(); clearSession(); });
+                  a.parentNode.insertBefore(span, a.nextSibling);
+                });
+              })();
+            </script>
+            <script src="./includes/auth.js"></script>
             <span class="header__icon header__icon--cart link focus-inset" id="cart-icon-bubble" aria-hidden="true">
               <span class="svg-wrapper">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" class="icon icon-cart" viewBox="0 0 40 40">
@@ -1426,7 +1453,7 @@
                               </h3>
                               <div class="card-information" bis_skin_checked="1">
                                 <span class="visually-hidden">Vendor:</span>
-                                <div class="caption-with-letter-spacing light" bis_skin_checked="1"> Thesnacksmack </div>
+                                <div class="caption-with-letter-spacing light" bis_skin_checked="1"> {{this.Product_detail}} </div>
                                 <span class="caption-large light"></span>
                                 <div class="
       price " bis_skin_checked="1">
@@ -1576,7 +1603,7 @@
                             </h3>
                             <div class="card-information" bis_skin_checked="1">
                               <span class="visually-hidden">Vendor:</span>
-                              <div class="caption-with-letter-spacing light" bis_skin_checked="1"> Thesnacksmack </div>
+                              <div class="caption-with-letter-spacing light" bis_skin_checked="1"> {{this.Product_detail}} </div>
                               <span class="caption-large light"></span>
                               <div class="
       price " bis_skin_checked="1">
@@ -1625,9 +1652,11 @@
             </slider-component>
            
             </div>
-            <div class="center collection__view-all scroll-trigger animate--slide-in" bis_skin_checked="1">
+             <!--<div class="center collection__view-all scroll-trigger animate--slide-in" bis_skin_checked="1">
+              View all button commented out per request
               <a href="/collections/new-launched" class="button" aria-label="View all products in the New launched collection"> View all </a>
-            </div>
+              
+            </div>-->
           </div>
         </div>
       </section>
@@ -1699,7 +1728,7 @@
                             </h3>
                             <div class="card-information" bis_skin_checked="1">
                               <span class="visually-hidden">Vendor:</span>
-                              <div class="caption-with-letter-spacing light" bis_skin_checked="1"> Thesnacksmack </div>
+                              <div class="caption-with-letter-spacing light" bis_skin_checked="1"> {{this.Product_detail}} </div>
                               <span class="caption-large light"></span>
                               <div class="
       price " bis_skin_checked="1">
@@ -5039,16 +5068,16 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
         openBtn.addEventListener('click', ()=>{ open(); });
         closeBtn.addEventListener('click', ()=>{ close(); });
 
-        // Auto-open chat after page load (every visit). Adjust `autoOpenDelay` (ms).
-        (function(){
-          const autoOpenDelay = 800;
-          function doAutoOpen(){ try { open(); } catch(e){} }
-          if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            setTimeout(doAutoOpen, autoOpenDelay);
-          } else {
-            document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(doAutoOpen, autoOpenDelay); });
-          }
-        })();
+        // Auto-open disabled - user clicks floating button to open chat
+        // (function(){
+        //   const autoOpenDelay = 800;
+        //   function doAutoOpen(){ try { open(); } catch(e){} }
+        //   if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        //     setTimeout(doAutoOpen, autoOpenDelay);
+        //   } else {
+        //     document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(doAutoOpen, autoOpenDelay); });
+        //   }
+        // })();
 
         // Note: yes/no buttons are created dynamically; handlers attach after creation.
 

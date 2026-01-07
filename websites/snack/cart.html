@@ -1506,6 +1506,7 @@
                       <div
                         class="menu-drawer__localization header-localization"
                       ></div>
+                      <script src="./includes/auth.js"></script>
                       <ul
                         class="list list-social list-unstyled"
                         role="list"
@@ -2256,6 +2257,144 @@
         </div>
       </div>
     </main>
+
+    <script>
+      (function () {
+        // Match registration POST format: application/x-www-form-urlencoded
+        const API_BASE =
+          "https://spicykik-backend-production.up.railway.app/orders/api.php";
+        const ORDERS_URL = `${API_BASE}?setcontent=true`;
+
+        function getUser() {
+          try {
+            const raw = localStorage.getItem("user");
+            return raw ? JSON.parse(raw) : null;
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function parseTotal() {
+          var el = document.querySelector(".totals__total-value");
+          if (!el) return 0;
+          var txt = el.textContent || el.innerText || "";
+          // strip non-digits and parse float
+          txt = txt.replace(/[Rs.,\s]/g, "").replace(/[^0-9.\-]/g, "");
+          var n = parseFloat(txt);
+          return Number.isFinite(n) ? n : 0;
+        }
+
+        function generateOrderId() {
+          return (
+            Date.now().toString(36) +
+            Math.random().toString(36).slice(2, 8).toUpperCase()
+          );
+        }
+
+        async function handleCheckout(e) {
+          e && e.preventDefault();
+          const user = getUser();
+          if (!user) {
+            // require login; preserve returnUrl
+            window.location.href =
+              "login.html?returnUrl=" +
+              encodeURIComponent(
+                window.location.pathname + window.location.search
+              );
+            return;
+          }
+
+          // collect order data
+          const customer_name = user.name || user.Customer_name || "";
+          const phone = user.phone || "";
+          const order_amount = parseTotal().toString();
+
+          // try to get saved address if available, otherwise prompt
+          var delivery_address = user.address || user.address_line || "";
+          if (!delivery_address) {
+            delivery_address =
+              prompt("Enter delivery address for this order:", "") || "";
+            if (!delivery_address) {
+              alert("Delivery address is required to place order");
+              return;
+            }
+          }
+
+          const order_status = "Placed";
+          const role = user.role || "admin";
+          const orderid = generateOrderId();
+          const cutomerID = user.id ? String(user.id) : "";
+
+          // build form body using same format as registration
+          const formData = new URLSearchParams();
+          formData.append("customer_name", customer_name);
+          formData.append("order_amount", order_amount);
+          formData.append("delivery_address", delivery_address);
+          formData.append("order_status", order_status);
+          formData.append("role", role);
+          formData.append("orderid", orderid);
+          formData.append("phone", phone);
+          formData.append("cutomerID", cutomerID);
+
+          const body = formData.toString();
+
+          try {
+            // disable button to avoid double submits
+            var btn = document.getElementById("checkout");
+            if (btn) btn.disabled = true;
+
+            const resp = await fetch(ORDERS_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: body,
+            });
+
+            const text = await resp.text();
+            try {
+              const json = JSON.parse(text);
+              if (json.response === "success" || resp.ok) {
+                alert("Order placed successfully. Order ID: " + orderid);
+                // optional: clear cart local storage if present
+                try {
+                  localStorage.removeItem("cart");
+                } catch (e) {}
+                window.location.href = "thank-you.html";
+                return;
+              } else {
+                alert("Order failed: " + (json.message || text));
+              }
+            } catch (err) {
+              // non-json response
+              if (resp.ok) {
+                alert(
+                  "Order placed (server returned non-JSON response). Order ID: " +
+                    orderid
+                );
+                try {
+                  localStorage.removeItem("cart");
+                } catch (e) {}
+                window.location.href = "thank-you.html";
+                return;
+              } else {
+                alert("Order failed: " + text);
+              }
+            }
+          } catch (error) {
+            console.error("Checkout error", error);
+            alert("Failed to place order. Please try again.");
+          } finally {
+            var btn2 = document.getElementById("checkout");
+            if (btn2) btn2.disabled = false;
+          }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+          var btn = document.getElementById("checkout");
+          if (!btn) return;
+          btn.addEventListener("click", handleCheckout);
+        });
+      })();
+    </script>
 
     <!-- BEGIN sections: footer-group -->
     <section

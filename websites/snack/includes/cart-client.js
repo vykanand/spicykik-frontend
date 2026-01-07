@@ -3,6 +3,20 @@
   const LOG_PREFIX = '[CartClient]';
   const STORAGE_KEY = 'spicy_cart_items_v1';
 
+  function getUser(){
+    try{ const raw = localStorage.getItem('user'); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+  }
+
+  function requireLoginRedirect(target){
+    const user = getUser();
+    if(!user){
+      const returnUrl = target || (window.location.pathname + window.location.search);
+      window.location.href = './login.html?returnUrl=' + encodeURIComponent(returnUrl);
+      return true;
+    }
+    return false;
+  }
+
   function log(level, payload){
     const fn = console[level] || console.log;
     fn.call(console, LOG_PREFIX, payload);
@@ -168,9 +182,15 @@
             const wantsRedirect = (btn.getAttribute && (btn.getAttribute('data-redirect') === 'cart' || btn.getAttribute('data-redirect-to-cart') === 'true')) || btn.dataset && (btn.dataset.redirect === 'cart' || btn.dataset.redirectToCart === 'true');
             if(href && href.toLowerCase().includes('cart')){
               // small delay to ensure localStorage is written and UI updates
-              setTimeout(()=> { window.location.href = href; }, 150);
+              setTimeout(()=> {
+                if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent(href); }
+                else { window.location.href = href; }
+              }, 150);
             } else if (wantsRedirect) {
-              setTimeout(()=> { window.location.href = './cart.html'; }, 150);
+              setTimeout(()=> {
+                if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent('./cart.html'); }
+                else { window.location.href = './cart.html'; }
+              }, 150);
             }
           }catch(e){ /* ignore redirect errors */ }
         }catch(err){
@@ -290,6 +310,7 @@
         checkoutBtn.__checkoutBound = true;
         checkoutBtn.addEventListener('click', (ev)=>{
           ev.preventDefault();
+          if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search); return; }
           const cents = totalCents();
           const items = loadCart().map(i => ({ id: i.id, title: i.title, qty: Number(i.qty||0), price_cents: Math.round(Number(i.price||0)*100) }));
           const params = new URLSearchParams();
@@ -325,7 +346,10 @@
       if(headerCart && !headerCart.__cartClickBound){
         headerCart.__cartClickBound = true;
         headerCart.style.cursor = 'pointer';
-        headerCart.addEventListener('click', ()=> { window.location.href = './cart.html'; });
+        headerCart.addEventListener('click', ()=> {
+          if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent('./cart.html'); }
+          else { window.location.href = './cart.html'; }
+        });
       }
     }catch(e){ /* ignore */ }
 

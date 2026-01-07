@@ -168,16 +168,17 @@
         };
         const merchantName = "TandoorBaaz";
 
-        try {
-          document.getElementById("paytm-link").href =
-            `paytmmp://pay?pa=${upiIds.paytm}&pn=${merchantName}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
-        } catch (e) {}
+        // Paytm UPI Intent - using standard UPI protocol with Paytm-specific package
+        const paytmUri = `upi://pay?pa=${encodeURIComponent(upiIds.paytm)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
 
-        const phonepeUri = `upi://pay?pa=${encodeURIComponent(upiIds.phonepe)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
-        document.getElementById("phonepe-link").href = phonepeUri;
+        // PhonePe UPI Intent with phonepe:// scheme fallback
+        const phonepeUri = `phonepe://pay?pa=${encodeURIComponent(upiIds.phonepe)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        const phonepeUpiUri = `upi://pay?pa=${encodeURIComponent(upiIds.phonepe)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
 
-        const gpayUri = `upi://pay?pa=${encodeURIComponent(upiIds.gpay)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
-        document.getElementById("gpay-link").href = gpayUri;
+        // Google Pay UPI Intent - using tez:// and gpay:// schemes
+        const gpayUri = `tez://upi/pay?pa=${encodeURIComponent(upiIds.gpay)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        const gpayAltUri = `gpay://upi/pay?pa=${encodeURIComponent(upiIds.gpay)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        const gpayUpiUri = `upi://pay?pa=${encodeURIComponent(upiIds.gpay)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
 
         function showOverlay() {
           if (document.getElementById("overlay")) return;
@@ -261,22 +262,94 @@
           }, 1600);
         }
 
+        // Paytm click handler - try multiple UPI schemes
         document
-          .getElementById("gpay-link")
+          .getElementById("paytm-link")
           .addEventListener("click", function (e) {
             e.preventDefault();
-            openUriWithFallback(gpayUri, upiIds.gpay);
+            // Try Paytm UPI scheme first
+            try {
+              window.location.href = paytmUri;
+            } catch (e) {
+              console.log("Paytm UPI failed:", e);
+            }
+            // Show overlay and fallback options
+            setTimeout(function () {
+              if (document.visibilityState === "visible") {
+                showUpiFallback(upiIds.paytm);
+                showOverlay();
+              }
+            }, 1600);
           });
+
+        // PhonePe click handler - try phonepe:// then upi://
         document
           .getElementById("phonepe-link")
           .addEventListener("click", function (e) {
             e.preventDefault();
-            openUriWithFallback(phonepeUri, upiIds.phonepe);
+            // Try PhonePe-specific scheme first
+            try {
+              window.location.href = phonepeUri;
+              // Fallback to generic UPI after a delay
+              setTimeout(function () {
+                if (document.visibilityState === "visible") {
+                  try {
+                    window.location.href = phonepeUpiUri;
+                  } catch (e) {
+                    console.log("PhonePe UPI fallback failed:", e);
+                  }
+                }
+              }, 800);
+            } catch (e) {
+              console.log("PhonePe scheme failed:", e);
+            }
+            // Show fallback UI
+            setTimeout(function () {
+              if (document.visibilityState === "visible") {
+                showUpiFallback(upiIds.phonepe);
+                showOverlay();
+              }
+            }, 1600);
           });
+
+        // Google Pay click handler - try tez://, gpay://, then upi://
         document
-          .getElementById("paytm-link")
+          .getElementById("gpay-link")
           .addEventListener("click", function (e) {
-            /* show overlay so user knows next step */ showOverlay();
+            e.preventDefault();
+            // Try Google Pay tez:// scheme first
+            try {
+              window.location.href = gpayUri;
+              // Try gpay:// scheme as secondary fallback
+              setTimeout(function () {
+                if (document.visibilityState === "visible") {
+                  try {
+                    window.location.href = gpayAltUri;
+                    // Finally try generic UPI
+                    setTimeout(function () {
+                      if (document.visibilityState === "visible") {
+                        try {
+                          window.location.href = gpayUpiUri;
+                        } catch (e) {
+                          console.log("GPay UPI fallback failed:", e);
+                        }
+                      }
+                    }, 600);
+                  } catch (e) {
+                    console.log("GPay alt scheme failed:", e);
+                  }
+                }
+              }, 800);
+            } catch (e) {
+              console.log("GPay tez scheme failed:", e);
+            }
+            // Show fallback UI
+            setTimeout(function () {
+              if (document.visibilityState === "visible") {
+                showUpiFallback(upiIds.gpay);
+                showOverlay();
+              }
+            }, 1600);
           });
 
         if (!params.get("orderId") && sessionStorage.getItem("lastOrderId")) {

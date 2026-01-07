@@ -1,128 +1,168 @@
-<footer
-  class="footer color-scheme-3 gradient section-sections--17133121437798__footer-padding"
->
-  <div class="footer__content-top page-width" bis_skin_checked="1">
-    <div
-      class="footer-block--newsletter scroll-trigger animate--slide-in"
-      data-cascade=""
-      bis_skin_checked="1"
-    >
-      <div
-        class="footer-block__newsletter"
-        bis_skin_checked="1"
-        style="padding-top: 5%"
-      >
-        <h2 class="footer-block__heading inline-richtext">
-          Subscribe to our emails
-        </h2>
-        <form
-          method="post"
-          action="/contact#ContactFooter"
-          id="ContactFooter"
-          accept-charset="UTF-8"
-          class="footer__newsletter newsletter-form"
+<style>
+  .snack-footer {
+    padding: 48px 16px 28px;
+    color: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(180deg, #242833 0%, #202328 100%);
+    font-family: Assistant, sans-serif;
+  }
+  .snack-footer .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .snack-footer h3 {
+    font-size: 1rem;
+    margin: 0 0 8px;
+    color: #fff;
+  }
+  .snack-footer a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+  }
+  .snack-footer .brand {
+    grid-column: span 2;
+  }
+  .snack-footer .brand .logo {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #fff;
+  }
+  .snack-footer .social {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .snack-footer .links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    line-height: 1.9;
+  }
+  .snack-footer .contact {
+    font-size: 0.95rem;
+  }
+  .snack-footer .payments {
+    margin-top: 8px;
+  }
+  .snack-footer .bottom {
+    margin-top: 22px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 900px) {
+    .snack-footer .container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .snack-footer .brand {
+      grid-column: span 2;
+    }
+  }
+  @media (max-width: 560px) {
+    .snack-footer .container {
+      grid-template-columns: 1fr;
+    }
+    .snack-footer .brand {
+      grid-column: span 1;
+    }
+  }
+</style>
+
+<footer class="snack-footer color-scheme-3" role="contentinfo">
+  <div class="container page-width">
+    <div class="brand">
+      <div class="logo">Candy Craze</div>
+      <div class="tagline" style="opacity: 0.9; margin-top: 6px">
+        Hand-picked snacks & treats. Delivered with love.
+      </div>
+      <div class="social" aria-hidden="false">
+        <a href="#" aria-label="Follow on Facebook" title="Facebook"
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M22 12.07C22 6.48 17.52 2 11.93 2S2 6.48 2 12.07c0 5 3.66 9.15 8.44 9.95v-7.04H8.1v-2.91h2.34V9.41c0-2.31 1.37-3.59 3.46-3.59.99 0 2.03.18 2.03.18v2.24h-1.15c-1.13 0-1.48.7-1.48 1.42v1.7h2.51l-.4 2.91h-2.11V22c4.78-.8 8.44-4.95 8.44-9.93z"
+              fill="currentColor"
+            /></svg
+        ></a>
+        <a href="#" aria-label="Follow on Instagram" title="Instagram"
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 6.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6zm6.3-.8a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2z"
+              fill="currentColor"
+            /></svg
+        ></a>
+        <a href="#" aria-label="Follow on WhatsApp" title="WhatsApp"
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2a10 10 0 1 0 0 20c1.37 0 2.7-.28 3.9-.8L22 22l-1.9-6.1A9.95 9.95 0 0 0 22 12a10 10 0 0 0-10-10zM9.2 7.9c-.2-.1-.5-.1-.7.1-.9.7-1.4 1.9-1.4 3.1 0 1.3.6 2.6 1.6 3.6 1 1 2.3 1.6 3.6 1.6.9 0 1.9-.2 2.7-.6.2-.1.4-.2.5-.4.2-.3.1-.6-.1-.9-.2-.2-.4-.4-.7-.5-.5-.2-1.1-.3-1.6-.3-.3 0-.6.1-.8.2-.3.1-.6.4-.9.6-.3.3-.6.5-1 .6-.1.1-.3.1-.4.1-.4 0-.8-.3-1-1-.1-.3 0-.5.1-.7.2-.3.5-.6.9-.9.2-.2.4-.4.5-.6.1-.2.1-.5 0-.7-.1-.4-.3-.8-.6-1-.2-.1-.5-.3-.9-.2z"
+              fill="currentColor"
+            /></svg
+        ></a>
+      </div>
+    </div>
+
+    <div class="links">
+      <h3>Shop</h3>
+      <ul>
+        <li><a href="/collections/new-launched">New launched</a></li>
+        <li><a href="/pages/hot-deals">Hot deals</a></li>
+        <li><a href="/products">All products</a></li>
+      </ul>
+    </div>
+
+    <div class="links">
+      <h3>Company</h3>
+      <ul>
+        <li><a href="/about-us.html">About us</a></li>
+        <li><a href="/faq.html">FAQ</a></li>
+        <li><a href="/policies/contact-information">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="contact">
+      <h3>Contact</h3>
+      <div>Phone: <a href="tel:+911234567890">+91 12345 67890</a></div>
+      <div style="margin-top: 6px">
+        Email:
+        <a href="mailto:hello@thesnacksmackindia.com"
+          >hello@thesnacksmackindia.com</a
         >
-          <input type="hidden" name="form_type" value="customer" />
-          <input type="hidden" name="utf8" value="✓" />
-          <input type="hidden" name="contact[tags]" value="newsletter" />
-          <div class="newsletter-form__field-wrapper" bis_skin_checked="1">
-            <div class="field" bis_skin_checked="1">
-              <input
-                id="NewsletterForm--sections--17133121437798__footer"
-                type="email"
-                name="contact[email]"
-                class="field__input"
-                value=""
-                aria-required="true"
-                autocorrect="off"
-                autocapitalize="off"
-                autocomplete="email"
-                placeholder="Email"
-                required=""
-              />
-              <label
-                class="field__label"
-                for="NewsletterForm--sections--17133121437798__footer"
-              >
-                Email
-              </label>
-              <button
-                type="submit"
-                class="newsletter-form__button field__button"
-                name="commit"
-                id="Subscribe"
-                aria-label="Subscribe"
-              >
-                <span class="svg-wrapper">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    class="icon icon-arrow"
-                    viewBox="0 0 14 10"
-                  >
-                    <path
-                      fill="currentColor"
-                      fill-rule="evenodd"
-                      d="M8.537.808a.5.5 0 0 1 .817-.162l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 1 1-.708-.708L11.793 5.5H1a.5.5 0 0 1 0-1h10.793L8.646 1.354a.5.5 0 0 1-.109-.546"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                </span>
-              </button>
-            </div>
-          </div>
-        </form>
+      </div>
+      <div class="payments" aria-hidden="true">
+        <!-- payment logos can be placed here -->
       </div>
     </div>
   </div>
-  <div
-    class="footer__content-bottom scroll-trigger animate--slide-in"
-    data-cascade=""
-    bis_skin_checked="1"
-  >
-    <div class="footer__content-bottom-wrapper page-width" bis_skin_checked="1">
-      <div
-        class="footer__column footer__localization isolate"
-        bis_skin_checked="1"
-      ></div>
-      <div class="footer__column footer__column--info" bis_skin_checked="1">
-        <div class="footer__payment" bis_skin_checked="1">
-          <span class="visually-hidden">Payment methods</span>
-          <ul class="list list-payment" role="list"></ul>
-        </div>
-      </div>
-    </div>
-    <div class="footer__content-bottom-wrapper page-width" bis_skin_checked="1">
-      <div class="footer__copyright caption" bis_skin_checked="1">
-        <small class="copyright__content"
-          >© 2026, <a href="/" title="">Candy Craze</a>
-        </small>
-        <small class="copyright__content">
-          <a target="_blank" rel="nofollow" href="#">@Spicykik</a>
-        </small>
-        <ul class="policies list-unstyled">
-          <li>
-            <small class="copyright__content">
-              <a href="/policies/privacy-policy">Privacy policy</a>
-            </small>
-          </li>
-          <li>
-            <small class="copyright__content">
-              <a href="/policies/refund-policy">Refund policy</a>
-            </small>
-          </li>
-          <li>
-            <small class="copyright__content">
-              <a href="/policies/terms-of-service">Terms of service</a>
-            </small>
-          </li>
-          <li>
-            <small class="copyright__content">
-              <a href="/policies/contact-information">Contact information</a>
-            </small>
-          </li>
-        </ul>
-      </div>
+
+  <div class="container page-width bottom">
+    <div>© 2026, <a href="/">Candy Craze</a> — All rights reserved.</div>
+    <div class="policies">
+      <a href="/policies/privacy-policy">Privacy</a> ·
+      <a href="/policies/refund-policy">Refund</a> ·
+      <a href="/policies/terms-of-service">Terms</a>
     </div>
   </div>
 </footer>

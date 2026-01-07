@@ -328,7 +328,14 @@
                 })
               );
 
-              window.location.href = "dashboard.html";
+              // If caller provided a returnUrl, redirect back there after login
+              try {
+                const params = new URLSearchParams(window.location.search);
+                const returnUrl = params.get("returnUrl");
+                window.location.href = returnUrl ? returnUrl : "dashboard.html";
+              } catch (e) {
+                window.location.href = "dashboard.html";
+              }
             } catch (error) {
               console.error("Login error:", error);
               errorEl.textContent = "An error occurred. Please try again.";
