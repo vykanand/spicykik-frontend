@@ -1838,19 +1838,6 @@
                 class="button button--secondary button--full-width"
                 >View cart</a
               >
-              <form
-                onsubmit="return false"
-                action="#"
-                method="post"
-                id="cart-notification-form"
-              >
-                <button
-                  class="button button--primary button--full-width"
-                  name="checkout"
-                >
-                  Check out
-                </button>
-              </form>
               <button type="button" class="link button-label">
                 Continue shopping
               </button>
@@ -2260,9 +2247,7 @@
 
     <script>
       (function () {
-        // Match registration POST format: application/x-www-form-urlencoded
-        const API_BASE =
-          "https://spicykik-backend-production.up.railway.app/orders/api.php";
+        const API_BASE = "https://spicykik-backend-production.up.railway.app/orders/api.php";
         const ORDERS_URL = `${API_BASE}?setcontent=true`;
 
         function getUser() {
@@ -2278,42 +2263,31 @@
           var el = document.querySelector(".totals__total-value");
           if (!el) return 0;
           var txt = el.textContent || el.innerText || "";
-          // strip non-digits and parse float
           txt = txt.replace(/[Rs.,\s]/g, "").replace(/[^0-9.\-]/g, "");
           var n = parseFloat(txt);
           return Number.isFinite(n) ? n : 0;
         }
 
         function generateOrderId() {
-          return (
-            Date.now().toString(36) +
-            Math.random().toString(36).slice(2, 8).toUpperCase()
-          );
+          return Date.now().toString(36) + Math.random().toString(36).slice(2, 8).toUpperCase();
         }
 
         async function handleCheckout(e) {
           e && e.preventDefault();
+          
           const user = getUser();
           if (!user) {
-            // require login; preserve returnUrl
-            window.location.href =
-              "login.html?returnUrl=" +
-              encodeURIComponent(
-                window.location.pathname + window.location.search
-              );
+            window.location.href = "login.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
             return;
           }
 
-          // collect order data
           const customer_name = user.name || user.Customer_name || "";
           const phone = user.phone || "";
           const order_amount = parseTotal().toString();
 
-          // try to get saved address if available, otherwise prompt
           var delivery_address = user.address || user.address_line || "";
           if (!delivery_address) {
-            delivery_address =
-              prompt("Enter delivery address for this order:", "") || "";
+            delivery_address = prompt("Enter delivery address for this order:", "") || "";
             if (!delivery_address) {
               alert("Delivery address is required to place order");
               return;
@@ -2325,7 +2299,7 @@
           const orderid = generateOrderId();
           const cutomerID = user.id ? String(user.id) : "";
 
-          // build form body using same format as registration
+          // Build form data matching registration format
           const formData = new URLSearchParams();
           formData.append("customer_name", customer_name);
           formData.append("order_amount", order_amount);
@@ -2336,80 +2310,105 @@
           formData.append("phone", phone);
           formData.append("cutomerID", cutomerID);
 
-          const body = formData.toString();
+          // Encode body same way as registration
+          const encodedBody = formData.toString();
+
+          console.log("=== ORDER REQUEST ===");
+          console.log("Order Data:", {
+            customer_name,
+            order_amount,
+            delivery_address,
+            order_status,
+            role,
+            orderid,
+            phone,
+            cutomerID
+          });
+          console.log("URLSearchParams entries:", [...formData.entries()]);
+          console.log("Encoded Body:", encodedBody);
 
           try {
-            // disable button to avoid double submits
             var btn = document.getElementById("checkout");
-            if (btn) btn.disabled = true;
+            if (btn) {
+              btn.disabled = true;
+              btn.textContent = "Processing...";
+            }
 
             const resp = await fetch(ORDERS_URL, {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
-              body: body,
+              body: encodedBody,
             });
 
-            const text = await resp.text();
+            console.log("=== ORDER RESPONSE ===");
+            console.log("Status:", resp.status);
+            console.log("Status Text:", resp.statusText);
+            console.log("OK:", resp.ok);
+            console.log("Headers:", [...resp.headers.entries()]);
 
-            // Variable to store the actual order ID (from API or generated)
+            const text = await resp.text();
+            console.log("Response Text:", text);
+            console.log("Response Text Length:", text.length);
+            
             var finalOrderId = orderid;
 
+            if (!resp.ok) {
+              console.error("Order failed with status:", resp.status);
+              if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Checkout";
+              }
+              alert("Order failed: " + (text || resp.statusText));
+              return;
+            }
+
+            // Try to parse response as JSON
             try {
               const json = JSON.parse(text);
-              if (json.response === "success" || resp.ok) {
-                // Extract order ID from API response if available
-                if (json.orderid) {
-                  finalOrderId = json.orderid;
-                } else if (json.order_id) {
-                  finalOrderId = json.order_id;
-                } else if (json.data && json.data.orderid) {
-                  finalOrderId = json.data.orderid;
-                }
+              console.log("Parsed JSON:", json);
+              
+              // Extract order ID from various possible response formats
+              if (json.orderid) finalOrderId = json.orderid;
+              else if (json.order_id) finalOrderId = json.order_id;
+              else if (json.data && json.data.orderid) finalOrderId = json.data.orderid;
+            } catch (e) {
+              console.log("Response is not JSON, using generated order ID");
+            }
 
-                // Clear cart storage
-                try {
-                  localStorage.removeItem("cart");
-                } catch (e) {}
+            if (resp.ok) {
+              try {
+                localStorage.removeItem("cart");
+              } catch (e) {}
 
-                // Build payment URL with final order ID
-                const paymentUrl = `pay.html?orderId=${encodeURIComponent(finalOrderId)}&amount=${encodeURIComponent(order_amount)}&customerName=${encodeURIComponent(customer_name)}&phone=${encodeURIComponent(phone)}`;
+              alert("Order placed successfully! Order ID: " + finalOrderId);
 
-                // Show success alert - this will block until user clicks OK
-                alert("Order placed successfully! Order ID: " + finalOrderId);
-
-                // Redirect after user dismisses alert
-                window.location.href = paymentUrl;
-                return;
-              } else {
-                alert("Order failed: " + (json.message || text));
+              const paymentUrl = `pay.html?orderId=${encodeURIComponent(finalOrderId)}&amount=${encodeURIComponent(order_amount)}&customerName=${encodeURIComponent(customer_name)}&phone=${encodeURIComponent(phone)}`;
+              window.location.href = paymentUrl;
+            } else {
+              if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Checkout";
               }
-            } catch (err) {
-              // non-json response - proceed if HTTP status is ok
-              if (resp.ok) {
-                // Clear cart storage
-                try {
-                  localStorage.removeItem("cart");
-                } catch (e) {}
-
-                // Build payment URL with final order ID
-                const paymentUrl = `pay.html?orderId=${encodeURIComponent(finalOrderId)}&amount=${encodeURIComponent(order_amount)}&customerName=${encodeURIComponent(customer_name)}&phone=${encodeURIComponent(phone)}`;
-
-                // Show success alert - this will block until user clicks OK
-                alert("Order placed successfully! Order ID: " + finalOrderId);
-
-                // Redirect after user dismisses alert
-                window.location.href = paymentUrl;
-                return;
-              } else {
-                alert("Order failed: " + text);
-              }
+              alert("Order failed: " + text);
             }
           } catch (error) {
             console.error("Checkout error", error);
             alert("Failed to place order. Please try again.");
-          } finally {
             var btn2 = document.getElementById("checkout");
-            if (btn2) btn2.disabled = false;
+            if (btn2) {
+              btn2.disabled = false;
+              btn2.textContent = "Checkout";
+            }
+          }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+          var btn = document.getElementById("checkout");
+          if (!btn) return;
+          btn.addEventListener("click", handleCheckout);
+        });
+      })();
+    </script>
           }
         }
 

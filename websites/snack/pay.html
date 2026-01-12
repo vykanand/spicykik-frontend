@@ -163,13 +163,14 @@
 
         const upiIds = {
           paytm: "vykanand@ptaxis",
-          phonepe: "vykanand@ybl",
+          phonepe: "7669077099-2@ybl",
           gpay: "nishagautamnishu@okhdfcbank",
         };
         const merchantName = "TandoorBaaz";
 
-        // Paytm UPI Intent - using standard UPI protocol with Paytm-specific package
-        const paytmUri = `upi://pay?pa=${encodeURIComponent(upiIds.paytm)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        // Paytm UPI Intent - using Paytm-specific scheme to avoid redirecting to other apps
+        const paytmUri = `paytmmp://pay?pa=${encodeURIComponent(upiIds.paytm)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
+        const paytmUpiUri = `upi://pay?pa=${encodeURIComponent(upiIds.paytm)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
 
         // PhonePe UPI Intent with phonepe:// scheme fallback
         const phonepeUri = `phonepe://pay?pa=${encodeURIComponent(upiIds.phonepe)}&pn=${encodeURIComponent(merchantName)}&am=${encodeURIComponent(amount)}&cu=INR&tr=${encodeURIComponent(orderId)}`;
@@ -262,16 +263,26 @@
           }, 1600);
         }
 
-        // Paytm click handler - try multiple UPI schemes
+        // Paytm click handler - try Paytm-specific scheme first, then generic UPI
         document
           .getElementById("paytm-link")
           .addEventListener("click", function (e) {
             e.preventDefault();
-            // Try Paytm UPI scheme first
+            // Try Paytm-specific scheme first (paytmmp://)
             try {
               window.location.href = paytmUri;
+              // Fallback to generic UPI after a delay if Paytm app not installed
+              setTimeout(function () {
+                if (document.visibilityState === "visible") {
+                  try {
+                    window.location.href = paytmUpiUri;
+                  } catch (e) {
+                    console.log("Paytm UPI fallback failed:", e);
+                  }
+                }
+              }, 800);
             } catch (e) {
-              console.log("Paytm UPI failed:", e);
+              console.log("Paytm scheme failed:", e);
             }
             // Show overlay and fallback options
             setTimeout(function () {
