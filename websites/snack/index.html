@@ -714,6 +714,12 @@
           display: inline-flex !important;
         }
       }
+      
+      /* Fix duplicate header issue - hide the second header section */
+      #shopify-section-sections--17133121536102__header ~ #shopify-section-sections--17133121536102__header,
+      .shopify-section-group-header-group + .shopify-section-group-header-group sticky-header {
+        display: none !important;
+      }
     </style>
     <style class="darkreader darkreader--override" media="screen"></style>
     </head>
@@ -1111,7 +1117,7 @@
               <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-swatch-input.css?v=61683592951238328641744280571" rel="stylesheet" type="text/css" media="all">
               <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-swatch.css?v=6811383713633888781744280571" rel="stylesheet" type="text/css" media="all">
               <div class="facets-container scroll-trigger animate--fade-in" bis_skin_checked="1">
-                <facet-filters-form class="facets small-hide">
+                <!-- <facet-filters-form class="facets small-hide">
                   <form id="FacetFiltersForm" class="facets__form">
                     <div id="FacetsWrapperDesktop" class="facets__wrapper" bis_skin_checked="1">
                       <h2 class="facets__heading caption-large text-body" id="verticalTitle" tabindex="-1"> Filter: </h2>
@@ -1216,7 +1222,7 @@
                       </div>
                     </div>
                   </form>
-                </facet-filters-form>
+                </facet-filters-form> -->
                 <menu-drawer class="mobile-facets__wrapper medium-hide large-up-hide" data-breakpoint="mobile">
                   <details class="mobile-facets__disclosure disclosure-has-popup">
                     <summary class="mobile-facets__open-wrapper focus-offset">

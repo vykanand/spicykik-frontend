@@ -295,5 +295,35 @@
         window.location.href = "login.html";
       }
     </script>
+
+    <div id="site-footer-placeholder" style="margin-top: 60px"></div>
+    <script>
+      (function () {
+        function insertHtml(id, candidates) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          (function tryFetch(i) {
+            if (i >= candidates.length) return;
+            fetch(candidates[i], { cache: "no-cache" })
+              .then(function (r) {
+                if (!r.ok) throw 0;
+                return r.text();
+              })
+              .then(function (html) {
+                el.innerHTML = html;
+              })
+              .catch(function () {
+                tryFetch(i + 1);
+              });
+          })(0);
+        }
+        insertHtml("site-footer-placeholder", [
+          "./includes/footer.html",
+          "/includes/footer.html",
+          "../includes/footer.html",
+          "../../includes/footer.html",
+        ]);
+      })();
+    </script>
   </body>
 </html>

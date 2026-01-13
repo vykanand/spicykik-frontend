@@ -129,8 +129,27 @@
     buttons.forEach(btn => {
       if(btn.__cartBound) return;
       btn.__cartBound = true;
+      
+      let isProcessing = false; // Lock to prevent multiple rapid clicks
+      
       btn.addEventListener('click', (e)=>{
         e.preventDefault();
+        e.stopPropagation();
+        
+        // Prevent multiple rapid clicks
+        if(isProcessing) {
+          log('debug', { action:'click_ignored_processing' });
+          return;
+        }
+        isProcessing = true;
+        
+        // Add visual feedback
+        const originalText = btn.textContent;
+        const originalDisabled = btn.disabled;
+        btn.style.opacity = '0.6';
+        btn.style.pointerEvents = 'none';
+        if(btn.tagName === 'BUTTON') btn.disabled = true;
+        
         try{
           const root = btn.closest('li, .grid__item, .card-wrapper, .product-card-wrapper, .card, [data-product-root]') || document;
           // Try to find a product id and details around the button
@@ -148,6 +167,10 @@
           }
           if(!id){
             log('debug', { action:'missing_id', btn });
+            isProcessing = false;
+            btn.style.opacity = '';
+            btn.style.pointerEvents = '';
+            if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
             return;
           }
           const titleEl = root.querySelector('.card__heading a, .product__title, h1,h2,h3');
@@ -175,6 +198,14 @@
           if(btnImage) image = btnImage;
 
           addToCart({ id, title, price, image, qty: 1 });
+          
+          // Reset visual feedback after a short delay
+          setTimeout(() => {
+            btn.style.opacity = '';
+            btn.style.pointerEvents = '';
+            if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
+          }, 100);
+          
           // if the control is an anchor linking to cart, or explicitly requests redirect,
           // follow the link so users land on the cart page after adding
           try{
@@ -185,18 +216,30 @@
               setTimeout(()=> {
                 if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent(href); }
                 else { window.location.href = href; }
-              }, 150);
+              }, 200);
             } else if (wantsRedirect) {
               setTimeout(()=> {
                 if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent('./cart.html'); }
                 else { window.location.href = './cart.html'; }
-              }, 150);
+              }, 200);
+            } else {
+              // If not redirecting, reset processing lock after a short delay
+              setTimeout(() => { isProcessing = false; }, 500);
             }
-          }catch(e){ /* ignore redirect errors */ }
+          }catch(e){ 
+            isProcessing = false;
+            btn.style.opacity = '';
+            btn.style.pointerEvents = '';
+            if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
+          }
         }catch(err){
           log('debug', { action:'add_error', error: String(err)});
+          isProcessing = false;
+          btn.style.opacity = '';
+          btn.style.pointerEvents = '';
+          if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
         }
-      });
+      }, { passive: false }); // Ensure preventDefault works properly
     });
     log('debug', { action:'bound_buttons', count: buttons.length });
   }

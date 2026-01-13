@@ -706,59 +706,8 @@
     </script>
     <!-- Avada extension script commented out for local development -->
     <!-- <script src="../cdn.shopify.com/extensions/019aa4a3-d895-754e-b7dc-a8d4951bc185/avada-app-76/assets/avada-order-limit.js" type="text/javascript" defer="defer"></script> -->
-    <link href="https://monorail-edge.shopifysvc.com/" rel="dns-prefetch" />
-    <script>
-      (function () {
-        if ("sendBeacon" in navigator && "performance" in window) {
-          try {
-            var session_token_from_headers = performance
-              .getEntriesByType("navigation")[0]
-              .serverTiming.find((x) => x.name == "_s").description;
-          } catch {
-            var session_token_from_headers = undefined;
-          }
-          var session_cookie_matches =
-            document.cookie.match(/_shopify_s=([^;]*)/);
-          var session_token_from_cookie =
-            session_cookie_matches && session_cookie_matches.length === 2
-              ? session_cookie_matches[1]
-              : "";
-          var session_token =
-            session_token_from_headers || session_token_from_cookie || "";
-          function handle_abandonment_event(e) {
-            var entries = performance.getEntries().filter(function (entry) {
-              return /monorail-edge.shopifysvc.com/.test(entry.name);
-            });
-            if (!window.abandonment_tracked && entries.length === 0) {
-              window.abandonment_tracked = true;
-              var currentMs = Date.now();
-              var navigation_start = performance.timing.navigationStart;
-              var payload = {
-                shop_id: 63979683942,
-                url: window.location.href,
-                navigation_start,
-                duration: currentMs - navigation_start,
-                session_token,
-                page_type: "cart",
-              };
-              window.navigator.sendBeacon(
-                "https://monorail-edge.shopifysvc.com/v1/produce",
-                JSON.stringify({
-                  schema_id: "online_store_buyer_site_abandonment/1.1",
-                  payload: payload,
-                  metadata: {
-                    event_created_at_ms: currentMs,
-                    event_sent_at_ms: currentMs,
-                  },
-                })
-              );
-            }
-          }
-          window.addEventListener("pagehide", handle_abandonment_event);
-        }
-      })();
-    </script>
-    <script id="web-pixels-manager-setup">
+    <!-- Web pixels manager script removed -->
+    <script id="web-pixels-manager-setup" style="display: none">
       (function e(e, d, r, n, o) {
         if (
           (void 0 === o && (o = {}),
@@ -1033,244 +982,7 @@
         }
       );
     </script>
-    <script>
-      window.ShopifyAnalytics = window.ShopifyAnalytics || {};
-      window.ShopifyAnalytics.meta = window.ShopifyAnalytics.meta || {};
-      window.ShopifyAnalytics.meta.currency = "INR";
-      var meta = { page: { pageType: "cart" } };
-      for (var attr in meta) {
-        window.ShopifyAnalytics.meta[attr] = meta[attr];
-      }
-    </script>
-    <script class="analytics">
-      (function () {
-        var customDocumentWrite = function (content) {
-          var jquery = null;
-
-          if (window.jQuery) {
-            jquery = window.jQuery;
-          } else if (window.Checkout && window.Checkout.$) {
-            jquery = window.Checkout.$;
-          }
-
-          if (jquery) {
-            jquery("body").append(content);
-          }
-        };
-
-        var hasLoggedConversion = function (token) {
-          if (token) {
-            return document.cookie.indexOf("loggedConversion=" + token) !== -1;
-          }
-          return false;
-        };
-
-        var setCookieIfConversion = function (token) {
-          if (token) {
-            var twoMonthsFromNow = new Date(Date.now());
-            twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
-
-            document.cookie =
-              "loggedConversion=" + token + "; expires=" + twoMonthsFromNow;
-          }
-        };
-
-        var trekkie =
-          (window.ShopifyAnalytics.lib =
-          window.trekkie =
-            window.trekkie || []);
-        if (trekkie.integrations) {
-          return;
-        }
-        trekkie.methods = [
-          "identify",
-          "page",
-          "ready",
-          "track",
-          "trackForm",
-          "trackLink",
-        ];
-        trekkie.factory = function (method) {
-          return function () {
-            var args = Array.prototype.slice.call(arguments);
-            args.unshift(method);
-            trekkie.push(args);
-            return trekkie;
-          };
-        };
-        for (var i = 0; i < trekkie.methods.length; i++) {
-          var key = trekkie.methods[i];
-          trekkie[key] = trekkie.factory(key);
-        }
-        trekkie.load = function (config) {
-          trekkie.config = config || {};
-          trekkie.config.initialDocumentCookie = document.cookie;
-          var first = document.getElementsByTagName("script")[0];
-          var script = document.createElement("script");
-          script.type = "text/javascript";
-          script.onerror = function (e) {
-            var scriptFallback = document.createElement("script");
-            scriptFallback.type = "text/javascript";
-            scriptFallback.onerror = function (error) {
-              var Monorail = {
-                produce: function produce(monorailDomain, schemaId, payload) {
-                  var currentMs = new Date().getTime();
-                  var event = {
-                    schema_id: schemaId,
-                    payload: payload,
-                    metadata: {
-                      event_created_at_ms: currentMs,
-                      event_sent_at_ms: currentMs,
-                    },
-                  };
-                  return Monorail.sendRequest(
-                    "https://" + monorailDomain + "/v1/produce",
-                    JSON.stringify(event)
-                  );
-                },
-                sendRequest: function sendRequest(endpointUrl, payload) {
-                  // Try the sendBeacon API
-                  if (
-                    window &&
-                    window.navigator &&
-                    typeof window.navigator.sendBeacon === "function" &&
-                    typeof window.Blob === "function" &&
-                    !Monorail.isIos12()
-                  ) {
-                    var blobData = new window.Blob([payload], {
-                      type: "text/plain",
-                    });
-
-                    if (window.navigator.sendBeacon(endpointUrl, blobData)) {
-                      return true;
-                    } // sendBeacon was not successful
-                  } // XHR beacon
-
-                  var xhr = new XMLHttpRequest();
-
-                  try {
-                    xhr.open("POST.html", endpointUrl);
-                    xhr.setRequestHeader("Content-Type", "text/plain");
-                    xhr.send(payload);
-                  } catch (e) {
-                    console.log(e);
-                  }
-
-                  return false;
-                },
-                isIos12: function isIos12() {
-                  return (
-                    window.navigator.userAgent.lastIndexOf(
-                      "iPhone; CPU iPhone OS 12_"
-                    ) !== -1 ||
-                    window.navigator.userAgent.lastIndexOf(
-                      "iPad; CPU OS 12_"
-                    ) !== -1
-                  );
-                },
-              };
-              Monorail.produce(
-                "monorail-edge.shopifysvc.com",
-                "trekkie_storefront_load_errors/1.1",
-                {
-                  shop_id: 63979683942,
-                  theme_id: 135387611238,
-                  app_name: "storefront",
-                  context_url: window.location.href,
-                  source_url:
-                    "//thesnacksmackindia.com/cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js",
-                }
-              );
-            };
-            scriptFallback.async = true;
-            scriptFallback.src =
-              "cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js";
-            first.parentNode.insertBefore(scriptFallback, first);
-          };
-          script.async = true;
-          script.src =
-            "cdn/s/trekkie.storefront.308893168db1679b4a9f8a086857af995740364f.min.js";
-          first.parentNode.insertBefore(script, first);
-        };
-        trekkie.load({
-          Trekkie: {
-            appName: "storefront",
-            development: false,
-            defaultAttributes: {
-              shopId: 63979683942,
-              isMerchantRequest: null,
-              themeId: 135387611238,
-              themeCityHash: "6103036375783769923",
-              contentLanguage: "en",
-              currency: "INR",
-              eventMetadataId: "240432a8-a334-46f7-aba1-f377156eaa5e",
-            },
-            isServerSideCookieWritingEnabled: true,
-            monorailRegion: "shop_domain",
-            enabledBetaFlags: ["f0df213a"],
-          },
-          "Session Attribution": {},
-          S2S: {
-            facebookCapiEnabled: false,
-            source: "trekkie-storefront-renderer",
-            apiClientId: 580111,
-          },
-        });
-
-        var loaded = false;
-        trekkie.ready(function () {
-          if (loaded) return;
-          loaded = true;
-
-          window.ShopifyAnalytics.lib = window.trekkie;
-
-          var originalDocumentWrite = document.write;
-          document.write = customDocumentWrite;
-          try {
-            window.ShopifyAnalytics.merchantGoogleAnalytics.call(this);
-          } catch (error) {}
-          document.write = originalDocumentWrite;
-
-          window.ShopifyAnalytics.lib.page(null, {
-            pageType: "cart",
-            shopifyEmitted: true,
-          });
-
-          var match = window.location.pathname.match(
-            /checkouts\/(.+)\/(thank_you|post_purchase)/
-          );
-          var token = match ? match[1] : undefined;
-          if (!hasLoggedConversion(token)) {
-            setCookieIfConversion(token);
-          }
-        });
-
-        var eventsListenerScript = document.createElement("script");
-        eventsListenerScript.async = true;
-        eventsListenerScript.src =
-          "cdn/shopifycloud/storefront/assets/shop_events_listener-3da45d37.js";
-        document
-          .getElementsByTagName("head")[0]
-          .appendChild(eventsListenerScript);
-      })();
-    </script>
-    <script
-      defer
-      src="cdn/shopifycloud/perf-kit/shopify-perf-kit-2.1.2.min.js"
-      data-application="storefront-renderer"
-      data-shop-id="63979683942"
-      data-render-region="gcp-asia-southeast1"
-      data-page-type="cart"
-      data-theme-instance-id="135387611238"
-      data-theme-name="Dawn"
-      data-theme-version="15.3.0"
-      data-monorail-region="shop_domain"
-      data-resource-timing-sampling-rate="10"
-      data-shs="true"
-      data-shs-beacon="true"
-      data-shs-export-with-fetch="true"
-      data-shs-logs-sample-rate="1"
-    ></script>
+    <!-- All analytics/tracking scripts removed -->
   </head>
 
   <body class="gradient">
@@ -2225,17 +1937,49 @@
                     >Taxes, discounts and shipping calculated at checkout.
                   </small>
                 </div>
-                <div class="cart__ctas">
-                  <button
-                    type="submit"
-                    id="checkout"
-                    class="cart__checkout-button button"
-                    name="checkout"
-                    disabled
-                    form="cart"
+                <div
+                  class="cart__footer-actions"
+                  style="
+                    display: flex;
+                    gap: 20px;
+                    align-items: flex-end;
+                    flex-wrap: wrap;
+                  "
+                >
+                  <div
+                    id="address-display"
+                    style="
+                      flex: 1;
+                      min-width: 200px;
+                      padding: 12px;
+                      background: #f5f5f5;
+                      border-radius: 8px;
+                    "
                   >
-                    Check out
-                  </button>
+                    <div
+                      style="
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: #666;
+                        margin-bottom: 6px;
+                      "
+                    >
+                      Delivery Address
+                    </div>
+                    <div id="address-text" style="font-size: 14px; color: #222">
+                      No address found
+                    </div>
+                  </div>
+                  <div class="cart__ctas">
+                    <button
+                      type="button"
+                      id="checkout"
+                      class="cart__checkout-button button"
+                      name="checkout"
+                    >
+                      Check out
+                    </button>
+                  </div>
                 </div>
                 <div id="cart-errors"></div>
               </div>
@@ -2247,7 +1991,8 @@
 
     <script>
       (function () {
-        const API_BASE = "https://spicykik-backend-production.up.railway.app/orders/api.php";
+        const API_BASE =
+          "https://spicykik-backend-production.up.railway.app/orders/api.php";
         const ORDERS_URL = `${API_BASE}?setcontent=true`;
 
         function getUser() {
@@ -2259,7 +2004,34 @@
           }
         }
 
+        function getCartTotal() {
+          try {
+            const STORAGE_KEY = "spicy_cart_items_v1";
+            const raw = localStorage.getItem(STORAGE_KEY);
+            const cart = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(cart)) return 0;
+
+            // Calculate total: sum of (price * qty) for all items
+            const totalCents = cart.reduce((sum, item) => {
+              const price = Number(item.price || 0);
+              const cents = Math.round(price * 100);
+              const qty = Number(item.qty || 0) || 0;
+              return sum + cents * qty;
+            }, 0);
+
+            return totalCents / 100;
+          } catch (e) {
+            console.error("Error calculating cart total:", e);
+            return 0;
+          }
+        }
+
         function parseTotal() {
+          // First try to get from cart data
+          const cartTotal = getCartTotal();
+          if (cartTotal > 0) return cartTotal;
+
+          // Fallback to parsing from DOM
           var el = document.querySelector(".totals__total-value");
           if (!el) return 0;
           var txt = el.textContent || el.innerText || "";
@@ -2269,37 +2041,36 @@
         }
 
         function generateOrderId() {
-          return Date.now().toString(36) + Math.random().toString(36).slice(2, 8).toUpperCase();
+          return (
+            Date.now().toString(36) +
+            Math.random().toString(36).slice(2, 8).toUpperCase()
+          );
         }
 
         async function handleCheckout(e) {
           e && e.preventDefault();
-          
+
           const user = getUser();
           if (!user) {
-            window.location.href = "login.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search);
+            alert("Please login to continue");
+            window.location.href =
+              "login.html?returnUrl=" +
+              encodeURIComponent(
+                window.location.pathname + window.location.search
+              );
             return;
           }
 
           const customer_name = user.name || user.Customer_name || "";
           const phone = user.phone || "";
           const order_amount = parseTotal().toString();
-
-          var delivery_address = user.address || user.address_line || "";
-          if (!delivery_address) {
-            delivery_address = prompt("Enter delivery address for this order:", "") || "";
-            if (!delivery_address) {
-              alert("Delivery address is required to place order");
-              return;
-            }
-          }
-
+          const delivery_address = user.address || "No address";
           const order_status = "Placed";
           const role = user.role || "admin";
           const orderid = generateOrderId();
           const cutomerID = user.id ? String(user.id) : "";
 
-          // Build form data matching registration format
+          // Build form data
           const formData = new URLSearchParams();
           formData.append("customer_name", customer_name);
           formData.append("order_amount", order_amount);
@@ -2310,11 +2081,9 @@
           formData.append("phone", phone);
           formData.append("cutomerID", cutomerID);
 
-          // Encode body same way as registration
-          const encodedBody = formData.toString();
-
-          console.log("=== ORDER REQUEST ===");
-          console.log("Order Data:", {
+          console.log("=== CHECKOUT REQUEST ===");
+          console.log("URL:", ORDERS_URL);
+          console.log("Request Body:", {
             customer_name,
             order_amount,
             delivery_address,
@@ -2322,83 +2091,53 @@
             role,
             orderid,
             phone,
-            cutomerID
+            cutomerID,
           });
-          console.log("URLSearchParams entries:", [...formData.entries()]);
-          console.log("Encoded Body:", encodedBody);
 
           try {
-            var btn = document.getElementById("checkout");
-            if (btn) {
-              btn.disabled = true;
-              btn.textContent = "Processing...";
-            }
-
-            const resp = await fetch(ORDERS_URL, {
+            const response = await fetch(ORDERS_URL, {
               method: "POST",
-              headers: { "Content-Type": "application/x-www-form-urlencoded" },
-              body: encodedBody,
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: formData.toString(),
             });
 
-            console.log("=== ORDER RESPONSE ===");
-            console.log("Status:", resp.status);
-            console.log("Status Text:", resp.statusText);
-            console.log("OK:", resp.ok);
-            console.log("Headers:", [...resp.headers.entries()]);
+            console.log("=== CHECKOUT RESPONSE ===");
+            console.log("Status:", response.status);
+            console.log("Status Text:", response.statusText);
+            console.log("OK:", response.ok);
 
-            const text = await resp.text();
-            console.log("Response Text:", text);
-            console.log("Response Text Length:", text.length);
-            
-            var finalOrderId = orderid;
+            const responseText = await response.text();
+            console.log("Response Text:", responseText);
 
-            if (!resp.ok) {
-              console.error("Order failed with status:", resp.status);
-              if (btn) {
-                btn.disabled = false;
-                btn.textContent = "Checkout";
-              }
-              alert("Order failed: " + (text || resp.statusText));
-              return;
-            }
-
-            // Try to parse response as JSON
+            let result;
             try {
-              const json = JSON.parse(text);
-              console.log("Parsed JSON:", json);
-              
-              // Extract order ID from various possible response formats
-              if (json.orderid) finalOrderId = json.orderid;
-              else if (json.order_id) finalOrderId = json.order_id;
-              else if (json.data && json.data.orderid) finalOrderId = json.data.orderid;
-            } catch (e) {
-              console.log("Response is not JSON, using generated order ID");
-            }
-
-            if (resp.ok) {
-              try {
-                localStorage.removeItem("cart");
-              } catch (e) {}
-
-              alert("Order placed successfully! Order ID: " + finalOrderId);
-
-              const paymentUrl = `pay.html?orderId=${encodeURIComponent(finalOrderId)}&amount=${encodeURIComponent(order_amount)}&customerName=${encodeURIComponent(customer_name)}&phone=${encodeURIComponent(phone)}`;
-              window.location.href = paymentUrl;
-            } else {
-              if (btn) {
-                btn.disabled = false;
-                btn.textContent = "Checkout";
-              }
-              alert("Order failed: " + text);
+              result = JSON.parse(responseText);
+              console.log("Parsed Response:", result);
+            } catch (parseError) {
+              console.log("Response is not JSON:", parseError);
+              console.log("Raw Response:", responseText);
             }
           } catch (error) {
-            console.error("Checkout error", error);
-            alert("Failed to place order. Please try again.");
-            var btn2 = document.getElementById("checkout");
-            if (btn2) {
-              btn2.disabled = false;
-              btn2.textContent = "Checkout";
-            }
+            console.error("=== CHECKOUT ERROR ===");
+            console.error(error);
+          }
+        }
+
+        function displayAddress() {
+          const user = getUser();
+          const addressEl = document.getElementById("address-text");
+          if (!addressEl) return;
+
+          console.log("User object from localStorage:", user);
+
+          if (user && user.address) {
+            addressEl.textContent = user.address;
+            addressEl.style.color = "#222";
+          } else {
+            addressEl.textContent = "No address found in profile";
+            addressEl.style.color = "#999";
           }
         }
 
@@ -2406,16 +2145,9 @@
           var btn = document.getElementById("checkout");
           if (!btn) return;
           btn.addEventListener("click", handleCheckout);
-        });
-      })();
-    </script>
-          }
-        }
 
-        document.addEventListener("DOMContentLoaded", function () {
-          var btn = document.getElementById("checkout");
-          if (!btn) return;
-          btn.addEventListener("click", handleCheckout);
+          // Display address from localStorage
+          displayAddress();
         });
       })();
     </script>
