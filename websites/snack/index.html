@@ -37,7 +37,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>The Snack Smack — Snacks & Treats</title>
+    <title>SPICYKIK — Snacks & Treats</title>
     <style>
       /* Responsive helpers to avoid horizontal overflow and scale media */
       img, picture, video, iframe, svg {
@@ -716,12 +716,13 @@
       }
       
       /* Fix duplicate header issue - hide the second header section */
-      #shopify-section-sections--17133121536102__header ~ #shopify-section-sections--17133121536102__header,
-      .shopify-section-group-header-group + .shopify-section-group-header-group sticky-header {
+      /* Keep targeted duplicate-id rule only; avoid hiding all sticky-header elements */
+      #shopify-section-sections--17133121536102__header ~ #shopify-section-sections--17133121536102__header {
         display: none !important;
       }
     </style>
     <style class="darkreader darkreader--override" media="screen"></style>
+    <link id="site-header-css" rel="stylesheet" href="./includes/header.css">
     </head>
 
   <body class="gradient" __processed_55ea847e-d5c6-4e42-9167-90ebe94303a5__="true" bis_register="W3sibWFzdGVyIjp0cnVlLCJleHRlbnNpb25JZCI6ImVwcGlvY2VtaG1ubGJoanBsY2drb2ZjaWllZ29tY29uIiwiYWRibG9ja2VyU3RhdHVzIjp7IkRJU1BMQVkiOiJkaXNhYmxlZCIsIkZBQ0VCT09LIjoiZGlzYWJsZWQiLCJUV0lUVEVSIjoiZGlzYWJsZWQiLCJSRURESVQiOiJkaXNhYmxlZCIsIlBJTlRFUkVTVCI6ImRpc2FibGVkIiwiSU5TVEFHUkFNIjoiZGlzYWJsZWQiLCJUSUtUT0siOiJkaXNhYmxlZCIsIkxJTktFRElOIjoiZGlzYWJsZWQiLCJDT05GSUciOiJkaXNhYmxlZCJ9LCJ2ZXJzaW9uIjoiMi4wLjMzIiwic2NvcmUiOjIwMDMzfV0=">
