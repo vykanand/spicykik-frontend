@@ -156,8 +156,15 @@
       }
 
       .header__icon .icon {
-        width: 2rem;
-        height: 2rem;
+        width: 2.6rem;
+        height: 2.6rem;
+      }
+
+      /* Ensure account and cart use the same visible size */
+      .header__icon--account .icon,
+      .header__icon--cart .icon {
+        width: 2.6rem;
+        height: 2.6rem;
       }
 
       @media screen and (max-width: 749px) {
@@ -467,6 +474,7 @@
                     fill="none"
                     class="icon icon-account"
                     viewBox="0 0 18 19"
+                    style="width: 2.6rem; height: 2.6rem"
                   >
                     <path
                       fill="currentColor"
@@ -544,6 +552,7 @@
                 fill="none"
                 class="icon icon-cart"
                 viewBox="0 0 40 40"
+                style="width: 2.6rem; height: 2.6rem"
               >
                 <path
                   fill="currentColor"

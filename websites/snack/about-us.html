@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>About Us — The Snack Smack</title>
+    <title>About Us — SPICYKIK</title>
     <link rel="stylesheet" href="/admin-static/style.css" />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap");
@@ -102,40 +102,78 @@
     <div id="site-header-placeholder"></div>
     <script>
       (function () {
-        function insertHtml(id, candidates) {
-          var el = document.getElementById(id);
-          if (!el) return;
-          (function tryFetch(i) {
-            if (i >= candidates.length) return;
-            fetch(candidates[i], { cache: "no-cache" })
-              .then(function (r) {
-                if (!r.ok) throw 0;
-                return r.text();
-              })
-              .then(function (html) {
-                el.innerHTML = html;
-              })
-              .catch(function () {
-                tryFetch(i + 1);
+        fetch("./includes/header.html")
+          .then(function (r) {
+            return r.text();
+          })
+          .then(function (html) {
+            try {
+              var parser = new DOMParser();
+              var doc = parser.parseFromString(html, "text/html");
+              doc.querySelectorAll("style").forEach(function (s) {
+                document.head.appendChild(s.cloneNode(true));
               });
-          })(0);
-        }
-        insertHtml("site-header-placeholder", [
-          "./includes/header.html",
-          "/includes/header.html",
-          "../includes/header.html",
-          "../../includes/header.html",
-        ]);
+              if (!document.getElementById("site-header-css")) {
+                var link = document.createElement("link");
+                link.rel = "stylesheet";
+                link.href = "./includes/header.css";
+                link.id = "site-header-css";
+                document.head.appendChild(link);
+              }
+              doc
+                .querySelectorAll('link[rel="stylesheet"]')
+                .forEach(function (l) {
+                  var href = l.getAttribute("href");
+                  if (!href) return;
+                  if (href.startsWith("http") || href.startsWith("//")) return;
+                  var nl = document.createElement("link");
+                  nl.rel = "stylesheet";
+                  nl.href = href;
+                  document.head.appendChild(nl);
+                });
+              var header =
+                doc.querySelector("sticky-header") ||
+                doc.querySelector(".header-wrapper") ||
+                doc.querySelector("header");
+              var container = document.getElementById(
+                "site-header-placeholder"
+              );
+              if (header && container) {
+                container.replaceWith(header.cloneNode(true));
+              }
+              doc.querySelectorAll("script").forEach(function (s) {
+                var ns = document.createElement("script");
+                var src = s.getAttribute("src");
+                if (src) {
+                  if (
+                    !src.startsWith("http") &&
+                    !src.startsWith("//") &&
+                    !src.startsWith("/")
+                  )
+                    src = "./includes/" + src.replace(/^\.\//, "");
+                  ns.src = src;
+                  ns.defer = s.defer;
+                } else ns.textContent = s.textContent;
+                document.body.appendChild(ns);
+              });
+            } catch (e) {
+              console.error("header inject parse error", e);
+            }
+          })
+          .catch(function (err) {
+            console.error("Failed to load header include:", err);
+          });
       })();
     </script>
     <div class="container">
       <div class="hero">
-        <div class="logo">SNS</div>
+        <div class="logo">SPICYKIK</div>
         <div>
-          <h1>About The Snack Smack</h1>
+          <h1>About SPICYKIK</h1>
           <p class="lead">
-            We curate the most delightful candies, toffees and snacks — bringing
-            classic flavours and new favourites to your doorstep.
+            We curate delightful candies, toffees and snacks — blending
+            nostalgic favourites with exciting new flavours and delivering them
+            fresh to your doorstep across India.
           </p>
           <div style="margin-top: 12px">
             <a class="cta" href="/collections/all-products">Shop now</a>
@@ -148,22 +186,25 @@
           <div class="card" id="our-story">
             <h2 style="margin-top: 0; color: #003366">Our Story</h2>
             <p class="muted">
-              Founded with a love for nostalgic treats and a passion for
-              discovery. We partner with local makers and trusted brands to
-              bring you a wide variety of sweets and snacks from across India.
+              SPICYKIK began as a small family-run stall selling handcrafted
+              toffees and regional sweets. Over the years we expanded carefully,
+              partnering with trusted makers and brands to create a curated
+              selection focused on authenticity, taste and consistent freshness.
             </p>
             <p style="margin-top: 10px; color: #9fb6d6">
-              From street-side classics to carefully crafted artisanal bites,
-              our selection is curated for taste, freshness and joy.
+              Today we bring those flavours to customers nationwide with an
+              emphasis on quality control, sustainable packaging and a
+              delightful shopping experience.
             </p>
           </div>
 
           <div class="card" style="margin-top: 12px" id="what-we-promise">
             <h3 style="margin-top: 0; color: #003366">What we promise</h3>
             <ul class="muted">
-              <li>Freshness and quality</li>
-              <li>Fast delivery across India</li>
-              <li>Friendly customer service</li>
+              <li>Fresh, verified products from trusted suppliers</li>
+              <li>Reliable delivery and careful packaging</li>
+              <li>Responsive customer support and easy returns</li>
+              <li>Transparent sourcing and clear ingredient information</li>
             </ul>
           </div>
         </div>
@@ -184,13 +225,22 @@
             <hr
               style="margin: 12px 0; border-color: rgba(255, 255, 255, 0.03)"
             />
-            <div class="muted">
+            <div class="muted" style="margin-bottom: 8px">
               Contact us:
-              <a href="mailto:hello@thesnacksmackindia.com" class="muted"
-                >hello@thesnacksmackindia.com</a
+              <a href="mailto:carora668@gmail.com" class="muted"
+                >carora668@gmail.com</a
               >
             </div>
+            <div class="muted" style="margin-bottom: 8px">
+              Phone:
+              <a href="tel:+919999551747" class="muted">+91 99995 51747</a>
+            </div>
+            <div class="muted">
+              Address: 123 Candy Lane, Connaught Place, New Delhi, 110001
+            </div>
           </div>
+
+          <!-- company details removed as requested -->
 
           <div class="card" style="margin-top: 12px">
             <h3 style="margin-top: 0; color: #003366">Follow us</h3>

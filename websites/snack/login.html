@@ -151,30 +151,79 @@
     <div id="site-header-placeholder"></div>
     <script>
       (function () {
-        function insertHtml(id, candidates) {
-          var el = document.getElementById(id);
-          if (!el) return;
-          (function tryFetch(i) {
-            if (i >= candidates.length) return;
-            fetch(candidates[i], { cache: "no-cache" })
-              .then(function (r) {
-                if (!r.ok) throw 0;
-                return r.text();
-              })
-              .then(function (html) {
-                el.innerHTML = html;
-              })
-              .catch(function () {
-                tryFetch(i + 1);
+        fetch("./includes/header.html")
+          .then(function (r) {
+            return r.text();
+          })
+          .then(function (html) {
+            try {
+              var parser = new DOMParser();
+              var doc = parser.parseFromString(html, "text/html");
+
+              // move <style> tags into document head
+              doc.querySelectorAll("style").forEach(function (s) {
+                document.head.appendChild(s.cloneNode(true));
               });
-          })(0);
-        }
-        insertHtml("site-header-placeholder", [
-          "./includes/header.html",
-          "/includes/header.html",
-          "../includes/header.html",
-          "../../includes/header.html",
-        ]);
+
+              // ensure local header stylesheet is present
+              if (!document.getElementById("site-header-css")) {
+                var link = document.createElement("link");
+                link.rel = "stylesheet";
+                link.href = "./includes/header.css";
+                link.id = "site-header-css";
+                document.head.appendChild(link);
+              }
+
+              // import non-remote <link rel=stylesheet> if any
+              doc
+                .querySelectorAll('link[rel="stylesheet"]')
+                .forEach(function (l) {
+                  var href = l.getAttribute("href");
+                  if (!href) return;
+                  if (href.startsWith("http") || href.startsWith("//")) return;
+                  var nl = document.createElement("link");
+                  nl.rel = "stylesheet";
+                  nl.href = href;
+                  document.head.appendChild(nl);
+                });
+
+              var header =
+                doc.querySelector("sticky-header") ||
+                doc.querySelector(".header-wrapper") ||
+                doc.querySelector("header");
+              var container = document.getElementById(
+                "site-header-placeholder"
+              );
+              if (header && container) {
+                container.replaceWith(header.cloneNode(true));
+              }
+
+              // execute scripts found inside fetched doc (clone inline and local src only)
+              doc.querySelectorAll("script").forEach(function (s) {
+                var ns = document.createElement("script");
+                var src = s.getAttribute("src");
+                if (src) {
+                  if (
+                    !src.startsWith("http") &&
+                    !src.startsWith("//") &&
+                    !src.startsWith("/")
+                  ) {
+                    src = "./includes/" + src.replace(/^\.\//, "");
+                  }
+                  ns.src = src;
+                  ns.defer = s.defer;
+                } else {
+                  ns.textContent = s.textContent;
+                }
+                document.body.appendChild(ns);
+              });
+            } catch (e) {
+              console.error("header inject parse error", e);
+            }
+          })
+          .catch(function (err) {
+            console.error("Failed to load header include:", err);
+          });
       })();
     </script>
 
