@@ -2119,6 +2119,32 @@
               console.log("Response is not JSON:", parseError);
               console.log("Raw Response:", responseText);
             }
+
+            // If order was successfully created, redirect user to external payments gateway
+            if (response.ok) {
+              const email = (
+                user.email ||
+                user.Email ||
+                user.customer_email ||
+                user.emailAddress ||
+                ""
+              ).trim();
+              const paymentUrl =
+                "https://payments.appsthink.com/initiate-payment?" +
+                "amount=" +
+                encodeURIComponent(order_amount) +
+                "&source=spicykik" +
+                "&email=" +
+                encodeURIComponent(email) +
+                "&phone=" +
+                encodeURIComponent(phone) +
+                "&name=" +
+                encodeURIComponent(customer_name);
+
+              console.log("Redirecting to payment URL:", paymentUrl);
+              window.location.href = paymentUrl;
+              return;
+            }
           } catch (error) {
             console.error("=== CHECKOUT ERROR ===");
             console.error(error);
