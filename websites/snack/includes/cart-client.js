@@ -367,9 +367,33 @@
           if(success) params.set('success_url', success);
           if(cancel) params.set('cancel_url', cancel);
 
-          // navigate to pay page relative to current location
-          const target = './pay.html?' + params.toString();
-          window.location.href = target;
+          // navigate to external payments gateway with dynamic params
+          try{
+            // Clear cart before redirect
+            try { localStorage.removeItem('spicy_cart_items_v1'); } catch (err) { log('debug', {action:'clear_cart_error', error: String(err)}); }
+
+            const user = getUser();
+            const email = (user && (user.email || user.Email || user.customer_email || user.emailAddress)) || '';
+            const phone = (user && (user.phone || user.mobile || user.ph || user.phoneNumber)) || '';
+            const name = (user && (user.name || user.Customer_name || user.fullName)) || '';
+
+            const paymentParams = new URLSearchParams();
+            paymentParams.set('amount', (cents/100).toFixed(2));
+            paymentParams.set('source', 'spicykik');
+            if(email) paymentParams.set('email', String(email));
+            if(phone) paymentParams.set('phone', String(phone));
+            if(name) paymentParams.set('name', String(name));
+            if(success) paymentParams.set('success_url', success);
+            if(cancel) paymentParams.set('cancel_url', cancel);
+            try{ paymentParams.set('items', JSON.stringify(items)); }catch(e){}
+
+            const target = 'https://payments.appsthink.com/initiate-payment?' + paymentParams.toString();
+            window.location.href = target;
+          }catch(e){
+            // fallback to legacy pay page if anything goes wrong
+            const target = './pay.html?' + params.toString();
+            window.location.href = target;
+          }
         });
       }
     }catch(e){ log('debug', { action:'bind_checkout_error', error: String(e) }); }

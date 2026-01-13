@@ -2070,6 +2070,13 @@
           const orderid = generateOrderId();
           const cutomerID = user.id ? String(user.id) : "";
 
+          // Clear cart before redirect
+          try {
+            localStorage.removeItem("spicy_cart_items_v1");
+          } catch (err) {
+            console.warn("Could not clear cart after checkout", err);
+          }
+
           // Build form data
           const formData = new URLSearchParams();
           formData.append("customer_name", customer_name);
