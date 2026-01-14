@@ -576,8 +576,10 @@
             <input
               id="regPhone"
               type="tel"
-              placeholder="Enter your phone number"
+              pattern="[0-9]{10}"
+              placeholder="Enter your phone number (10 digits)"
               required
+              title="Please enter a valid 10-digit phone number"
             />
           </div>
           <div class="form-row">
@@ -587,6 +589,7 @@
               type="email"
               placeholder="you@domain.com"
               required
+              title="Please enter a valid email address (e.g., user@domain.com)"
             />
           </div>
           <div class="form-row">

@@ -353,47 +353,82 @@
         checkoutBtn.__checkoutBound = true;
         checkoutBtn.addEventListener('click', (ev)=>{
           ev.preventDefault();
-          if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search); return; }
+          if(!getUser()){
+            window.location.href = './login.html?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search);
+            return;
+          }
           const cents = totalCents();
           const items = loadCart().map(i => ({ id: i.id, title: i.title, qty: Number(i.qty||0), price_cents: Math.round(Number(i.price||0)*100) }));
-          const params = new URLSearchParams();
-          params.set('amount_cents', String(cents));
-          params.set('amount', (cents/100).toFixed(2));
-          params.set('currency', 'INR');
-          try{ params.set('items', JSON.stringify(items)); }catch(e){}
-          // allow optional redirect hooks via data attributes on the button
-          const success = checkoutBtn.getAttribute('data-success-url') || checkoutBtn.dataset.successUrl;
-          const cancel = checkoutBtn.getAttribute('data-cancel-url') || checkoutBtn.dataset.cancelUrl;
-          if(success) params.set('success_url', success);
-          if(cancel) params.set('cancel_url', cancel);
+          const user = getUser();
+          const orderPayload = {
+            user: {
+              email: user && (user.email || user.Email || user.customer_email || user.emailAddress) || '',
+              phone: user && (user.phone || user.mobile || user.ph || user.phoneNumber) || '',
+              name: user && (user.name || user.Customer_name || user.fullName) || '',
+              address: user && user.address || ''
+            },
+            items: items,
+            amount: (cents/100).toFixed(2),
+            amount_cents: cents,
+            currency: 'INR',
+            invoice: items.map(i => `${i.title} x${i.qty} = ₹${((i.price_cents*i.qty)/100).toFixed(2)}`).join(', ')
+          };
+          checkoutBtn.disabled = true;
+          // Prepare form data for backend
+          const form = new URLSearchParams();
+          form.set('customer_name', orderPayload.user.name);
+          form.set('order_amount', orderPayload.amount);
+          form.set('delivery_address', orderPayload.user.address);
+          form.set('order_status', 'Placed');
+          form.set('phone', orderPayload.user.phone);
+          form.set('invoice', orderPayload.invoice);
 
-          // navigate to external payments gateway with dynamic params
-          try{
-            // Clear cart before redirect
-            try { localStorage.removeItem('spicy_cart_items_v1'); } catch (err) { log('debug', {action:'clear_cart_error', error: String(err)}); }
+          // Debug: log request params
+          console.log('[Order POST] Sending:', form.toString());
 
-            const user = getUser();
-            const email = (user && (user.email || user.Email || user.customer_email || user.emailAddress)) || '';
-            const phone = (user && (user.phone || user.mobile || user.ph || user.phoneNumber)) || '';
-            const name = (user && (user.name || user.Customer_name || user.fullName)) || '';
-
-            const paymentParams = new URLSearchParams();
-            paymentParams.set('amount', (cents/100).toFixed(2));
-            paymentParams.set('source', 'spicykik');
-            if(email) paymentParams.set('email', String(email));
-            if(phone) paymentParams.set('phone', String(phone));
-            if(name) paymentParams.set('name', String(name));
-            if(success) paymentParams.set('success_url', success);
-            if(cancel) paymentParams.set('cancel_url', cancel);
-            try{ paymentParams.set('items', JSON.stringify(items)); }catch(e){}
-
-            const target = 'https://payments.appsthink.com/initiate-payment?' + paymentParams.toString();
-            window.location.href = target;
-          }catch(e){
-            // fallback to legacy pay page if anything goes wrong
-            const target = './pay.html?' + params.toString();
-            window.location.href = target;
-          }
+          fetch('https://spicykik-backend-production.up.railway.app/orders/api.php?setcontent=true', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: form.toString()
+          })
+          .then(async r => {
+            const text = await r.text();
+            let data;
+            try { data = JSON.parse(text); } catch { data = text; }
+            console.log('[Order POST] Response:', data);
+            return data;
+          })
+          .then(data => {
+            if(
+              (data && (data.success || data.status === 'ok')) ||
+              (data && (typeof data.response === 'string' && data.response.toLowerCase() === 'success'))
+            ){
+              // On success: clear cart and redirect to payment gateway
+              try { localStorage.removeItem('spicy_cart_items_v1'); } catch (err) { log('debug', {action:'clear_cart_error', error: String(err)}); }
+              renderCartPage();
+              // Payment gateway redirection logic (restored)
+              const paymentParams = new URLSearchParams();
+              paymentParams.set('amount', orderPayload.amount);
+              paymentParams.set('source', 'spicykik');
+              if(orderPayload.user.email) paymentParams.set('email', String(orderPayload.user.email));
+              if(orderPayload.user.phone) paymentParams.set('phone', String(orderPayload.user.phone));
+              if(orderPayload.user.name) paymentParams.set('name', String(orderPayload.user.name));
+              // Optionally add invoice or other params if needed
+              try{ paymentParams.set('items', JSON.stringify(orderPayload.items)); }catch(e){}
+              const target = 'https://payments.appsthink.com/initiate-payment?' + paymentParams.toString();
+              window.location.href = target;
+            } else {
+              // On failure: keep cart as is
+              alert('Order failed. Please try again.');
+            }
+          })
+          .catch((err)=>{
+            console.error('[Order POST] Error:', err);
+            alert('Order failed. Please try again.');
+          })
+          .finally(()=>{
+            checkoutBtn.disabled = false;
+          });
         });
       }
     }catch(e){ log('debug', { action:'bind_checkout_error', error: String(e) }); }

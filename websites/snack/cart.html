@@ -1193,7 +1193,6 @@
                     </nav>
                     <div class="menu-drawer__utility-links">
                       <a
-                        href="#"
                         class="menu-drawer__account link focus-inset h5 medium-hide large-up-hide"
                         rel="nofollow"
                         ><account-icon>
@@ -1446,7 +1445,6 @@
               </details>
             </details-modal>
             <a
-              href="#"
               class="header__icon header__icon--account link focus-inset small-hide"
               rel="nofollow"
               ><account-icon>
@@ -1550,7 +1548,11 @@
                 class="button button--secondary button--full-width"
                 >View cart</a
               >
-              <button type="button" class="link button-label">
+              <button
+                type="button"
+                class="link button-label"
+                id="continue-shopping-btn-notification"
+              >
                 Continue shopping
               </button>
             </div>
@@ -1806,11 +1808,11 @@
           <div class="page-width">
             <div class="title-wrapper-with-link">
               <h1 class="title title--primary">Your cart</h1>
-              <a href="#" class="underlined-link">Continue shopping</a>
+              <a href="index.html" class="underlined-link">Continue shopping</a>
             </div>
             <div class="cart__warnings">
               <h1 class="cart__empty-text">Your cart is empty</h1>
-              <a href="#" class="button"> Continue shopping </a>
+              <a href="index.html" class="button"> Continue shopping </a>
               <h2 class="cart__login-title">Have an account?</h2>
               <p class="cart__login-paragraph">
                 <a href="#" class="link underlined-link">Log in</a> to check out
@@ -1845,7 +1847,7 @@
                   </p>
                   <a
                     class="button button--primary"
-                    href="./index.html"
+                    href="index.html"
                     style="
                       display: inline-block;
                       padding: 10px 18px;
@@ -1988,13 +1990,9 @@
         </div>
       </div>
     </main>
-
     <script>
-      (function () {
-        const API_BASE =
-          "https://spicykik-backend-production.up.railway.app/orders/api.php";
-        const ORDERS_URL = `${API_BASE}?setcontent=true`;
-
+      document.addEventListener("DOMContentLoaded", function () {
+        // Hide cart UI if not logged in
         function getUser() {
           try {
             const raw = localStorage.getItem("user");
@@ -2003,160 +2001,57 @@
             return null;
           }
         }
-
-        function getCartTotal() {
-          try {
-            const STORAGE_KEY = "spicy_cart_items_v1";
-            const raw = localStorage.getItem(STORAGE_KEY);
-            const cart = raw ? JSON.parse(raw) : [];
-            if (!Array.isArray(cart)) return 0;
-
-            // Calculate total: sum of (price * qty) for all items
-            const totalCents = cart.reduce((sum, item) => {
-              const price = Number(item.price || 0);
-              const cents = Math.round(price * 100);
-              const qty = Number(item.qty || 0) || 0;
-              return sum + cents * qty;
-            }, 0);
-
-            return totalCents / 100;
-          } catch (e) {
-            console.error("Error calculating cart total:", e);
-            return 0;
-          }
-        }
-
-        function parseTotal() {
-          // First try to get from cart data
-          const cartTotal = getCartTotal();
-          if (cartTotal > 0) return cartTotal;
-
-          // Fallback to parsing from DOM
-          var el = document.querySelector(".totals__total-value");
-          if (!el) return 0;
-          var txt = el.textContent || el.innerText || "";
-          txt = txt.replace(/[Rs.,\s]/g, "").replace(/[^0-9.\-]/g, "");
-          var n = parseFloat(txt);
-          return Number.isFinite(n) ? n : 0;
-        }
-
-        function generateOrderId() {
-          return (
-            Date.now().toString(36) +
-            Math.random().toString(36).slice(2, 8).toUpperCase()
-          );
-        }
-
-        async function handleCheckout(e) {
-          e && e.preventDefault();
-
-          const user = getUser();
-          if (!user) {
-            alert("Please login to continue");
-            window.location.href =
-              "login.html?returnUrl=" +
-              encodeURIComponent(
-                window.location.pathname + window.location.search
-              );
-            return;
-          }
-
-          const customer_name = user.name || user.Customer_name || "";
-          const phone = user.phone || "";
-          const order_amount = parseTotal().toString();
-          const delivery_address = user.address || "No address";
-          const order_status = "Placed";
-          const role = user.role || "admin";
-          const orderid = generateOrderId();
-          const cutomerID = user.id ? String(user.id) : "";
-
-          // Clear cart before redirect
-          try {
-            localStorage.removeItem("spicy_cart_items_v1");
-          } catch (err) {
-            console.warn("Could not clear cart after checkout", err);
-          }
-
-          // Build form data
-          const formData = new URLSearchParams();
-          formData.append("customer_name", customer_name);
-          formData.append("order_amount", order_amount);
-          formData.append("delivery_address", delivery_address);
-          formData.append("order_status", order_status);
-          formData.append("role", role);
-          formData.append("orderid", orderid);
-          formData.append("phone", phone);
-          formData.append("cutomerID", cutomerID);
-
-          console.log("=== CHECKOUT REQUEST ===");
-          console.log("URL:", ORDERS_URL);
-          console.log("Request Body:", {
-            customer_name,
-            order_amount,
-            delivery_address,
-            order_status,
-            role,
-            orderid,
-            phone,
-            cutomerID,
+        var user = getUser();
+        var cartSection = document.querySelector(".cart__items");
+        var continueBtns = document.querySelectorAll(
+          "a.underlined-link, a.button.button--primary, .cart__login-paragraph"
+        );
+        var loginLink = document.querySelector(".cart__login-paragraph a");
+        if (!user) {
+          // Hide cart items section
+          if (cartSection) cartSection.style.display = "none";
+          // Hide all continue shopping buttons/links
+          continueBtns.forEach(function (btn) {
+            if (btn) btn.style.display = "none";
           });
-
-          try {
-            const response = await fetch(ORDERS_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-              },
-              body: formData.toString(),
-            });
-
-            console.log("=== CHECKOUT RESPONSE ===");
-            console.log("Status:", response.status);
-            console.log("Status Text:", response.statusText);
-            console.log("OK:", response.ok);
-
-            const responseText = await response.text();
-            console.log("Response Text:", responseText);
-
-            let result;
-            try {
-              result = JSON.parse(responseText);
-              console.log("Parsed Response:", result);
-            } catch (parseError) {
-              console.log("Response is not JSON:", parseError);
-              console.log("Raw Response:", responseText);
-            }
-
-            // If order was successfully created, redirect user to external payments gateway
-            if (response.ok) {
-              const email = (
-                user.email ||
-                user.Email ||
-                user.customer_email ||
-                user.emailAddress ||
-                ""
-              ).trim();
-              const paymentUrl =
-                "https://payments.appsthink.com/initiate-payment?" +
-                "amount=" +
-                encodeURIComponent(order_amount) +
-                "&source=spicykik" +
-                "&email=" +
-                encodeURIComponent(email) +
-                "&phone=" +
-                encodeURIComponent(phone) +
-                "&name=" +
-                encodeURIComponent(customer_name);
-
-              console.log("Redirecting to payment URL:", paymentUrl);
-              window.location.href = paymentUrl;
-              return;
-            }
-          } catch (error) {
-            console.error("=== CHECKOUT ERROR ===");
-            console.error(error);
+          // Show login link and set href, and force redirect on click
+          if (loginLink) {
+            loginLink.style.display = "inline";
+            loginLink.setAttribute("href", "login.html");
+            loginLink.onclick = function (e) {
+              e.preventDefault();
+              window.location.href = "login.html";
+            };
           }
+        } else {
+          // Show cart if logged in
+          if (cartSection) cartSection.style.display = "";
+          continueBtns.forEach(function (btn) {
+            if (btn) btn.style.display = "";
+          });
         }
+        // Only bind checkout button once
+        var checkoutBtn = document.getElementById("checkout");
+        if (checkoutBtn) {
+          checkoutBtn.addEventListener("click", handleCheckout);
+        }
+        // Continue shopping notification button
+        var contBtnNotif = document.getElementById(
+          "continue-shopping-btn-notification"
+        );
+        if (contBtnNotif) {
+          contBtnNotif.onclick = function () {
+            window.location.href = "index.html";
+          };
+        }
+      });
+    </script>
+
+    <script>
+      (function () {
+        // ...existing code...
+        // All checkout logic is now only bound to #checkout button
+        // ...existing code...
 
         function displayAddress() {
           const user = getUser();
@@ -2174,12 +2069,8 @@
           }
         }
 
+        // Display address from localStorage
         document.addEventListener("DOMContentLoaded", function () {
-          var btn = document.getElementById("checkout");
-          if (!btn) return;
-          btn.addEventListener("click", handleCheckout);
-
-          // Display address from localStorage
           displayAddress();
         });
       })();
