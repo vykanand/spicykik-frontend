@@ -393,11 +393,10 @@
                       <li>
                         <a
                           id="HeaderDrawer-all-products"
-                          href="/collections/all-products"
+                          href="/index.html"
                           class="menu-drawer__menu-item list-menu__item link link--text focus-inset menu-drawer__menu-item--active"
                           aria-current="page"
                           >All products</a
-                        >
                       </li>
                       <li>
                         <a
@@ -432,9 +431,9 @@
         <nav class="header__inline-menu">
           <ul class="list-menu list-menu--inline" role="list">
             <li>
-              <a
+                <a
                 id="HeaderMenu-all-products"
-                href="/collections/all-products"
+                href="/index.html"
                 class="header__menu-item list-menu__item link link--text focus-inset"
                 aria-current="page"
               >
@@ -511,7 +510,7 @@
                         key: "user",
                         oldValue: old,
                         newValue: null,
-                      })
+                      }),
                     );
                   } catch (e) {}
                 } catch (e) {}
@@ -570,5 +569,29 @@
         </div>
       </header>
     </sticky-header>
+    <script>
+      (function () {
+        function normalizeAllProductsLinks() {
+          try {
+            document
+              .querySelectorAll('a[href^="/collections/all-products"]')
+              .forEach(function (a) {
+                a.setAttribute("href", "/index.html");
+                a.setAttribute("data-updated-by", "link-normalizer");
+              });
+          } catch (e) {
+            /* swallow */
+          }
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener(
+            "DOMContentLoaded",
+            normalizeAllProductsLinks,
+          );
+        } else {
+          normalizeAllProductsLinks();
+        }
+      })();
+    </script>
   </body>
 </html>
