@@ -844,6 +844,27 @@
     </head>
 
   <body class="gradient" __processed_55ea847e-d5c6-4e42-9167-90ebe94303a5__="true" bis_register="W3sibWFzdGVyIjp0cnVlLCJleHRlbnNpb25JZCI6ImVwcGlvY2VtaG1ubGJoanBsY2drb2ZjaWllZ29tY29uIiwiYWRibG9ja2VyU3RhdHVzIjp7IkRJU1BMQVkiOiJkaXNhYmxlZCIsIkZBQ0VCT09LIjoiZGlzYWJsZWQiLCJUV0lUVEVSIjoiZGlzYWJsZWQiLCJSRURESVQiOiJkaXNhYmxlZCIsIlBJTlRFUkVTVCI6ImRpc2FibGVkIiwiSU5TVEFHUkFNIjoiZGlzYWJsZWQiLCJUSUtUT0siOiJkaXNhYmxlZCIsIkxJTktFRElOIjoiZGlzYWJsZWQiLCJDT05GSUciOiJkaXNhYmxlZCJ9LCJ2ZXJzaW9uIjoiMi4wLjMzIiwic2NvcmUiOjIwMDMzfV0=">
+    <script>
+      (function(){
+        try{
+          // Provide minimal stubs for globals some theme scripts expect
+          window.__st = window.__st || {};
+          window.PUB_SUB_EVENTS = window.PUB_SUB_EVENTS || {};
+          window.__spicykik_click_probe_installed = true;
+          console.log('spicykik: early probe installing');
+          document.addEventListener('click', function(e){
+            try{
+              var t = e && e.target;
+              var hint = t && (t.tagName + (t.id?('#'+t.id):'') + (t.className?('.'+t.className.split(' ').join('.')):''));
+              console.log('spicykik: early click', hint);
+            }catch(_){ }
+          }, true);
+          window.addEventListener('error', function(ev){ try{ console.error('spicykik: uncaught error', ev && ev.message, ev && ev.filename, ev && ev.lineno, ev && ev.colno, ev && ev.error); }catch(_){ }});
+          window.addEventListener('unhandledrejection', function(ev){ try{ console.error('spicykik: unhandledrejection', ev && ev.reason); }catch(_){ }});
+          console.log('spicykik: early probe installed');
+        }catch(e){}
+      })();
+    </script>
     <a class="skip-to-content-link button visually-hidden" href="#MainContent"> Skip to content </a>
     <div id="shopify-section-sections--17133121536102__announcement_bar_xqzpCm" class="shopify-section shopify-section-group-header-group announcement-bar-section" bis_skin_checked="1">
       <link href="//thesnacksmackindia.com/cdn/shop/t/1/assets/component-slideshow.css?v=17933591812325749411744280571" rel="stylesheet" type="text/css" media="all">
@@ -5508,9 +5529,6 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
           }
         })();
       </script>
-      </body>
-
-  </html>
 
 <!-- Image Carousel and Magnification Script -->
 <script>
@@ -5706,9 +5724,19 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
 
       // find the nearest carousel container for the click (allows clicks on dots, slides, img, container)
       var carousel = t.closest ? t.closest('.product-image-carousel') : null;
-      if(!carousel) return;
+      // If click landed on an outer card link (product title or card anchor), try to find carousel within the same card
+      if(!carousel){
+        var card = t.closest ? t.closest('.card-wrapper, .card') : null;
+        if(card) carousel = card.querySelector('.product-image-carousel');
+      }
 
-      console && console.debug && console.debug('carousel click detected');
+      if(!carousel){
+        // not a carousel-related click — log for diagnostics and return
+        console && console.debug && console.debug('carousel click ignored; no carousel found for target', t && (t.tagName + (t.id?('#'+t.id):'')));
+        return;
+      }
+
+      console && console.debug && console.debug('carousel click detected', carousel && (carousel.dataset && carousel.dataset.productName));
 
       // determine the image to show: prefer the clicked image if any, otherwise active slide image
       var clickedImg = t.tagName === 'IMG' ? t : (t.closest ? t.closest('img') : null);
