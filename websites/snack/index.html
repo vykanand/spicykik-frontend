@@ -723,6 +723,124 @@
     </style>
     <style class="darkreader darkreader--override" media="screen"></style>
     <link id="site-header-css" rel="stylesheet" href="./includes/header.css">
+    <style>
+      /* Image Carousel and Magnification Styles */
+      .product-image-container {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: auto;
+      }
+      
+      .product-image-carousel {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      
+      .product-image-slide {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+      }
+      
+      .product-image-slide.active {
+        opacity: 1;
+        position: static;
+      }
+      
+      .product-image-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: zoom-in;
+        transition: transform 0.3s ease-in-out;
+      }
+      
+      .product-image-container:hover .product-image-slide img {
+        transform: scale(1.2);
+        cursor: zoom-out;
+      }
+      
+      /* Image Magnifier Lightbox */
+      .image-magnifier {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      
+      .image-magnifier.active {
+        display: flex;
+      }
+      
+      .image-magnifier-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .image-magnifier img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+      
+      .image-magnifier-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .image-magnifier-close:hover {
+        background: #f0f0f0;
+      }
+      
+      .image-slides-indicator {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+      }
+      
+      .slide-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      
+      .slide-dot.active {
+        background: white;
+      }
+    </style>
     </head>
 
   <body class="gradient" __processed_55ea847e-d5c6-4e42-9167-90ebe94303a5__="true" bis_register="W3sibWFzdGVyIjp0cnVlLCJleHRlbnNpb25JZCI6ImVwcGlvY2VtaG1ubGJoanBsY2drb2ZjaWllZ29tY29uIiwiYWRibG9ja2VyU3RhdHVzIjp7IkRJU1BMQVkiOiJkaXNhYmxlZCIsIkZBQ0VCT09LIjoiZGlzYWJsZWQiLCJUV0lUVEVSIjoiZGlzYWJsZWQiLCJSRURESVQiOiJkaXNhYmxlZCIsIlBJTlRFUkVTVCI6ImRpc2FibGVkIiwiSU5TVEFHUkFNIjoiZGlzYWJsZWQiLCJUSUtUT0siOiJkaXNhYmxlZCIsIkxJTktFRElOIjoiZGlzYWJsZWQiLCJDT05GSUciOiJkaXNhYmxlZCJ9LCJ2ZXJzaW9uIjoiMi4wLjMzIiwic2NvcmUiOjIwMDMzfV0=">
@@ -1438,9 +1556,29 @@
          card--media" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                           <div class="card__inner color-scheme-2 gradient ratio" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                             <div class="card__media" bis_skin_checked="1">
-                              <div class="media media--transparent media--hover-effect" bis_skin_checked="1">
-                                <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="Aam papad | one bar | The Snack Smack" class="motion-reduce" width="1080" height="1350">
-                                <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}}" class="motion-reduce" loading="lazy" width="1080" height="1350">
+                              <div class="product-image-container media media--transparent media--hover-effect" bis_skin_checked="1">
+                                <div class="product-image-carousel" data-image1="{{this.Image}}" data-image2="{{this.image2}}" data-image3="{{this.image3}}" data-product-name="{{this.Product_Name}}">
+                                  <div class="product-image-slide active">
+                                    <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}}" class="motion-reduce" width="1080" height="1350">
+                                  </div>
+                                  {{#if this.image2}}
+                                  <div class="product-image-slide">
+                                    <img srcset="{{this.image2}}" src="{{this.image2}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}} - Image 2" class="motion-reduce" width="1080" height="1350">
+                                  </div>
+                                  {{/if}}
+                                  {{#if this.image3}}
+                                  <div class="product-image-slide">
+                                    <img srcset="{{this.image3}}" src="{{this.image3}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}} - Image 3" class="motion-reduce" width="1080" height="1350">
+                                  </div>
+                                  {{/if}}
+                                  {{#if this.image2}}
+                                  <div class="image-slides-indicator">
+                                    <span class="slide-dot active" data-slide-index="0"></span>
+                                    {{#if this.image2}}<span class="slide-dot" data-slide-index="1"></span>{{/if}}
+                                    {{#if this.image3}}<span class="slide-dot" data-slide-index="2"></span>{{/if}}
+                                  </div>
+                                  {{/if}}
+                                </div>
                               </div>
                             </div>
                             <div class="card__content" bis_skin_checked="1">
@@ -1588,9 +1726,29 @@
          card--media" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                         <div class="card__inner color-scheme-2 gradient ratio" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                           <div class="card__media" bis_skin_checked="1">
-                            <div class="media media--transparent media--hover-effect" bis_skin_checked="1">
-                              <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="Aam papad | one bar | The Snack Smack" class="motion-reduce" width="1080" height="1350">
-                              <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}}" class="motion-reduce" loading="lazy" width="1080" height="1350">
+                            <div class="product-image-container media media--transparent media--hover-effect" bis_skin_checked="1">
+                              <div class="product-image-carousel" data-image1="{{this.Image}}" data-image2="{{this.image2}}" data-image3="{{this.image3}}" data-product-name="{{this.Product_Name}}">
+                                <div class="product-image-slide active">
+                                  <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}}" class="motion-reduce" width="1080" height="1350">
+                                </div>
+                                {{#if this.image2}}
+                                <div class="product-image-slide">
+                                  <img srcset="{{this.image2}}" src="{{this.image2}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}} - Image 2" class="motion-reduce" width="1080" height="1350">
+                                </div>
+                                {{/if}}
+                                {{#if this.image3}}
+                                <div class="product-image-slide">
+                                  <img srcset="{{this.image3}}" src="{{this.image3}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}} - Image 3" class="motion-reduce" width="1080" height="1350">
+                                </div>
+                                {{/if}}
+                                {{#if this.image2}}
+                                <div class="image-slides-indicator">
+                                  <span class="slide-dot active" data-slide-index="0"></span>
+                                  {{#if this.image2}}<span class="slide-dot" data-slide-index="1"></span>{{/if}}
+                                  {{#if this.image3}}<span class="slide-dot" data-slide-index="2"></span>{{/if}}
+                                </div>
+                                {{/if}}
+                              </div>
                             </div>
                           </div>
                           <div class="card__content" bis_skin_checked="1">
@@ -1713,9 +1871,29 @@
                       <div class="card card--standard card--media" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                         <div class="card__inner color-scheme-2 gradient ratio" style="--ratio-percent: 125.0%;" bis_skin_checked="1">
                           <div class="card__media" bis_skin_checked="1">
-                            <div class="media media--transparent media--hover-effect" bis_skin_checked="1">
-                              <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="Jamun gola  | The Snack Smack" class="motion-reduce" loading="lazy" width="1545" height="2000">
-                              <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="Jamun gola  | The Snack Smack" class="motion-reduce" loading="lazy" width="1545" height="2000">
+                            <div class="product-image-container media media--transparent media--hover-effect" bis_skin_checked="1">
+                              <div class="product-image-carousel" data-image1="{{this.Image}}" data-image2="{{this.image2}}" data-image3="{{this.image3}}" data-product-name="{{this.Product_Name}}">
+                                <div class="product-image-slide active">
+                                  <img srcset="{{this.Image}}" src="{{this.Image}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}}" class="motion-reduce" loading="lazy" width="1545" height="2000">
+                                </div>
+                                {{#if this.image2}}
+                                <div class="product-image-slide">
+                                  <img srcset="{{this.image2}}" src="{{this.image2}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}} - Image 2" class="motion-reduce" loading="lazy" width="1545" height="2000">
+                                </div>
+                                {{/if}}
+                                {{#if this.image3}}
+                                <div class="product-image-slide">
+                                  <img srcset="{{this.image3}}" src="{{this.image3}}" sizes="(min-width: 1200px) 267px, (min-width: 990px) calc((100vw - 130px) / 4), (min-width: 750px) calc((100vw - 120px) / 3), calc((100vw - 35px) / 2)" alt="{{this.Product_Name}} - Image 3" class="motion-reduce" loading="lazy" width="1545" height="2000">
+                                </div>
+                                {{/if}}
+                                {{#if this.image2}}
+                                <div class="image-slides-indicator">
+                                  <span class="slide-dot active" data-slide-index="0"></span>
+                                  {{#if this.image2}}<span class="slide-dot" data-slide-index="1"></span>{{/if}}
+                                  {{#if this.image3}}<span class="slide-dot" data-slide-index="2"></span>{{/if}}
+                                </div>
+                                {{/if}}
+                              </div>
                             </div>
                           </div>
                           <div class="card__content" bis_skin_checked="1">
@@ -5298,10 +5476,200 @@ Now, we’re bringing those beloved candies back—so home never feels far away.
         // init
         setExpanded(details.hasAttribute('open'));
       })();
-    </script>
-    </body>
+      </script>
+
+      <!-- Inline sanitizer: remove any leftover Handlebars tokens from visible text nodes -->
+      <script>
+        (function removeVisibleHandlebars(){
+          function sanitizeTextNode(node){
+            if(node.nodeType !== 3) return;
+            if(!node.nodeValue) return;
+            if(node.nodeValue.indexOf('{{') === -1) return;
+            // Remove any Handlebars-like tokens such as {{#if ...}}, {{/if}}, {{this.xyz}} etc.
+            node.nodeValue = node.nodeValue.replace(/\{\{[#\/]?[^}]*\}\}/g, '').replace(/\s{2,}/g, ' ');
+          }
+
+          function walk(el){
+            var child = el.firstChild;
+            while(child){
+              if(child.nodeType === 3){
+                sanitizeTextNode(child);
+              } else if(child.nodeType === 1 && child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE'){
+                walk(child);
+              }
+              child = child.nextSibling;
+            }
+          }
+
+          if(document.readyState === 'loading'){
+            document.addEventListener('DOMContentLoaded', function(){ walk(document.body); });
+          } else {
+            walk(document.body);
+          }
+        })();
+      </script>
+      </body>
 
   </html>
+
+<!-- Image Carousel and Magnification Script -->
+<script>
+(function() {
+  // Initialize image carousels
+  function initializeImageCarousels() {
+    const carousels = document.querySelectorAll('.product-image-carousel');
+    
+    carousels.forEach(carousel => {
+      // Collect images from simple data-image attributes (avoid complex inline templates)
+      const images = [];
+      ['image1','image2','image3'].forEach(key => {
+        const v = carousel.getAttribute('data-' + key);
+        if (v && v.trim() !== '') images.push(v.trim());
+      });
+      
+      const slides = carousel.querySelectorAll('.product-image-slide');
+      const dots = carousel.querySelectorAll('.slide-dot');
+      let currentIndex = 0;
+      let autoPlayInterval;
+      
+      // Function to show slide
+      function showSlide(index) {
+        slides.forEach((slide, i) => {
+          slide.classList.remove('active');
+          if (dots[i]) dots[i].classList.remove('active');
+        });
+        
+        if (slides[index]) {
+          slides[index].classList.add('active');
+          if (dots[index]) dots[index].classList.add('active');
+        }
+        currentIndex = index;
+      }
+      
+      // Function to go to next slide
+      function nextSlide() {
+        const nextIndex = (currentIndex + 1) % slides.length;
+        showSlide(nextIndex);
+      }
+      
+      // Set up dot click handlers
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          clearInterval(autoPlayInterval);
+          showSlide(index);
+          if (slides.length > 1) startAutoPlay();
+        });
+      });
+      
+      // Start auto-play (2 second interval)
+      function startAutoPlay() {
+        autoPlayInterval = setInterval(nextSlide, 2000);
+      }
+      
+      // Pause on hover
+      carousel.addEventListener('mouseenter', () => {
+        clearInterval(autoPlayInterval);
+      });
+      
+      // Resume on mouse leave
+      carousel.addEventListener('mouseleave', () => {
+        if (slides.length > 1) startAutoPlay();
+      });
+      
+      // Start auto-play only if there are multiple slides
+      if (slides.length > 1) startAutoPlay();
+      
+      // Add magnification on click
+      const activeSlide = carousel.querySelector('.product-image-slide.active img');
+      if (activeSlide) {
+        activeSlide.addEventListener('click', (e) => {
+          if (e.target.tagName === 'IMG') {
+            showMagnifiedImage(e.target.src, carousel.getAttribute('data-product-name'));
+          }
+        });
+      }
+      
+      // Also add click to other images
+      const allImages = carousel.querySelectorAll('.product-image-slide img');
+      allImages.forEach(img => {
+        img.addEventListener('click', () => {
+          showMagnifiedImage(img.src, carousel.getAttribute('data-product-name'));
+        });
+      });
+    });
+  }
+  
+  // Magnification lightbox
+  function showMagnifiedImage(src, productName) {
+    // Remove existing magnifier if present
+    const existingMagnifier = document.querySelector('.image-magnifier');
+    if (existingMagnifier) {
+      existingMagnifier.remove();
+    }
+    
+    // Create magnifier HTML
+    const magnifier = document.createElement('div');
+    magnifier.className = 'image-magnifier active';
+    magnifier.innerHTML = `
+      <div class="image-magnifier-content">
+        <button class="image-magnifier-close" aria-label="Close">×</button>
+        <img src="${src}" alt="${productName}">
+      </div>
+    `;
+    
+    document.body.appendChild(magnifier);
+    
+    // Close button functionality
+    const closeBtn = magnifier.querySelector('.image-magnifier-close');
+    closeBtn.addEventListener('click', () => {
+      magnifier.remove();
+    });
+    
+    // Click outside to close
+    magnifier.addEventListener('click', (e) => {
+      if (e.target === magnifier) {
+        magnifier.remove();
+      }
+    });
+    
+    // ESC key to close
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        magnifier.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+  }
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeImageCarousels);
+  } else {
+    initializeImageCarousels();
+  }
+  
+  // Re-initialize if content is dynamically added
+  const originalAppend = Element.prototype.appendChild;
+  const originalInsertBefore = Element.prototype.insertBefore;
+  
+  Element.prototype.appendChild = function(node) {
+    const result = originalAppend.call(this, node);
+    if (node.nodeType === 1 && (node.classList?.contains('product-image-carousel') || node.querySelector?.('.product-image-carousel'))) {
+      initializeImageCarousels();
+    }
+    return result;
+  };
+  
+  Element.prototype.insertBefore = function(node, ref) {
+    const result = originalInsertBefore.call(this, node, ref);
+    if (node.nodeType === 1 && (node.classList?.contains('product-image-carousel') || node.querySelector?.('.product-image-carousel'))) {
+      initializeImageCarousels();
+    }
+    return result;
+  };
+})();
+</script>
 
 <!-- Checkout redirect helper: generate orderId and open pay.html with amount params -->
 <script>

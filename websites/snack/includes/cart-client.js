@@ -1,280 +1,355 @@
-(function(){
-  'use strict';
-  const LOG_PREFIX = '[CartClient]';
-  const STORAGE_KEY = 'spicy_cart_items_v1';
+(function () {
+  "use strict";
+  const LOG_PREFIX = "[CartClient]";
+  const STORAGE_KEY = "spicy_cart_items_v1";
 
-  function getUser(){
-    try{ const raw = localStorage.getItem('user'); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+  function getUser() {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
-  function requireLoginRedirect(target){
+  function requireLoginRedirect(target) {
     const user = getUser();
-    if(!user){
-      const returnUrl = target || (window.location.pathname + window.location.search);
-      window.location.href = './login.html?returnUrl=' + encodeURIComponent(returnUrl);
+    if (!user) {
+      const returnUrl =
+        target || window.location.pathname + window.location.search;
+      window.location.href =
+        "./login.html?returnUrl=" + encodeURIComponent(returnUrl);
       return true;
     }
     return false;
   }
 
-  function log(level, payload){
+  function log(level, payload) {
     const fn = console[level] || console.log;
     fn.call(console, LOG_PREFIX, payload);
   }
 
-  function loadCart(){
-    try{
+  function loadCart() {
+    try {
       const raw = localStorage.getItem(STORAGE_KEY);
       const data = raw ? JSON.parse(raw) : [];
-      if(!Array.isArray(data)) return [];
+      if (!Array.isArray(data)) return [];
       return data;
-    }catch(err){
-      log('debug', { action:'load_error', error: String(err)});
+    } catch (err) {
+      log("debug", { action: "load_error", error: String(err) });
       return [];
     }
   }
 
-  function saveCart(items){
-    try{
+  function saveCart(items) {
+    try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      log('debug', { action:'saved', count: items.length });
-    }catch(err){
-      log('debug', { action:'save_error', error: String(err)});
+      log("debug", { action: "saved", count: items.length });
+    } catch (err) {
+      log("debug", { action: "save_error", error: String(err) });
     }
   }
 
-  function addToCart(item){
+  function addToCart(item) {
     const cart = loadCart();
-    const idx = cart.findIndex(x => x.id === item.id);
-    if(idx >= 0){
+    const idx = cart.findIndex((x) => x.id === item.id);
+    if (idx >= 0) {
       cart[idx].qty = Number(cart[idx].qty || 0) + Number(item.qty || 0);
     } else {
-      cart.push({ id: String(item.id), title: item.title || '', price: Number(item.price) || 0, image: item.image || '', qty: Number(item.qty) || 0 });
+      cart.push({
+        id: String(item.id),
+        title: item.title || "",
+        price: Number(item.price) || 0,
+        image: item.image || "",
+        qty: Number(item.qty) || 0,
+      });
     }
     saveCart(cart);
     updateCartBadge();
     showMiniNotification(item);
   }
 
-  function removeFromCart(id){
-    const cart = loadCart().filter(x => x.id !== id);
+  function removeFromCart(id) {
+    const cart = loadCart().filter((x) => x.id !== id);
     saveCart(cart);
     updateCartBadge();
     renderCartPage();
   }
 
-  function updateQty(id, qty){
+  function updateQty(id, qty) {
     const cart = loadCart();
-    const idx = cart.findIndex(x => x.id === id);
-    if(idx >= 0){
-      cart[idx].qty = Math.max(1, qty|0);
+    const idx = cart.findIndex((x) => x.id === id);
+    if (idx >= 0) {
+      cart[idx].qty = Math.max(1, qty | 0);
       saveCart(cart);
       updateCartBadge();
       renderCartPage();
     }
   }
 
-  function cartCount(){
-    return loadCart().reduce((s,i)=> s + (i.qty||0), 0);
+  function cartCount() {
+    return loadCart().reduce((s, i) => s + (i.qty || 0), 0);
   }
 
-  function totalCents(){
-    return loadCart().reduce((s,i)=> {
-      const price = Number(i.price||0);
+  function totalCents() {
+    return loadCart().reduce((s, i) => {
+      const price = Number(i.price || 0);
       const cents = Math.round(price * 100);
-      const qty = Number(i.qty||0) || 0;
+      const qty = Number(i.qty || 0) || 0;
       return s + cents * qty;
     }, 0);
   }
 
-  function cartTotal(){
+  function cartTotal() {
     return totalCents() / 100;
   }
 
-  function formatCurrency(n){
-    try{
-      return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n);
-    }catch{ return 'Rs. ' + Number(n).toFixed(2); }
+  function formatCurrency(n) {
+    try {
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 2,
+      }).format(n);
+    } catch {
+      return "Rs. " + Number(n).toFixed(2);
+    }
   }
 
-  function updateCartBadge(){
-    const bubble = document.querySelector('#cart-icon-bubble .cart-count-bubble span[aria-hidden="true"]');
+  function updateCartBadge() {
+    const bubble = document.querySelector(
+      '#cart-icon-bubble .cart-count-bubble span[aria-hidden="true"]',
+    );
     if (bubble) {
       bubble.textContent = String(cartCount());
     }
   }
 
-  function showMiniNotification(item){
-    const notif = document.getElementById('cart-notification');
-    if(!notif) return;
-    const container = document.getElementById('cart-notification-product');
-    if(container){
-      container.innerHTML = '';
-      const div = document.createElement('div');
-      div.className = 'cart-notification-product__item';
-      div.innerHTML = `<div class="cart-notification-product__image" style="width:64px;height:64px;overflow:hidden">${item.image?`<img src="${item.image}" style="max-width:100%;max-height:100%"/>`:''}</div>
+  function showMiniNotification(item) {
+    const notif = document.getElementById("cart-notification");
+    if (!notif) return;
+    const container = document.getElementById("cart-notification-product");
+    if (container) {
+      container.innerHTML = "";
+      const div = document.createElement("div");
+      div.className = "cart-notification-product__item";
+      div.innerHTML = `<div class="cart-notification-product__image" style="width:64px;height:64px;overflow:hidden">${item.image ? `<img src="${item.image}" style="max-width:100%;max-height:100%"/>` : ""}</div>
         <div class="cart-notification-product__info">
-          <div class="cart-notification-product__name">${item.title||'Added to cart'}</div>
+          <div class="cart-notification-product__name">${item.title || "Added to cart"}</div>
           <div class="cart-notification-product__qty">Qty: ${item.qty}</div>
         </div>`;
       container.appendChild(div);
     }
-    notif.style.display = 'block';
-    setTimeout(()=>{ notif.style.display = 'none'; }, 2000);
+    notif.style.display = "block";
+    setTimeout(() => {
+      notif.style.display = "none";
+    }, 2000);
   }
 
-  function bindAddToCartButtons(){
+  function bindAddToCartButtons() {
     // Buttons should have data attributes or relate to a form with hidden variant id
-    const buttons = document.querySelectorAll('[data-add-to-cart], .quick-add__submit, button[name="add"], button[data-action="add-to-cart"]');
-    buttons.forEach(btn => {
-      if(btn.__cartBound) return;
+    const buttons = document.querySelectorAll(
+      '[data-add-to-cart], .quick-add__submit, button[name="add"], button[data-action="add-to-cart"]',
+    );
+    buttons.forEach((btn) => {
+      if (btn.__cartBound) return;
       btn.__cartBound = true;
-      
+
       let isProcessing = false; // Lock to prevent multiple rapid clicks
-      
-      btn.addEventListener('click', (e)=>{
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Prevent multiple rapid clicks
-        if(isProcessing) {
-          log('debug', { action:'click_ignored_processing' });
-          return;
-        }
-        isProcessing = true;
-        
-        // Add visual feedback
-        const originalText = btn.textContent;
-        const originalDisabled = btn.disabled;
-        btn.style.opacity = '0.6';
-        btn.style.pointerEvents = 'none';
-        if(btn.tagName === 'BUTTON') btn.disabled = true;
-        
-        try{
-          const root = btn.closest('li, .grid__item, .card-wrapper, .product-card-wrapper, .card, [data-product-root]') || document;
-          // Try to find a product id and details around the button
-          let id = btn.getAttribute('data-variant-id') || btn.getAttribute('data-product-id');
-          if(!id){
-            const hiddenId = root.querySelector('input[name="id"], input.product-variant-id');
-            if(hiddenId) id = hiddenId.value;
-          }
-          // Fallback: use product link href as a unique id for client-side cart when variant id is absent
-          if(!id){
-            const linkEl = root.querySelector('.card__heading a, a.full-unstyled-link[href*="/products/"], a[href*="/products/"]');
-            if(linkEl) {
-              id = linkEl.getAttribute('href') || linkEl.href || '';
-            }
-          }
-          if(!id){
-            log('debug', { action:'missing_id', btn });
-            isProcessing = false;
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-            if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
+
+      btn.addEventListener(
+        "click",
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Prevent multiple rapid clicks
+          if (isProcessing) {
+            log("debug", { action: "click_ignored_processing" });
             return;
           }
-          const titleEl = root.querySelector('.card__heading a, .product__title, h1,h2,h3');
-          let title = titleEl ? titleEl.textContent.trim() : 'Product';
-          // Try price from data attributes on the button first, then nearby price element
-          let price = 0;
-          const btnPriceAttr = btn.getAttribute && (btn.getAttribute('data-price') || btn.dataset && btn.dataset.price);
-          if(btnPriceAttr){
-            const n = String(btnPriceAttr).replace(/[^0-9\.]/g,'');
-            price = Number(n) || 0;
-          } else {
-            const priceEl = root.querySelector('[data-price], .price-item--regular, .price-item, .price-item--last');
-            if(priceEl){
-              const raw = priceEl.getAttribute('data-price') || priceEl.textContent || '';
-              const n = String(raw).replace(/[^0-9\.]/g,'');
-              price = Number(n) || 0;
-            }
-          }
-          const imgEl = root.querySelector('img');
-          let image = imgEl ? imgEl.getAttribute('src') : '';
-          // allow button to provide explicit title/image overrides
-          const btnTitle = btn.getAttribute && (btn.getAttribute('data-title') || btn.dataset && btn.dataset.title);
-          if(btnTitle) title = btnTitle;
-          const btnImage = btn.getAttribute && (btn.getAttribute('data-image') || btn.dataset && btn.dataset.image);
-          if(btnImage) image = btnImage;
+          isProcessing = true;
 
-          addToCart({ id, title, price, image, qty: 1 });
-          
-          // Reset visual feedback after a short delay
-          setTimeout(() => {
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-            if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
-          }, 100);
-          
-          // if the control is an anchor linking to cart, or explicitly requests redirect,
-          // follow the link so users land on the cart page after adding
-          try{
-            const href = btn.getAttribute && btn.getAttribute('href');
-            const wantsRedirect = (btn.getAttribute && (btn.getAttribute('data-redirect') === 'cart' || btn.getAttribute('data-redirect-to-cart') === 'true')) || btn.dataset && (btn.dataset.redirect === 'cart' || btn.dataset.redirectToCart === 'true');
-            if(href && href.toLowerCase().includes('cart')){
-              // small delay to ensure localStorage is written and UI updates
-              setTimeout(()=> {
-                if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent(href); }
-                else { window.location.href = href; }
-              }, 200);
-            } else if (wantsRedirect) {
-              setTimeout(()=> {
-                if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent('./cart.html'); }
-                else { window.location.href = './cart.html'; }
-              }, 200);
-            } else {
-              // If not redirecting, reset processing lock after a short delay
-              setTimeout(() => { isProcessing = false; }, 500);
+          // Add visual feedback
+          const originalText = btn.textContent;
+          const originalDisabled = btn.disabled;
+          btn.style.opacity = "0.6";
+          btn.style.pointerEvents = "none";
+          if (btn.tagName === "BUTTON") btn.disabled = true;
+
+          try {
+            const root =
+              btn.closest(
+                "li, .grid__item, .card-wrapper, .product-card-wrapper, .card, [data-product-root]",
+              ) || document;
+            // Try to find a product id and details around the button
+            let id =
+              btn.getAttribute("data-variant-id") ||
+              btn.getAttribute("data-product-id");
+            if (!id) {
+              const hiddenId = root.querySelector(
+                'input[name="id"], input.product-variant-id',
+              );
+              if (hiddenId) id = hiddenId.value;
             }
-          }catch(e){ 
+            // Fallback: use product link href as a unique id for client-side cart when variant id is absent
+            if (!id) {
+              const linkEl = root.querySelector(
+                '.card__heading a, a.full-unstyled-link[href*="/products/"], a[href*="/products/"]',
+              );
+              if (linkEl) {
+                id = linkEl.getAttribute("href") || linkEl.href || "";
+              }
+            }
+            if (!id) {
+              log("debug", { action: "missing_id", btn });
+              isProcessing = false;
+              btn.style.opacity = "";
+              btn.style.pointerEvents = "";
+              if (btn.tagName === "BUTTON") btn.disabled = originalDisabled;
+              return;
+            }
+            const titleEl = root.querySelector(
+              ".card__heading a, .product__title, h1,h2,h3",
+            );
+            let title = titleEl ? titleEl.textContent.trim() : "Product";
+            // Try price from data attributes on the button first, then nearby price element
+            let price = 0;
+            const btnPriceAttr =
+              btn.getAttribute &&
+              (btn.getAttribute("data-price") ||
+                (btn.dataset && btn.dataset.price));
+            if (btnPriceAttr) {
+              const n = String(btnPriceAttr).replace(/[^0-9\.]/g, "");
+              price = Number(n) || 0;
+            } else {
+              const priceEl = root.querySelector(
+                "[data-price], .price-item--regular, .price-item, .price-item--last",
+              );
+              if (priceEl) {
+                const raw =
+                  priceEl.getAttribute("data-price") ||
+                  priceEl.textContent ||
+                  "";
+                const n = String(raw).replace(/[^0-9\.]/g, "");
+                price = Number(n) || 0;
+              }
+            }
+            const imgEl = root.querySelector("img");
+            let image = imgEl ? imgEl.getAttribute("src") : "";
+            // allow button to provide explicit title/image overrides
+            const btnTitle =
+              btn.getAttribute &&
+              (btn.getAttribute("data-title") ||
+                (btn.dataset && btn.dataset.title));
+            if (btnTitle) title = btnTitle;
+            const btnImage =
+              btn.getAttribute &&
+              (btn.getAttribute("data-image") ||
+                (btn.dataset && btn.dataset.image));
+            if (btnImage) image = btnImage;
+
+            addToCart({ id, title, price, image, qty: 1 });
+
+            // Reset visual feedback after a short delay
+            setTimeout(() => {
+              btn.style.opacity = "";
+              btn.style.pointerEvents = "";
+              if (btn.tagName === "BUTTON") btn.disabled = originalDisabled;
+            }, 100);
+
+            // if the control is an anchor linking to cart, or explicitly requests redirect,
+            // follow the link so users land on the cart page after adding
+            try {
+              const href = btn.getAttribute && btn.getAttribute("href");
+              const wantsRedirect =
+                (btn.getAttribute &&
+                  (btn.getAttribute("data-redirect") === "cart" ||
+                    btn.getAttribute("data-redirect-to-cart") === "true")) ||
+                (btn.dataset &&
+                  (btn.dataset.redirect === "cart" ||
+                    btn.dataset.redirectToCart === "true"));
+              if (href && href.toLowerCase().includes("cart")) {
+                // small delay to ensure localStorage is written and UI updates
+                setTimeout(() => {
+                  if (!getUser()) {
+                    window.location.href =
+                      "./login.html?returnUrl=" + encodeURIComponent(href);
+                  } else {
+                    window.location.href = href;
+                  }
+                }, 200);
+              } else if (wantsRedirect) {
+                setTimeout(() => {
+                  if (!getUser()) {
+                    window.location.href =
+                      "./login.html?returnUrl=" +
+                      encodeURIComponent("./cart.html");
+                  } else {
+                    window.location.href = "./cart.html";
+                  }
+                }, 200);
+              } else {
+                // If not redirecting, reset processing lock after a short delay
+                setTimeout(() => {
+                  isProcessing = false;
+                }, 500);
+              }
+            } catch (e) {
+              isProcessing = false;
+              btn.style.opacity = "";
+              btn.style.pointerEvents = "";
+              if (btn.tagName === "BUTTON") btn.disabled = originalDisabled;
+            }
+          } catch (err) {
+            log("debug", { action: "add_error", error: String(err) });
             isProcessing = false;
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-            if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
+            btn.style.opacity = "";
+            btn.style.pointerEvents = "";
+            if (btn.tagName === "BUTTON") btn.disabled = originalDisabled;
           }
-        }catch(err){
-          log('debug', { action:'add_error', error: String(err)});
-          isProcessing = false;
-          btn.style.opacity = '';
-          btn.style.pointerEvents = '';
-          if(btn.tagName === 'BUTTON') btn.disabled = originalDisabled;
-        }
-      }, { passive: false }); // Ensure preventDefault works properly
+        },
+        { passive: false },
+      ); // Ensure preventDefault works properly
     });
-    log('debug', { action:'bound_buttons', count: buttons.length });
+    log("debug", { action: "bound_buttons", count: buttons.length });
   }
 
-  function renderCartPage(){
-    const container = document.querySelector('#main-cart-items .js-contents');
-    const totalsWrap = document.querySelector('#main-cart-footer .js-contents .totals__total-value');
-    const checkoutBtn = document.getElementById('checkout');
-    const isEmptyBlocks = document.querySelectorAll('#main-cart-footer, cart-items');
+  function renderCartPage() {
+    const container = document.querySelector("#main-cart-items .js-contents");
+    const totalsWrap = document.querySelector(
+      "#main-cart-footer .js-contents .totals__total-value",
+    );
+    const checkoutBtn = document.getElementById("checkout");
+    const isEmptyBlocks = document.querySelectorAll(
+      "#main-cart-footer, cart-items",
+    );
     const items = loadCart();
 
-    if(!container) return;
+    if (!container) return;
 
-    container.innerHTML = '';
-    if(items.length === 0){
-      const empty = document.querySelector('.cart__warnings');
-      if(empty) empty.style.display = '';
-      const placeholder = document.getElementById('cart-empty-placeholder');
-      if(placeholder) placeholder.style.display = '';
-      if(checkoutBtn) checkoutBtn.setAttribute('disabled','');
-      isEmptyBlocks.forEach(el => el && el.classList.add('is-empty'));
+    container.innerHTML = "";
+    if (items.length === 0) {
+      const empty = document.querySelector(".cart__warnings");
+      if (empty) empty.style.display = "";
+      const placeholder = document.getElementById("cart-empty-placeholder");
+      if (placeholder) placeholder.style.display = "";
+      if (checkoutBtn) checkoutBtn.setAttribute("disabled", "");
+      isEmptyBlocks.forEach((el) => el && el.classList.add("is-empty"));
     } else {
-      const empty = document.querySelector('.cart__warnings');
-      if(empty) empty.style.display = 'none';
-      const placeholder = document.getElementById('cart-empty-placeholder');
-      if(placeholder) placeholder.style.display = 'none';
-      if(checkoutBtn) checkoutBtn.removeAttribute('disabled');
-      isEmptyBlocks.forEach(el => el && el.classList.remove('is-empty'));
+      const empty = document.querySelector(".cart__warnings");
+      if (empty) empty.style.display = "none";
+      const placeholder = document.getElementById("cart-empty-placeholder");
+      if (placeholder) placeholder.style.display = "none";
+      if (checkoutBtn) checkoutBtn.removeAttribute("disabled");
+      isEmptyBlocks.forEach((el) => el && el.classList.remove("is-empty"));
 
-      const ul = document.createElement('ul');
-      ul.className = 'cart-items-list';
+      const ul = document.createElement("ul");
+      ul.className = "cart-items-list";
       // Inject minimal responsive styles once
-      if(!document.getElementById('cart-items-enhanced-styles')){
-        const style = document.createElement('style');
-        style.id = 'cart-items-enhanced-styles';
+      if (!document.getElementById("cart-items-enhanced-styles")) {
+        const style = document.createElement("style");
+        style.id = "cart-items-enhanced-styles";
         style.textContent = `
           .cart-items-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
           .cart-item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(0,0,0,.08);border-radius:10px;background:#fff}
@@ -296,11 +371,11 @@
         document.head.appendChild(style);
       }
 
-      items.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'cart-item';
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "cart-item";
         li.innerHTML = `
-          <div class="cart-item__media">${item.image?`<img src="${item.image}" alt="${(item.title||'Item').replace(/"/g,'')}">`:''}</div>
+          <div class="cart-item__media">${item.image ? `<img src="${item.image}" alt="${(item.title || "Item").replace(/"/g, "")}">` : ""}</div>
           <div class="cart-item__details">
             <div class="cart-item__name">${item.title}</div>
             <div class="cart-item__meta">
@@ -317,158 +392,251 @@
       });
       container.appendChild(ul);
 
-      container.querySelectorAll('.qty-dec').forEach(b=> b.addEventListener('click',()=>{
-        const id = b.getAttribute('data-id');
-        const item = loadCart().find(x=>x.id===id);
-        if(!item) return;
-        updateQty(id, Math.max(1, (item.qty||1)-1));
-      }));
-      container.querySelectorAll('.qty-inc').forEach(b=> b.addEventListener('click',()=>{
-        const id = b.getAttribute('data-id');
-        const item = loadCart().find(x=>x.id===id);
-        if(!item) return;
-        updateQty(id, (item.qty||1)+1);
-      }));
-      container.querySelectorAll('.qty-input').forEach(inp=> inp.addEventListener('change',()=>{
-        const id = inp.getAttribute('data-id');
-        const val = Number(inp.value)||1;
-        updateQty(id, Math.max(1, val));
-      }));
-      container.querySelectorAll('.remove').forEach(b=> b.addEventListener('click',()=>{
-        const id = b.getAttribute('data-id');
-        removeFromCart(id);
-      }));
+      container.querySelectorAll(".qty-dec").forEach((b) =>
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          const item = loadCart().find((x) => x.id === id);
+          if (!item) return;
+          updateQty(id, Math.max(1, (item.qty || 1) - 1));
+        }),
+      );
+      container.querySelectorAll(".qty-inc").forEach((b) =>
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          const item = loadCart().find((x) => x.id === id);
+          if (!item) return;
+          updateQty(id, (item.qty || 1) + 1);
+        }),
+      );
+      container.querySelectorAll(".qty-input").forEach((inp) =>
+        inp.addEventListener("change", () => {
+          const id = inp.getAttribute("data-id");
+          const val = Number(inp.value) || 1;
+          updateQty(id, Math.max(1, val));
+        }),
+      );
+      container.querySelectorAll(".remove").forEach((b) =>
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          removeFromCart(id);
+        }),
+      );
     }
 
-    if(totalsWrap){
+    if (totalsWrap) {
       totalsWrap.textContent = formatCurrency(cartTotal());
       // expose exact cents on totals element for external scripts/tests
-      try{ totalsWrap.setAttribute('data-amount-cents', String(totalCents())); }catch(e){}
+      try {
+        totalsWrap.setAttribute("data-amount-cents", String(totalCents()));
+      } catch (e) {}
     }
 
     // Bind checkout button to redirect to pay.html with precise amount and payload
-    try{
-      const checkoutBtn = document.getElementById('checkout');
-      if(checkoutBtn && !checkoutBtn.__checkoutBound){
+    try {
+      const checkoutBtn = document.getElementById("checkout");
+      if (checkoutBtn && !checkoutBtn.__checkoutBound) {
         checkoutBtn.__checkoutBound = true;
-        checkoutBtn.addEventListener('click', (ev)=>{
+        checkoutBtn.addEventListener("click", (ev) => {
           ev.preventDefault();
-          if(!getUser()){
-            window.location.href = './login.html?returnUrl=' + encodeURIComponent(window.location.pathname + window.location.search);
+          if (!getUser()) {
+            window.location.href =
+              "./login.html?returnUrl=" +
+              encodeURIComponent(
+                window.location.pathname + window.location.search,
+              );
             return;
           }
           const cents = totalCents();
-          const items = loadCart().map(i => ({ id: i.id, title: i.title, qty: Number(i.qty||0), price_cents: Math.round(Number(i.price||0)*100) }));
+          const items = loadCart().map((i) => ({
+            id: i.id,
+            title: i.title,
+            qty: Number(i.qty || 0),
+            price_cents: Math.round(Number(i.price || 0) * 100),
+          }));
           const user = getUser();
+
+          // Generate unique order ID FIRST - before any requests
+          const orderId =
+            "ORD" +
+            Date.now().toString(36).toUpperCase() +
+            Math.random().toString(36).substr(2, 5).toUpperCase();
+          // Store orderId in sessionStorage for persistence
+          try {
+            sessionStorage.setItem("lastOrderId", orderId);
+          } catch (e) {}
+
           const orderPayload = {
+            order_id: orderId, // Include order_id in payload
             user: {
-              email: user && (user.email || user.Email || user.customer_email || user.emailAddress) || '',
-              phone: user && (user.phone || user.mobile || user.ph || user.phoneNumber) || '',
-              name: user && (user.name || user.Customer_name || user.fullName) || '',
-              address: user && user.address || ''
+              email:
+                (user &&
+                  (user.email ||
+                    user.Email ||
+                    user.customer_email ||
+                    user.emailAddress)) ||
+                "",
+              phone:
+                (user &&
+                  (user.phone || user.mobile || user.ph || user.phoneNumber)) ||
+                "",
+              name:
+                (user && (user.name || user.Customer_name || user.fullName)) ||
+                "",
+              address: (user && user.address) || "",
             },
             items: items,
-            amount: (cents/100).toFixed(2),
+            amount: (cents / 100).toFixed(2),
             amount_cents: cents,
-            currency: 'INR',
-            invoice: items.map(i => `${i.title} x${i.qty} = ₹${((i.price_cents*i.qty)/100).toFixed(2)}`).join(', ')
+            currency: "INR",
+            invoice: items
+              .map(
+                (i) =>
+                  `${i.title} x${i.qty} = ₹${((i.price_cents * i.qty) / 100).toFixed(2)}`,
+              )
+              .join(", "),
           };
           checkoutBtn.disabled = true;
           // Prepare form data for backend
           const form = new URLSearchParams();
-          form.set('customer_name', orderPayload.user.name);
-          form.set('order_amount', orderPayload.amount);
-          form.set('delivery_address', orderPayload.user.address);
-          form.set('order_status', 'Placed');
-          form.set('phone', orderPayload.user.phone);
-          form.set('invoice', orderPayload.invoice);
+          form.set("order_id", orderId); // Include order_id in POST
+          form.set("customer_name", orderPayload.user.name);
+          form.set("order_amount", orderPayload.amount);
+          form.set("delivery_address", orderPayload.user.address);
+          form.set("order_status", "Placed");
+          form.set("phone", orderPayload.user.phone);
+          form.set("invoice", orderPayload.invoice);
 
           // Debug: log request params
-          console.log('[Order POST] Sending:', form.toString());
+          console.log("[Order POST] Sending:", form.toString());
 
-          fetch('https://spicykik-backend-production.up.railway.app/orders/api.php?setcontent=true', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: form.toString()
-          })
-          .then(async r => {
-            const text = await r.text();
-            let data;
-            try { data = JSON.parse(text); } catch { data = text; }
-            console.log('[Order POST] Response:', data);
-            return data;
-          })
-          .then(data => {
-            if(
-              (data && (data.success || data.status === 'ok')) ||
-              (data && (typeof data.response === 'string' && data.response.toLowerCase() === 'success'))
-            ){
-              // On success: clear cart and redirect to payment gateway
-              try { localStorage.removeItem('spicy_cart_items_v1'); } catch (err) { log('debug', {action:'clear_cart_error', error: String(err)}); }
-              renderCartPage();
-              // Payment gateway redirection logic (restored)
-              const paymentParams = new URLSearchParams();
-              paymentParams.set('amount', orderPayload.amount);
-              paymentParams.set('source', 'spicykik');
-              if(orderPayload.user.email) paymentParams.set('email', String(orderPayload.user.email));
-              if(orderPayload.user.phone) paymentParams.set('phone', String(orderPayload.user.phone));
-              if(orderPayload.user.name) paymentParams.set('name', String(orderPayload.user.name));
-              // Optionally add invoice or other params if needed
-              try{ paymentParams.set('items', JSON.stringify(orderPayload.items)); }catch(e){}
-              const target = 'https://payments.appsthink.com/initiate-payment?' + paymentParams.toString();
-              window.location.href = target;
-            } else {
-              // On failure: keep cart as is
-              alert('Order failed. Please try again.');
-            }
-          })
-          .catch((err)=>{
-            console.error('[Order POST] Error:', err);
-            alert('Order failed. Please try again.');
-          })
-          .finally(()=>{
-            checkoutBtn.disabled = false;
-          });
+          fetch(
+            "https://spicykik-backend-production.up.railway.app/orders/api.php?setcontent=true",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: form.toString(),
+            },
+          )
+            .then(async (r) => {
+              const text = await r.text();
+              let data;
+              try {
+                data = JSON.parse(text);
+              } catch {
+                data = text;
+              }
+              console.log("[Order POST] Response:", data);
+              return data;
+            })
+            .then((data) => {
+              if (
+                (data && (data.success || data.status === "ok")) ||
+                (data &&
+                  typeof data.response === "string" &&
+                  data.response.toLowerCase() === "success")
+              ) {
+                // On success: clear cart and redirect to payment gateway
+                try {
+                  localStorage.removeItem("spicy_cart_items_v1");
+                } catch (err) {
+                  log("debug", {
+                    action: "clear_cart_error",
+                    error: String(err),
+                  });
+                }
+                renderCartPage();
+                // Payment gateway redirection logic - uses same orderId generated above
+                const paymentParams = new URLSearchParams();
+                paymentParams.set("amount", orderPayload.amount);
+                paymentParams.set("source", "spicykik");
+                paymentParams.set("orderid", orderId); // Use pre-generated orderId
+                if (orderPayload.user.email)
+                  paymentParams.set("email", String(orderPayload.user.email));
+                if (orderPayload.user.phone)
+                  paymentParams.set("phone", String(orderPayload.user.phone));
+                if (orderPayload.user.name)
+                  paymentParams.set("name", String(orderPayload.user.name));
+                // Optionally add invoice or other params if needed
+                try {
+                  paymentParams.set(
+                    "items",
+                    JSON.stringify(orderPayload.items),
+                  );
+                } catch (e) {}
+                const target =
+                  "https://payments.appsthink.com/initiate-payment?" +
+                  paymentParams.toString();
+                window.location.href = target;
+              } else {
+                // On failure: keep cart as is
+                alert("Order failed. Please try again.");
+              }
+            })
+            .catch((err) => {
+              console.error("[Order POST] Error:", err);
+              alert("Order failed. Please try again.");
+            })
+            .finally(() => {
+              checkoutBtn.disabled = false;
+            });
         });
       }
-    }catch(e){ log('debug', { action:'bind_checkout_error', error: String(e) }); }
+    } catch (e) {
+      log("debug", { action: "bind_checkout_error", error: String(e) });
+    }
 
     updateCartBadge();
-    log('debug', { action:'render_cart', items: items.length, total: cartTotal() });
+    log("debug", {
+      action: "render_cart",
+      items: items.length,
+      total: cartTotal(),
+    });
   }
 
-  function init(){
+  function init() {
     updateCartBadge();
     bindAddToCartButtons();
     renderCartPage();
 
     // Make header cart icon clickable and navigate to cart page
-    try{
-      const headerCart = document.getElementById('cart-icon-bubble');
-      if(headerCart && !headerCart.__cartClickBound){
+    try {
+      const headerCart = document.getElementById("cart-icon-bubble");
+      if (headerCart && !headerCart.__cartClickBound) {
         headerCart.__cartClickBound = true;
-        headerCart.style.cursor = 'pointer';
-        headerCart.addEventListener('click', ()=> {
-          if(!getUser()){ window.location.href = './login.html?returnUrl=' + encodeURIComponent('./cart.html'); }
-          else { window.location.href = './cart.html'; }
+        headerCart.style.cursor = "pointer";
+        headerCart.addEventListener("click", () => {
+          if (!getUser()) {
+            window.location.href =
+              "./login.html?returnUrl=" + encodeURIComponent("./cart.html");
+          } else {
+            window.location.href = "./cart.html";
+          }
         });
       }
-    }catch(e){ /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
 
     // Observe DOM changes to bind buttons dynamically
-    if('MutationObserver' in window){
-      const obs = new MutationObserver(()=> bindAddToCartButtons());
+    if ("MutationObserver" in window) {
+      const obs = new MutationObserver(() => bindAddToCartButtons());
       obs.observe(document.documentElement, { childList: true, subtree: true });
-      log('debug', { action:'observer_attached' });
+      log("debug", { action: "observer_attached" });
     }
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }
 
   // expose minimal API for future integration if needed
-  window.SpicyCart = { loadCart, addToCart, removeFromCart, updateQty, renderCartPage };
+  window.SpicyCart = {
+    loadCart,
+    addToCart,
+    removeFromCart,
+    updateQty,
+    renderCartPage,
+  };
 })();
