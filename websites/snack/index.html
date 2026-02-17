@@ -374,53 +374,6 @@
         </a>
       </div>
 
-      <!-- Countdown Timer -->
-      <div class="countdown">
-        <div class="countdown-label">Expected Back In</div>
-        <div class="countdown-timer">
-          <div class="time-unit">
-            <div class="time-value" id="hours">02</div>
-            <div class="time-label">Hours</div>
-          </div>
-          <div class="time-unit">
-            <div class="time-value" id="minutes">30</div>
-            <div class="time-label">Min</div>
-          </div>
-          <div class="time-unit">
-            <div class="time-value" id="seconds">00</div>
-            <div class="time-label">Sec</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      // Countdown Timer - Set to 2 hours 30 minutes
-      let timeRemaining = 2 * 60 * 60 + 30 * 60; // 2 hours 30 minutes in seconds
-
-      function updateCountdown() {
-        const hours = Math.floor(timeRemaining / 3600);
-        const minutes = Math.floor((timeRemaining % 3600) / 60);
-        const seconds = timeRemaining % 60;
-
-        document.getElementById("hours").textContent = hours
-          .toString()
-          .padStart(2, "0");
-        document.getElementById("minutes").textContent = minutes
-          .toString()
-          .padStart(2, "0");
-        document.getElementById("seconds").textContent = seconds
-          .toString()
-          .padStart(2, "0");
-
-        if (timeRemaining > 0) {
-          timeRemaining--;
-          setTimeout(updateCountdown, 1000);
-        }
-      }
-
-      // Start countdown when page loads
-      updateCountdown();
-    </script>
+     
   </body>
 </html>
